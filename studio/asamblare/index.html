@@ -19,9 +19,22 @@
     <section class="assembly-intro">
       <p class="series">Atelierul de animație</p>
       <h1>Asamblare de scene</h1>
-      <p class="description">Costică, Mama, Mihai și Tata apar în scene construite din personaje și recuzită GLB. JSON-ul stabilește distribuția, pozițiile și acțiunile. Three.js redă scena în browser.</p>
+      <p class="description">În planurile episodului, Three.js folosește camera, pozițiile obiectelor și desenele evaluate în Blender.</p>
+      <div class="assembly-links"><a href="/asamblare/">Planuri din episod</a><a href="/asamblare/?mod=recuzita">Scene de probă cu GLB</a><a href="/articulatii/">Testează articulațiile Mamei</a></div>
     </section>
-    <div class="assembly">
+    <section class="view film-workbench" id="film-workbench" hidden>
+      <label class="plan-picker">Plan din episod <select id="film-cut"></select></label>
+      <div class="assembly-stage">
+        <canvas id="film-plan" role="img" aria-label="Planul episodului randat în Three.js" hidden></canvas>
+        <p id="film-load" role="status">Se încarcă planul…</p>
+      </div>
+      <div class="play-row">
+        <button type="button" id="film-play">Redă planul</button>
+        <input id="film-frame" type="range" aria-label="Cadru Blender">
+        <output id="film-readout" for="film-frame"></output>
+      </div>
+    </section>
+    <div class="assembly" id="assembly-workbench">
       <section class="view" aria-label="Scenă interactivă">
         <div class="clip-picker" id="clip-picker" role="group" aria-label="Clip"></div>
         <div class="assembly-stage" id="assembly-stage">

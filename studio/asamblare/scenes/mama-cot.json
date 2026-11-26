@@ -1,0 +1,26 @@
+{
+  "id": "mama-cot",
+  "title": "Cot și manșetă",
+  "description": "Mama apropie și depărtează palma. Urmărește curbura mânecii și alinierea ei cu manșeta.",
+  "category": "articulatii",
+  "duration": 4,
+  "camera": {
+    "center": [
+      0,
+      3.26
+    ],
+    "width": 7.2
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-cot",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

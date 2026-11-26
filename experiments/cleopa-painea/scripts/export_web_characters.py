@@ -1,5 +1,8 @@
 """Build animated GLBs with the episode's 2.5D character art and rigs."""
+import json
+from math import radians
 from pathlib import Path
+import struct
 import sys
 
 import bpy
@@ -38,6 +41,40 @@ def pose(character, side, target, direction, hand):
     blink(rig, 74)
     breathing(character, FIRST, LAST)
     finish_action(rig, character["action"])
+
+
+def stress_pose(character, test):
+    rig = character["rig"]
+    side = "L"
+    stand(character, FIRST)
+    rest = relax_wrist(character, side)
+    down = (.06, -1)
+    levels = {
+        "palma": [(21, (1.10, .95), (.9, .25)), (81, (1.10, .95), (.9, .25))],
+        "cot": [(21, (1.28, .71), (.82, -.40)), (45, (.30, 1.23), (-.86, .41)),
+                (65, (.47, 1.76), (-.43, .91)), (81, (1.25, 1.04), (.92, .31))],
+        "umar": [(21, (1.03, .81), (.85, -.41)), (44, (1.62, 1.50), (.97, .24)),
+                 (64, (1.18, 2.28), (.33, .94)), (81, (1.48, 1.15), (.96, -.13))],
+    }
+    arms(character, side, [(FIRST, rest, down), *levels[test], (LAST, rest, down)])
+    for frame, drawing in ((14, "open"), (91, "rest")):
+        hand_pose(character, side, frame, drawing)
+    blink(rig, 18)
+    breathing(character, FIRST, LAST)
+    finish_action(rig, character["action"])
+
+    if test == "palma":
+        # Author palm orientations relative to the forearm, then let Bézier
+        # interpolation round the change of direction at each held pose.
+        bone = rig.pose.bones["hand."+side]
+        path = bone.path_from_id("rotation_euler")
+        curve = rig.animation_data.action.fcurves.find(path, index=2)
+        curve.keyframe_points.clear()
+        for frame, angle in ((1, 0), (21, -6), (31, 32), (39, 32), (53, -43),
+                             (61, -43), (73, 26), (84, -8), (97, 0)):
+            key = curve.keyframe_points.insert(frame, radians(angle))
+            key.interpolation = "BEZIER"
+            key.handle_left_type = key.handle_right_type = "AUTO_CLAMPED"
 
 
 def bake_drawing_switches(scene, meshes):
@@ -147,13 +184,40 @@ def bake_arm(scene, meshes, side):
         linear_keys(obj)
 
 
-def export_character(id_, design, look, side, target, direction, hand):
+def keep_face_switches_discrete(path):
+    """Sampled glTF exports use linear scale, which pulls an eye toward its pivot."""
+    raw = path.read_bytes()
+    size = struct.unpack_from("<I", raw, 12)[0]
+    document = json.loads(raw[20:20+size])
+    for animation in document.get("animations", []):
+        samplers = animation["samplers"]
+        for channel in animation["channels"]:
+            target = channel["target"]
+            name = document["nodes"][target["node"]].get("name", "")
+            if target["path"] == "scale" and any(label in name for label in (" / Eye ", " / Mouth ")):
+                channel_index = channel["sampler"]
+                channel["sampler"] = len(samplers)
+                samplers.append(dict(samplers[channel_index], interpolation="STEP"))
+    encoded = json.dumps(document, ensure_ascii=False, separators=(",", ":")).encode()
+    encoded += b" " * (-len(encoded) % 4)
+    tail = raw[20+size:]
+    path.write_bytes(struct.pack("<4sII", b"glTF", 2, 20+len(encoded)+len(tail))
+                     + struct.pack("<I4s", len(encoded), b"JSON") + encoded + tail)
+
+
+def export_character(id_, design, look, side, target, direction, hand, test=None):
     scene = setup("gest", fps=24, end=LAST)
     character = actor(scene.collection, design, id_, (0, 0, 0), look=look, interior=True)
     rig, collection = character["rig"], character["collection"]
     if id_ == "tata":
         short_beard(character)
-    pose(character, side, target, direction, hand)
+    if test:
+        stress_pose(character, test)
+        scene.frame_set(FIRST)
+        filename = Path(__file__).resolve().parents[1] / "scenes" / f"mama-test-{test}.blend"
+        bpy.ops.wm.save_as_mainfile(filepath=str(filename), compress=True)
+    else:
+        pose(character, side, target, direction, hand)
     meshes = [obj for obj in collection.objects if obj.type == "MESH"]
     scene.frame_set(FIRST)
     depsgraph = bpy.context.evaluated_depsgraph_get()
@@ -170,16 +234,23 @@ def export_character(id_, design, look, side, target, direction, hand):
     for obj in collection.objects:
         if obj.type == "MESH":
             obj.select_set(True)
+    output = OUTPUT / f"{id_}.glb"
     bpy.ops.export_scene.gltf(
-        filepath=str(OUTPUT / f"{id_}.glb"), export_format="GLB",
+        filepath=str(output), export_format="GLB",
         use_selection=True, export_yup=False, export_animations=True, export_skins=True,
         export_animation_mode="SCENE", export_frame_range=True, export_frame_step=1,
         export_morph_normal=False,
         export_anim_slide_to_zero=True, export_anim_scene_split_object=False, export_nla_strips_merged_animation_name="gest",
     )
+    keep_face_switches_discrete(output)
 
 
 if __name__ == "__main__":
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for args in CHARACTERS:
-        export_character(*args)
+    options = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
+    if options == ["--stress"]:
+        for test in ("palma", "cot", "umar"):
+            export_character("mama-"+test, "mother", 1, "L", None, None, None, test)
+    else:
+        for args in CHARACTERS:
+            export_character(*args)

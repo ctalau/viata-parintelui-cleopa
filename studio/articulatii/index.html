@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teste de articulații · Viața Părintelui Cleopa</title>
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/asamblare/asamblare.css">
+  <script src="/asamblare/asamblare.js" type="module"></script>
+</head>
+<body data-category="articulatii">
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/asamblare/">Atelier Three.js</a></nav>
+  </header>
+  <main class="shell">
+    <section class="assembly-intro">
+      <p class="series">Atelierul de animație</p>
+      <h1>Articulațiile Mamei</h1>
+      <p class="description">Alege un test și oprește mișcarea în punctele de flexie maximă. Poți verifica articulația și din lateral.</p>
+    </section>
+    <div class="assembly">
+      <section class="view" aria-label="Test interactiv">
+        <label class="plan-picker">Test de articulație <select id="clip-picker"></select></label>
+        <div class="assembly-stage" id="assembly-stage">
+          <canvas id="assembly-canvas" role="img" aria-label="Mama, cu rig animat în Three.js"></canvas>
+          <p id="assembly-status" role="status">Se încarcă Mama…</p>
+        </div>
+        <div id="assembly-controls" hidden>
+          <div class="play-row">
+            <button type="button" id="assembly-play">Redă clipul</button>
+            <input type="range" id="assembly-time" min="0" max="4" value="0" step="0.01" aria-label="Momentul din clip">
+            <output for="assembly-time" id="assembly-readout">0,0 s</output>
+          </div>
+          <label class="angle-row" for="assembly-angle"><span>Unghiul camerei</span><input type="range" id="assembly-angle" min="-42" max="42" value="0"><output for="assembly-angle" id="angle-readout">0°</output></label>
+        </div>
+      </section>
+      <aside class="assembly-panel">
+        <h2>Ce să urmărești</h2>
+        <p id="clip-description"></p>
+        <fieldset id="instance-list" disabled><legend class="sr-only">Vizibilitate</legend></fieldset>
+        <div class="assembly-links">
+          <a id="clip-source" href="/asamblare/scenes/mama-palma.json">Scena JSON</a>
+          <a id="clip-blend" href="https://github.com/ctalau/viata-parintelui-cleopa/tree/main/experiments/cleopa-painea/scenes">Rigul în Blender</a>
+          <a id="clip-png" hidden download>Cadru PNG</a>
+          <a id="clip-mp4" hidden>Clip MP4</a>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span></footer>
+</body>
+</html>

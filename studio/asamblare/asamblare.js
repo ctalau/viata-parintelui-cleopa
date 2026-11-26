@@ -104,12 +104,17 @@ async function openClip({ id, png, mp4 }, catalog) {
     link.href = `/asamblare/renders/${id}.${extension}`;
     link.hidden = !available;
   }
-  for (const button of picker.children) button.setAttribute('aria-pressed', button.value === id);
+  if (picker instanceof HTMLSelectElement) picker.value = id;
+  else for (const button of picker.children) button.setAttribute('aria-pressed', button.value === id);
   try {
     const descriptor = await json(clipURL(id));
     const ids = [...new Set(descriptor.objects.map(({ asset }) => asset))];
     const templates = await Promise.all(ids.map(async (key) => [key, await loadAsset(key)]));
     if (selection !== latest) return;
+    const description = $('clip-description');
+    if (description) description.textContent = descriptor.description;
+    const blend = $('clip-blend');
+    if (blend) blend.href = `https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/mama-test-${id.slice(5)}.blend`;
     const assembled = assembleScene(descriptor, new Map(templates));
     player?.dispose();
     clip = descriptor;
@@ -129,22 +134,31 @@ async function openClip({ id, png, mp4 }, catalog) {
 }
 
 async function start() {
-  const [catalog, clips] = await Promise.all([
+  const [catalog, allClips] = await Promise.all([
     json('/assets/recuzita/catalog.json'),
     json('/asamblare/clips.json'),
   ]);
   renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setClearColor('#31251d');
-  const first = clips.find(({ id }) => id === 'painea-pe-masa') ?? clips[0];
+  const category = document.body.dataset.category;
+  const clips = allClips.filter((item) => item.category === category || item.id === params.get('clip'));
+  const first = clips.find(({ id }) => id === 'mama-palma' && category) ?? clips.find(({ id }) => id === 'painea-pe-masa') ?? clips[0];
   const selected = clips.find(({ id }) => id === params.get('clip')) ?? first;
   new ResizeObserver(resize).observe($('assembly-stage'));
   for (const item of [first, ...clips.filter((entry) => entry !== first)]) {
+    if (picker instanceof HTMLSelectElement) {
+      picker.add(new Option(item.title, item.id));
+      continue;
+    }
     const button = document.createElement('button');
     button.type = 'button';
     button.value = item.id;
     button.textContent = item.title;
     button.addEventListener('click', () => openClip(item, catalog).catch(console.error));
     picker.append(button);
+  }
+  if (picker instanceof HTMLSelectElement) {
+    picker.addEventListener('change', () => openClip(clips.find(({ id }) => id === picker.value), catalog).catch(console.error));
   }
   play.addEventListener('click', () => {
     if (scheduledFrame !== undefined) return stop();

@@ -1,7 +1,7 @@
 const $ = (id) => document.getElementById(id);
-const colors = ['#dca753', '#5f8bd0', '#3fa389', '#cc6867'];
+const colors = ['#dca753', '#986cb6', '#5f8bd0', '#3fa389', '#cc6867'];
 const formatDepth = new Intl.NumberFormat('ro', { maximumFractionDigits: 2 });
-const jointNames = ['Piept', 'Braț', 'Antebraț', 'Mână'];
+const jointNames = ['Piept', 'Umăr', 'Braț', 'Antebraț', 'Mână'];
 
 function svg(tag, attributes) {
   const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
@@ -72,7 +72,7 @@ function setup(data) {
     }
     const grid = data.sleeve.faces.map((face) => `M${face.map((id) => sample.sleeve[id].join(',')).join('L')}Z`).join('');
     overlay.append(svg('path', { d: grid, fill: '#ffe09a', 'fill-opacity': 0.12, stroke: '#ffe09a', 'stroke-width': 1.4 }));
-    for (const [joint, color] of [['upper_arm.R', colors[1]], ['forearm.R', colors[2]], ['hand.R', colors[3]]]) {
+    for (const [joint, color] of [['shoulder.R', colors[1]], ['forearm.R', colors[3]], ['hand.R', colors[4]]]) {
       const i = data.rigs.costica.bones.findIndex(({ name }) => name === joint);
       const [cx, cy] = sample.rigs.costica[i];
       overlay.append(svg('circle', { cx, cy, r: 5.5, fill: color, stroke: '#fffaf2', 'stroke-width': 1.5 }));

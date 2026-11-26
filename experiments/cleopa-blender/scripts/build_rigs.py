@@ -36,6 +36,8 @@ def armature(profile, coll):
         x = sign*profile['shoulder_x']
         e = shoulder_y-profile['upper']
         w = e-profile['lower']
+        if profile.get('soft_shoulder'):
+            bone('shoulder.'+side, (x, shoulder_y), (x, shoulder_y-.20), 'chest')
         bone('upper_arm.'+side, (x, shoulder_y), (x, e), 'chest')
         bone('forearm.'+side, (x, e), (x, w), 'upper_arm.'+side).inherit_scale = 'NONE'
         bone('hand.'+side, (x, w), (x, w-profile['hand']), 'forearm.'+side).inherit_scale = 'NONE'
@@ -49,6 +51,15 @@ def armature(profile, coll):
     rig.select_set(False)
     for pbone in rig.pose.bones:
         pbone.rotation_mode = 'XYZ'
+    if profile.get('soft_shoulder'):
+        for side in ('R', 'L'):
+            follow = rig.pose.bones['shoulder.'+side].constraints.new('COPY_ROTATION')
+            follow.name = 'Urmează parțial brațul'
+            follow.target = rig
+            follow.subtarget = 'upper_arm.'+side
+            follow.owner_space = follow.target_space = 'LOCAL'
+            follow.use_x = follow.use_y = False
+            follow.influence = .38
     rig['arm_control'] = 'FK: upper_arm, forearm and hand. The arm actions include projected foreshortening.'
     rig['handedness'] = 'Anatomical right is screen-left in the frontal view.'
     return rig

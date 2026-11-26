@@ -1,6 +1,8 @@
 import './yard-editor.js';
+import { createFilm } from './film/player.js';
 
-const video = document.querySelector('#episode');
+const audio = document.querySelector('#episode');
+const canvas = document.querySelector('#episode-picture');
 const form = document.querySelector('#feedback-form');
 const timeLabel = document.querySelector('#timestamp');
 const status = document.querySelector('#feedback-status');
@@ -20,6 +22,25 @@ const episodeLength = document.querySelector('#episode-length');
 const episode = 'painea-care-poate-sa-astepte';
 let episodeDuration;
 let markedTime = null;
+let film;
+let tick;
+
+async function renderFilm() {
+  if (!film) return;
+  try {
+    await film.draw(currentTime());
+  } catch (error) {
+    audio.pause();
+    playbackStatus.textContent = 'Nu s-a putut încărca planul. Poți descărca filmul MP4.';
+    playbackStatus.hidden = false;
+    console.error(error);
+  }
+}
+
+function animate() {
+  void renderFilm();
+  if (!audio.paused) tick = requestAnimationFrame(animate);
+}
 
 function clock(time, decimal = false) {
   const tenths = Math.round(time * 10);
@@ -29,11 +50,11 @@ function clock(time, decimal = false) {
 }
 
 function duration() {
-  return episodeDuration ?? (Number.isFinite(video.duration) ? video.duration : 0);
+  return episodeDuration ?? (Number.isFinite(audio.duration) ? audio.duration : 0);
 }
 
 function currentTime() {
-  return Math.min(video.currentTime, duration());
+  return Math.min(audio.currentTime, duration());
 }
 
 function updateTime() {
@@ -47,32 +68,31 @@ function updateTime() {
 function updateDuration() {
   const seconds = Math.round(duration());
   episodeLength.textContent = seconds ? `${Math.floor(seconds / 60)} min ${seconds % 60} s` : '';
-  seek.disabled = video.readyState === 0;
+  seek.disabled = !film || audio.readyState === 0;
+  play.disabled = !film || audio.readyState === 0;
   seek.max = seek.disabled ? 0 : duration();
   for (const button of jumpButtons) button.disabled = seek.disabled;
   updateTime();
 }
 
 function updatePlay() {
-  play.setAttribute('aria-label', video.paused ? 'Redă filmul' : 'Pauză');
-  play.dataset.playing = String(!video.paused);
+  play.setAttribute('aria-label', audio.paused ? 'Redă filmul' : 'Pauză');
+  play.dataset.playing = String(!audio.paused);
 }
 
 function jumpTo(time) {
-  if (video.readyState === 0) return;
-  // Show the decoded frame on the first paused seek, including before the first play.
-  video.removeAttribute('poster');
-  video.currentTime = Math.max(0, Math.min(duration(), time));
+  if (audio.readyState === 0 || !film) return;
+  audio.currentTime = Math.max(0, Math.min(duration(), time));
   updateTime();
 }
 
 async function togglePlayback() {
-  if (!video.paused) {
-    video.pause();
+  if (!audio.paused) {
+    audio.pause();
     return;
   }
   try {
-    await video.play();
+    await audio.play();
     playbackStatus.hidden = true;
   } catch {
     playbackStatus.hidden = false;
@@ -81,7 +101,7 @@ async function togglePlayback() {
 }
 
 function markTime() {
-  video.pause();
+  audio.pause();
   markedTime = currentTime();
   timeLabel.textContent = clock(markedTime, true);
   status.removeAttribute('data-error');
@@ -96,17 +116,25 @@ async function flagMoment() {
 
 function toggleFull() {
   if (document.fullscreenElement === screen) return document.exitFullscreen();
-  if (screen.requestFullscreen) return screen.requestFullscreen();
-  video.webkitEnterFullscreen?.();
+  return screen.requestFullscreen?.();
 }
 
-video.addEventListener('timeupdate', updateTime);
-video.addEventListener('loadedmetadata', updateDuration);
-video.addEventListener('play', updatePlay);
-video.addEventListener('pause', updatePlay);
-video.addEventListener('ended', updatePlay);
+audio.addEventListener('timeupdate', updateTime);
+audio.addEventListener('loadedmetadata', updateDuration);
+audio.addEventListener('seeking', renderFilm);
+audio.addEventListener('seeked', renderFilm);
+audio.addEventListener('play', () => {
+  updatePlay();
+  animate();
+});
+audio.addEventListener('pause', () => {
+  updatePlay();
+  cancelAnimationFrame(tick);
+  void renderFilm();
+});
+audio.addEventListener('ended', updatePlay);
 play.addEventListener('click', togglePlayback);
-video.addEventListener('click', togglePlayback);
+canvas.addEventListener('click', () => { if (film) void togglePlayback(); });
 seek.addEventListener('input', () => jumpTo(Number(seek.value)));
 for (const button of jumpButtons) {
   button.addEventListener('click', () => jumpTo(currentTime() + Number(button.dataset.skip)));
@@ -114,9 +142,9 @@ for (const button of jumpButtons) {
 flag.addEventListener('click', flagMoment);
 capture.addEventListener('click', markTime);
 sound.addEventListener('click', () => {
-  video.muted = !video.muted;
-  sound.setAttribute('aria-pressed', String(video.muted));
-  sound.setAttribute('aria-label', video.muted ? 'Pornește sunetul' : 'Oprește sunetul');
+  audio.muted = !audio.muted;
+  sound.setAttribute('aria-pressed', String(audio.muted));
+  sound.setAttribute('aria-label', audio.muted ? 'Pornește sunetul' : 'Oprește sunetul');
 });
 full.addEventListener('click', () => Promise.resolve(toggleFull()).catch(() => {}));
 document.addEventListener('keydown', (event) => {
@@ -131,9 +159,39 @@ document.addEventListener('keydown', (event) => {
   }
   event.preventDefault();
 });
-video.controls = false;
 controls.hidden = false;
 updateDuration();
+
+async function setupFilm() {
+  try {
+    film = await createFilm(canvas);
+    const preview = new ResizeObserver(() => {
+      const { width, height } = canvas.getBoundingClientRect();
+      film.fit(width, height, Math.min(devicePixelRatio || 1, 2));
+      void renderFilm();
+    });
+    if (new URLSearchParams(location.search).has('export')) {
+      window.captureEpisode = {
+        fps: film.info.fps, end: film.info.end,
+        async png(frame, width, height) {
+          film.fit(width, height);
+          await film.draw((frame-1)/film.info.fps);
+          return canvas.toDataURL('image/png');
+        },
+      };
+    } else {
+      preview.observe(canvas);
+      await renderFilm();
+    }
+    updateDuration();
+  } catch (error) {
+    playbackStatus.textContent = 'Randarea Three.js nu este disponibilă. Poți descărca filmul MP4.';
+    playbackStatus.hidden = false;
+    console.error(error);
+  }
+}
+
+void setupFilm();
 
 async function submitFeedback(event) {
   event.preventDefault();

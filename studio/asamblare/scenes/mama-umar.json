@@ -1,0 +1,26 @@
+{
+  "id": "mama-umar",
+  "title": "Umăr",
+  "description": "Mama ridică brațul lateral și deasupra umărului. Urmărește trecerea dintre bluză și mânecă la ridicare și coborâre.",
+  "category": "articulatii",
+  "duration": 4,
+  "camera": {
+    "center": [
+      0,
+      3.26
+    ],
+    "width": 7.2
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-umar",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

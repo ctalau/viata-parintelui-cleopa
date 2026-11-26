@@ -1,6 +1,6 @@
 """Build the illustrated episode as one editable Blender timeline."""
 from array import array
-from math import cos, pi, sin, tau
+from math import cos, pi, radians, sin, tau
 from pathlib import Path
 import json
 import sys
@@ -63,6 +63,8 @@ def key(obj, frame, position=None, turn=None, scale=None):
 def actor(coll, design, name, position, size=1, look=None, hat=False, interior=False):
     base = character_profile(design)
     changes = {
+        "soft_shoulder": True,
+        "wrist_limit": 55*pi/180,
         "shoulder_x": base["shoulder_x"]*.95,
         "shoulder_y": base["shoulder_y"]-.135,
         "collar_y": base["shoulder_y"]-.045,
@@ -151,6 +153,39 @@ def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None):
                 bpy.context.scene.frame_set(frame)
                 point=(point-Vector((rig.location.x,rig.location.y)))/a["size"]
             prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit)
+
+
+def stabilize_wrists(rig, action):
+    """Add intermediate wrist keys when the projected forearm crosses the angle wrap."""
+    limit = radians(8)
+    for side in ("R", "L"):
+        bone = rig.pose.bones["hand."+side]
+        path = bone.path_from_id("rotation_euler")
+        curve = next((curve for curve in channels(rig, action)
+                      if curve.data_path == path and curve.array_index == 2), None)
+        if curve is None or len(curve.keyframe_points) < 2:
+            continue
+        first, last = map(round, curve.range())
+        original = [curve.evaluate(frame) for frame in range(first, last+1)]
+        values = [original[0]]
+        changed = []
+        for frame, target in enumerate(original[1:], first+1):
+            previous = values[-1]
+            delta = target-previous
+            values.append(previous+max(-limit, min(limit, delta)))
+            if abs(delta) > limit:
+                changed.append(frame)
+        if not changed:
+            continue
+        points = curve.keyframe_points
+        points.clear()
+        points.add(len(values))
+        points.foreach_set("co", [component for offset, angle in enumerate(values)
+                                   for component in (first+offset, angle)])
+        for point in points:
+            point.interpolation = "LINEAR"
+        curve.update()
+        print("WRIST_KEYS", rig.name, side, ",".join(map(str, changed)), flush=True)
 
 
 def position_paths(a, values):
@@ -962,6 +997,7 @@ def main():
                 obj.parent=pivot
         for a in actors:
             finish_action(a["rig"],a["action"])
+            stabilize_wrists(a["rig"],a["action"])
     cuts=cameras(scene)
     titles(cuts)
     make_sound_strips(scene)

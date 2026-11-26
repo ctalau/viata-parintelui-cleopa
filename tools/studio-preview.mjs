@@ -11,7 +11,7 @@ const feedbackDir = path.resolve(process.env.CLEOPA_FEEDBACK_DIR || path.join(RO
 const types = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4',
-  '.mp3': 'audio/mpeg', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.glb': 'model/gltf-binary', '.woff2': 'font/woff2',
 };
 

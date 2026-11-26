@@ -1,0 +1,109 @@
+{
+  "fps": 24,
+  "step": 2,
+  "end": 3370,
+  "shots": [
+    {
+      "id": "plan-01",
+      "name": "Satul în zori",
+      "frame": 1,
+      "end": 253
+    },
+    {
+      "id": "plan-02",
+      "name": "Cocoșul și purcelușul",
+      "frame": 253,
+      "end": 421
+    },
+    {
+      "id": "plan-03",
+      "name": "Trezirea lui Costică",
+      "frame": 421,
+      "end": 505
+    },
+    {
+      "id": "plan-04",
+      "name": "Ghiorrr!",
+      "frame": 505,
+      "end": 591
+    },
+    {
+      "id": "plan-05",
+      "name": "La troacă",
+      "frame": 591,
+      "end": 787
+    },
+    {
+      "id": "plan-06",
+      "name": "Mihai apare de după șură",
+      "frame": 787,
+      "end": 1011
+    },
+    {
+      "id": "plan-07",
+      "name": "Pâinea caldă",
+      "frame": 1011,
+      "end": 1211
+    },
+    {
+      "id": "plan-08",
+      "name": "Drumul spre școală",
+      "frame": 1211,
+      "end": 1353
+    },
+    {
+      "id": "plan-09",
+      "name": "Încă puțin",
+      "frame": 1353,
+      "end": 1617
+    },
+    {
+      "id": "plan-10",
+      "name": "Tata în prag",
+      "frame": 1617,
+      "end": 1843
+    },
+    {
+      "id": "plan-11",
+      "name": "Întâi ne rugăm",
+      "frame": 1843,
+      "end": 2091
+    },
+    {
+      "id": "plan-12",
+      "name": "Dar Grăsuțu a început-o…",
+      "frame": 2091,
+      "end": 2201
+    },
+    {
+      "id": "plan-13",
+      "name": "Grăsuțu e fericit",
+      "frame": 2201,
+      "end": 2323
+    },
+    {
+      "id": "plan-14",
+      "name": "Porcul și omul",
+      "frame": 2323,
+      "end": 2605
+    },
+    {
+      "id": "plan-15",
+      "name": "Un ceas întreg?!",
+      "frame": 2605,
+      "end": 2759
+    },
+    {
+      "id": "plan-16",
+      "name": "Și burta zice Amin",
+      "frame": 2759,
+      "end": 2879
+    },
+    {
+      "id": "plan-17",
+      "name": "La icoane",
+      "frame": 2879,
+      "end": 3371
+    }
+  ]
+}

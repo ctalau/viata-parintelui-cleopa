@@ -1,0 +1,26 @@
+{
+  "id": "mama-palma",
+  "title": "Palmă și încheietură",
+  "description": "Antebrațul rămâne stabil. Palma se întinde, se îndoaie și revine prin poziții cheie intermediare.",
+  "category": "articulatii",
+  "duration": 4,
+  "camera": {
+    "center": [
+      0,
+      3.26
+    ],
+    "width": 7.2
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-palma",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

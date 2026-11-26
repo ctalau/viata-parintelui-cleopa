@@ -16,16 +16,19 @@ def ease(value):
 
 def bind_cloth(obj, rig, side, shoulder, upper, length):
     """Keep the sleeve cap on the bodice and blend the moving joints."""
-    bones = ("chest","upper_arm."+side,"forearm."+side,"hand."+side)
+    bones = ("chest","shoulder."+side,"upper_arm."+side,"forearm."+side,"hand."+side)
     groups = [obj.vertex_groups.new(name=bone) for bone in bones]
     transition = upper*.34
     for vertex in obj.data.vertices:
         distance = shoulder-vertex.co.y
-        shoulder_blend = ease((distance-.018)/(.37*upper))
+        shoulder_blend = ease((distance+.035)/(.50*upper))
+        cap_blend = ease((distance-.045)/(.53*upper))
         elbow = ease((distance-upper+transition)/(2*transition))
         cuff = ease((distance-length+.158)/.150)
-        arm = shoulder_blend*(1-cuff)
-        weights = (1-shoulder_blend,arm*(1-elbow),arm*elbow,cuff)
+        chest = (1-shoulder_blend)*(1-cuff)
+        cap = shoulder_blend*(1-cap_blend)*(1-cuff)
+        arm = shoulder_blend*cap_blend*(1-cuff)
+        weights = (chest,cap,arm*(1-elbow),arm*elbow,cuff)
         for group,weight in zip(groups,weights):
             if weight > 0:
                 group.add([vertex.index],weight,"REPLACE")
@@ -49,9 +52,9 @@ def sleeve(profile, rig, coll, side, sign):
     width = profile["body"]*.44
     near, far = (.104,.63) if side=="R" else (.089,.56)
 
-    distances = (-.103,-.085,-.061,-.025,.055,upper*.30,upper*.71,upper,
+    distances = (-.159,-.136,-.102,-.045,.060,upper*.30,upper*.71,upper,
                  upper+lower*.27,upper+lower*.54,end-.15,end-.035,end+.012,end+.027)
-    widths = (.15,.50,.74,.88,.97,1,.92,.83,.87,.83,.73,.69,.62,.44)
+    widths = (.22,.55,.81,.93,.98,1,.92,.83,.87,.83,.73,.69,.62,.44)
     rows = sorted(set(distances) | {end-.156,end-.134,end-.017})
     samples = [rows[0]]
     for a,b in zip(rows,rows[1:]):
@@ -71,9 +74,10 @@ def sleeve(profile, rig, coll, side, sign):
         radius = width*width_at(distance,distances,widths)
         border = min(.021,radius*.28)
         offsets = (-radius,-radius+border,-radius*.72,radius-border,radius)
-        z = depth(distance)
+        # Sink the inboard edge into the bodice while the outer edge follows the cap.
+        inward = .09*(1-ease((distance+.10)/(.54*upper)))
         for offset in offsets:
-            vertices.append((x+sign*offset,top-distance,z))
+            vertices.append((x+sign*(offset-inward),top-distance,depth(distance)))
     for row,(a,b) in enumerate(zip(samples,samples[1:])):
         length = (a+b)*.5
         for column in range(columns-1):

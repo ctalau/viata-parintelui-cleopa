@@ -12,7 +12,8 @@
     "check:cleopa": "bash scripts/check-cleopa.sh",
     "feedback:export": "node tools/feedback-export.mjs",
     "check:preview": "node tools/check-preview.mjs",
-    "render:scene": "node tools/render-assembly.mjs"
+    "render:scene": "node tools/render-assembly.mjs",
+    "sheet": "node tools/sheet.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.9.0",

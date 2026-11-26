@@ -28,12 +28,15 @@ try {
     (duration) => Math.abs(document.querySelector('#episode')?.duration - duration) < 0.05,
     episode.duration,
   );
-  await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4);
+  await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4 &&
+    document.querySelector('#episode-picture').dataset.frame === '1' && !document.querySelector('#seek').disabled);
+  assert.equal(await page.locator('#episode').evaluate((media) => media.tagName), 'AUDIO');
   assert.equal(Number(await page.locator('#seek').getAttribute('max')), episode.duration);
   await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
   await page.waitForFunction(() => {
     const video = document.querySelector('#episode');
-    return video.paused && !video.seeking && video.readyState >= 2 && !video.hasAttribute('poster') && video.currentTime === 5;
+    return video.paused && !video.seeking && video.currentTime === 5 &&
+      document.querySelector('#episode-picture').dataset.frame === '121';
   });
   await page.getByRole('button', { name: 'Redă filmul' }).click();
   await page.waitForFunction(() => document.querySelector('#episode').currentTime > 5.25);
@@ -122,7 +125,7 @@ try {
   await page.getByRole('button', { name: 'Mihai', exact: true }).click();
   await page.getByLabel('Os', { exact: true }).selectOption({ label: 'hand.L' });
   assert.match(await page.locator('#bone-parent').textContent(), /forearm\.L/);
-  assert.equal(await page.locator('#overlay line').count(), 18);
+  assert.equal(await page.locator('#overlay line').count(), 20);
   await page.getByRole('button', { name: 'Straturi', exact: true }).click();
   await page.getByRole('button', { name: 'Pâine și vase', exact: true }).click();
   await page.waitForFunction(() => {
@@ -141,6 +144,10 @@ try {
   await page.getByText('Ce rol au .blend, Python, SVG și Three.js', { exact: true }).click();
   await page.getByRole('link', { name: 'Asamblează scene în Three.js' }).click();
   await page.getByRole('heading', { name: 'Asamblare de scene' }).waitFor();
+  await page.getByRole('img', { name: 'Planul episodului randat în Three.js' }).waitFor();
+  await page.getByLabel('Plan din episod').selectOption('plan-17');
+  await page.waitForFunction(() => document.querySelector('#film-plan').dataset.frame === '2879');
+  await page.getByRole('link', { name: 'Scene de probă cu GLB' }).click();
   const assemblyTime = page.getByRole('slider', { name: 'Momentul din clip' });
   await assemblyTime.waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
@@ -181,6 +188,22 @@ try {
     const status = await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, link);
     assert.equal(status, 200);
   }
+  await page.getByRole('link', { name: 'Testează articulațiile Mamei' }).click();
+  await page.getByRole('heading', { name: 'Articulațiile Mamei' }).waitFor();
+  const tests = page.getByLabel('Test de articulație');
+  const stressCanvas = page.getByRole('img', { name: 'Mama, cu rig animat în Three.js' });
+  for (const id of ['mama-palma', 'mama-cot', 'mama-umar']) {
+    await tests.selectOption(id);
+    await assemblyTime.waitFor();
+    assert.equal(await tests.inputValue(), id);
+    const initial = await stressCanvas.screenshot();
+    await assemblyTime.evaluate((slider) => {
+      slider.value = '2';
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    assert.ok(!(await stressCanvas.screenshot()).equals(initial), id);
+  }
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
 } finally {

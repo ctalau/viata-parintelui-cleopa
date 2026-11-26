@@ -95,12 +95,19 @@ def verify_sleeves(rigs):
             skin, = sleeve.modifiers
             assert skin.type == "ARMATURE" and skin.object == rig, sleeve.name
             assert {group.name for group in sleeve.vertex_groups} == {
-                "chest", "upper_arm."+side, "forearm."+side, "hand."+side,
+                "chest", "shoulder."+side, "upper_arm."+side, "forearm."+side, "hand."+side,
             }, sleeve.name
-            assert sum(len(vertex.groups) == 2 for vertex in sleeve.data.vertices) >= 25
+            assert sum(len(vertex.groups) >= 2 for vertex in sleeve.data.vertices) >= 25
+            assert all(abs(sum(group.weight for group in vertex.groups)-1) < .00001
+                       for vertex in sleeve.data.vertices)
+            cap_bone = rig.pose.bones["shoulder."+side]
+            assert cap_bone.constraints[0].subtarget == "upper_arm."+side
+            cap_group = sleeve.vertex_groups["shoulder."+side].index
+            assert any(any(group.group == cap_group and group.weight > .25 for group in vertex.groups)
+                       for vertex in sleeve.data.vertices)
             shoulder = sleeve.vertex_groups["chest"].index
             cap_y = rig.data.bones["upper_arm."+side].head_local.y
-            cap = [v for v in sleeve.data.vertices if v.co.y > cap_y+.025]
+            cap = [v for v in sleeve.data.vertices if v.co.y > cap_y+.065]
             assert cap and all(any(g.group == shoulder and g.weight > .99 for g in v.groups) for v in cap)
             cuff = sleeve.vertex_groups["hand."+side].index
             assert any(any(group.group == cuff and group.weight > .95 for group in v.groups)
@@ -216,6 +223,7 @@ def verify_arms(rigs):
     joints = [(rig,rig.pose.bones[f"{bone}.{side}"])
               for rig in rigs for bone in ("forearm","hand") for side in "RL"]
     previous = None
+    previous_wrists = None
     for frame in range(1,scene.frame_end+1,scene.frame_step):
         scene.frame_set(frame)
         points = [bone.head.copy() for _,bone in joints]
@@ -226,6 +234,11 @@ def verify_arms(rigs):
                 bend = abs(atan2(sin(angle),cos(angle)))
                 assert bend < radians(85), (rig.name,bone.name,frame,bend)
                 wrist_peak = max(wrist_peak,bend)
+        wrists = [bone.rotation_euler.z for _, bone in joints if bone.name.startswith("hand.")]
+        if previous_wrists is not None:
+            maximum = max(abs(atan2(sin(a-b), cos(a-b))) for a,b in zip(wrists, previous_wrists))
+            assert maximum <= radians(8*scene.frame_step+.05), (frame, maximum)
+        previous_wrists = wrists
         if previous is not None:
             for current,before,(rig,bone) in zip(points,previous,joints):
                 delta = (current-before).length

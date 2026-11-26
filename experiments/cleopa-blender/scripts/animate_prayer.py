@@ -79,6 +79,8 @@ def breathe(rig, start, end, phase, amplitude=.027):
 def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None):
     angle=atan2(direction[0],-direction[1])
     rotations, scales=solve_arm(p,side,wrist,angle,seated)
+    if wrist_limit is None:
+        wrist_limit = p.get("wrist_limit")
     if wrist_limit is not None:
         bend = lift_angle(0, rotations[-1])
         rotations = (*rotations[:2], max(-wrist_limit, min(wrist_limit, bend)))

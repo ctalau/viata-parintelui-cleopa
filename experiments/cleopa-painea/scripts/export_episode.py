@@ -1,4 +1,5 @@
 """Encode the sampled drawings at 24 fps with the measured Romanian soundtrack."""
+import argparse
 import json
 from pathlib import Path
 import struct
@@ -17,23 +18,23 @@ DOWNLOAD_LIMIT=5_000_000
 OUTPUT=RENDERS/"painea_care_poate_sa_astepte.mp4"
 
 
-def check_drawings():
-    paths=sorted((RENDERS/"frames").glob("frame_*.png"))
+def check_drawings(directory=RENDERS/"frames", size=DRAWING_SIZE):
+    paths=sorted(directory.glob("frame_*.png"))
     expected=[f"frame_{frame:04}.png" for frame in range(1,TIMING["end"]+1,2)]
     assert [path.name for path in paths]==expected, (len(paths),len(expected))
     for path in paths:
         with path.open("rb") as image:
             header=image.read(24)
         assert header[:8]==b"\x89PNG\r\n\x1a\n",path
-        assert struct.unpack(">II",header[16:24])==DRAWING_SIZE,path
+        assert struct.unpack(">II",header[16:24])==size,path
 
 
-def encode():
+def encode(directory=RENDERS/"frames", soundtrack=None):
     duration = TIMING["end"]/FPS
     # Leave room for AAC and MP4 overhead below the download limit.
     bitrate = int(4_700_000*8/duration/1000-64)
     with tempfile.TemporaryDirectory(dir=RENDERS,prefix=".cleopa-encode-") as work:
-        frames = str(RENDERS/"frames"/"frame_*.png")
+        frames = str(directory/"frame_*.png")
         video_input = ("-framerate",str(FPS//2),"-pattern_type","glob","-i",frames)
         width,height = VIDEO_SIZE
         options = (
@@ -45,10 +46,12 @@ def encode():
         subprocess.run([*ffmpeg,*video_input,*options,
                         "-pass","1","-an","-f","null","-"],check=True)
         movie = Path(work)/OUTPUT.name
+        source = soundtrack or ROOT/"audio"/"mix.wav"
+        audio = ("-c:a", "copy") if soundtrack else ("-c:a", "aac", "-b:a", "64k")
         subprocess.run([
-            *ffmpeg,*video_input,"-i",str(ROOT/"audio"/"mix.wav"),
-            "-map","0:v","-map","1:a",*options,"-pass","2",
-            "-c:a","aac","-b:a","64k","-movflags","+faststart",str(movie),
+            *ffmpeg,*video_input,"-i",str(source),
+            "-map","0:v","-map","1:a:0",*options,"-pass","2",
+            *audio,"-movflags","+faststart",str(movie),
         ],check=True)
         verify_export(movie)
         movie.replace(OUTPUT)
@@ -70,7 +73,7 @@ def verify_export(movie):
     print("MEDIA_OK",OUTPUT.name,TIMING["end"],"cadre",visual["duration"],"secunde, stereo",flush=True)
 
 
-def contact_sheet():
+def contact_sheet(directory=RENDERS/"frames"):
     width,height=489,275
     gutter=14
     beats=TIMING["beats"]
@@ -97,7 +100,7 @@ def contact_sheet():
             f=beat["start"]+8
         f=min(f,beat["end"]-1)
         f=f if f%2 else f-1
-        with Image.open(RENDERS/"frames"/f"frame_{f:04}.png") as full:
+        with Image.open(directory/f"frame_{f:04}.png") as full:
             preview=full.resize((width,height), Image.Resampling.LANCZOS)
         x=gutter+(index%2)*(width+gutter)
         y=60+(index//2)*(height+37)
@@ -107,6 +110,11 @@ def contact_sheet():
 
 
 if __name__=="__main__":
-    check_drawings()
-    encode()
-    contact_sheet()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--frames", type=Path, default=RENDERS/"frames")
+    parser.add_argument("--compact", action="store_true", help="Frames are already 768 × 432.")
+    parser.add_argument("--soundtrack-from", type=Path, help="Copy the AAC track from an existing MP4 or M4A.")
+    args = parser.parse_args()
+    check_drawings(args.frames, VIDEO_SIZE if args.compact else DRAWING_SIZE)
+    encode(args.frames, args.soundtrack_from)
+    contact_sheet(args.frames)
