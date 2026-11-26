@@ -67,3 +67,19 @@ mkdir -p /cale/ograda
 blender -b scenes/painea_care_poate_sa_astepte.blend -o /cale/ograda/frame_ -F PNG -s 253 -e 419 -j 2 -a
 python3 scripts/replace_opening.py /cale/film-anterior.mp4 /cale/ograda/ --shot 2
 ```
+
+## Decorurile pictate din restul episodului
+
+[Foaia cu cele 17 planuri de filmare](../../renders/foaie_contact.jpg) arată decorurile în camera activă.
+
+- Cele două planuri din dormitor folosesc [camera, patul și perna](dormitor-in-zori.png) în spatele lui Costică și [plapuma țesută](dormitor-plapuma.png) în față. [Conturul plăpumii](dormitor-plapuma.svg) păstrează vizibile mâinile deasupra marginii.
+- La troacă și în planul cu Mihai se refolosesc straturile ograzii. Magazia maschează începutul intrării, apoi Mihai trece în fața gardului. Verifică intrarea la început, la marginea magaziei și după oprire.
+- Planurile bucătăriei și ale rugăciunii folosesc [interiorul pictat](bucatarie-in-zori.png) și [textura lemnului și a ștergarului](masa-si-stergarul.png). Pâinea, jarul, icoanele și personajele sunt obiecte Blender, cu pozițiile și animația lor.
+
+Randează cadrele impare 421–3369 pentru a actualiza toate planurile de după „Cocoșul și purcelușul”. Exportul preia primele două planuri și pista audio din MP4-ul anterior.
+
+```bash
+mkdir -p /cale/restul-episodului
+blender -b scenes/painea_care_poate_sa_astepte.blend -o /cale/restul-episodului/frame_ -F PNG -s 421 -e 3369 -j 2 -a
+python3 scripts/replace_opening.py /cale/film-anterior.mp4 /cale/restul-episodului/ --remainder
+```

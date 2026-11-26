@@ -3,6 +3,7 @@ from math import atan2, cos, radians, sin
 from pathlib import Path
 import json
 import bpy
+from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Vector
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -23,8 +24,29 @@ for marker in labels:
     scene.frame_set(marker.frame)
     assert scene.camera==marker.camera
     assert marker.frame%2==1
+
+
+def verify_painted_coverage():
+    backdrops = [obj for obj in scene.objects if obj.type == "MESH"
+                 and obj.name.endswith("· decor ilustrat") and len(obj.data.polygons) == 1]
+    starts = sorted(marker.frame for marker in labels)
+    for start, end in zip(starts, starts[1:] + [scene.frame_end + 1]):
+        for frame in (start, (start + end - 1) // 2, end - 1):
+            scene.frame_set(frame)
+            camera = scene.camera
+            backdrop = min(backdrops, key=lambda obj:
+                           abs(obj.matrix_world.translation.x - camera.matrix_world.translation.x))
+            corners = [world_to_camera_view(scene, camera, backdrop.matrix_world @ vertex.co)
+                       for vertex in backdrop.data.vertices]
+            assert min(p.x for p in corners) <= 0 and max(p.x for p in corners) >= 1, (camera.name, frame)
+            assert min(p.y for p in corners) <= 0 and max(p.y for p in corners) >= 1, (camera.name, frame)
+    print("PAINTED_COVERAGE_OK", len(starts), "planuri de filmare")
+
+
+verify_painted_coverage()
 assert all(font.packed_file for font in bpy.data.fonts if font.filepath!="<builtin>")
 assert all(sound.packed_file for sound in bpy.data.sounds)
+assert all(image.packed_file for image in bpy.data.images if image.source == "FILE")
 assert not bpy.data.libraries
 assert {obj.data.body for obj in scene.objects if obj.type=="FONT"} == {
     story["title"],story["subtitle"],"Ghiorrr!",
@@ -159,7 +181,10 @@ def verify_trough_and_father(beats):
     assert max(depths(back)) < min(depths(face)) < max(depths(face)) < min(depths(front))
     head = bpy.data.objects["Grăsuțu · cap"]
     muzzle = head.matrix_world @ Vector((.707,-.018,0))
-    assert 30.45 < muzzle.x < 32.10 and -2.735 < muzzle.y < -2.55, tuple(muzzle)
+    basin = [back.matrix_world @ vertex.co for vertex in back.data.vertices]
+    center_x = (min(p.x for p in basin) + max(p.x for p in basin)) / 2
+    assert abs(muzzle.x - center_x) < .83, tuple(muzzle)
+    assert min(p.y for p in basin) < muzzle.y < max(p.y for p in basin), tuple(muzzle)
 
     father = bpy.data.collections["Tata · prag"]
     assert any("Moustache" in obj.name for obj in father.objects)

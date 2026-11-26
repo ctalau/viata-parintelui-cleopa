@@ -130,7 +130,8 @@ def village(coll):
     painted_backdrop(coll, "Sat în zori", "sat-in-zori.png", 16.4, .23)
 
 
-def painted_backdrop(coll, name, filename, width, center_y=0, depth=-7, silhouette=None):
+def painted_backdrop(coll, name, filename, width, center_y=0, depth=-7, silhouette=None,
+                     silhouette_depths=None):
     assets = Path(__file__).resolve().parents[1] / "assets" / "backgrounds"
     image_path = assets / filename
     image = bpy.data.images.load(str(image_path), check_existing=True)
@@ -145,9 +146,12 @@ def painted_backdrop(coll, name, filename, width, center_y=0, depth=-7, silhouet
         # so a rig can stand behind the boards in the viewport and render.
         svg = ElementTree.parse(assets / silhouette).getroot()
         _, _, source_width, source_height = map(float, svg.get("viewBox").split())
+        shape_depths = silhouette_depths or {}
         for element in svg.findall("{*}path"):
+            shape_depth = shape_depths.get(element.get("id"), depth)
             uv_points = [(x / source_width, 1 - y / source_height) for x, y in path(element.get("d"))]
-            contour = [Vector(((u - .5) * width, center_y + (v - .5) * height, depth)) for u, v in uv_points]
+            contour = [Vector(((u - .5) * width, center_y + (v - .5) * height, shape_depth))
+                       for u, v in uv_points]
             offset = len(vertices)
             for triangle in tessellate_polygon([contour]):
                 faces.append(tuple(offset + index for index in triangle))

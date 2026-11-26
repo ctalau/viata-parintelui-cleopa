@@ -16,10 +16,16 @@ from animate_prayer import arm_key, blink, channels, finish_action, head, prop, 
 from build_characters import create_character, profile as character_profile
 from build_rigs import bind
 from build_scene import setup
-from decor import bedroom, empty, farmyard, kitchen, painted_backdrop, pig, rooster, steam_art, trough, village
+from decor import empty, painted_backdrop, pig, rooster, steam_art, trough, village
 from hands import HAND_POSES
+from painted_bedroom import bedroom
+from painted_kitchen import painted_kitchen
 from sleeves import continuous_sleeves
 from vector_art import Art, collection, material
+from yard_late import (
+    LATE_BROTHER_DEPTH, LATE_GROUND, LATE_PERCH, LATE_ROOSTER_SCALE,
+    build_late_yard, mihai_entrance, mihai_entrance_scale,
+)
 
 PLAN = json.loads((ROOT/"scenariu.json").read_text())
 TIMING = json.loads((ROOT/"timeline.json").read_text())
@@ -54,7 +60,7 @@ def key(obj, frame, position=None, turn=None, scale=None):
             obj.keyframe_insert(attr,frame=frame)
 
 
-def actor(coll, design, name, position, size=1, look=None, hat=False):
+def actor(coll, design, name, position, size=1, look=None, hat=False, interior=False):
     base = character_profile(design)
     changes = {
         "shoulder_x": base["shoulder_x"]*.95,
@@ -66,6 +72,8 @@ def actor(coll, design, name, position, size=1, look=None, hat=False):
     }
     if look is not None:
         changes["look"] = look
+    if interior:
+        changes.update(shirt="ffedcb", shade="dfb991", skin="f5b488", skin_shadow="e1946d")
     profile,rig,char,*_ = create_character(
         design, overrides=changes, sleeve_builder=continuous_sleeves, hand_poses=HAND_POSES,
     )
@@ -92,10 +100,10 @@ def reveal_actor(actor_, start, end):
             gate(obj,start,end)
 
 
-def shadow(a):
+def shadow(a, color="ad956d"):
     p=a["p"]
     art=Art("Umbră pe pământ",a["collection"],(0,-p["leg"]-.20),(1,1),z=-.33)
-    art.oval(.02,.015,.752,.110,"ad956d")
+    art.oval(.02,.015,.752,.110,color)
     obj=art.finish()
     obj.parent=a["rig"]
 
@@ -220,6 +228,10 @@ def prop_book(a, center=.52):
               "a05c45","623e31",.032)
     art.line([(-.321,-.303),(-.221,.431)],"cb9363",.034)
     art.line([(-.227,.338),(.179,.277)],"daab70",.034)
+    art.line("M -.205 .307 L .150 .254 L .057 -.275 Q -.051 -.310 -.173 -.302",
+             "734535", .016)
+    art.line("M -.287 .168 Q -.250 .201 -.201 .193", "b87955", .018)
+    art.line("M -.214 -.211 Q -.162 -.227 -.134 -.214", "b87955", .018)
     art.diamond(-.020,.028,.123,.188,"c89a61")
     art.diamond(-.011,.027,.041,.071,"995a44")
     obj=art.finish()
@@ -260,7 +272,7 @@ def animate_village(coll):
 
 def animate_bed(coll):
     bedroom(coll)
-    child=actor(coll,"cleopa","Costică · pat",(1.70,-1.94,.43),1.17)
+    child=actor(coll,"cleopa","Costică · pat",(1.70,-1.94,.43),1.17,interior=True)
     start=BEATS["trezire"]["cues"][1]["start"]-4
     stop=BEATS["burtica"]["end"]-1
     stand(child,start-1)
@@ -292,27 +304,22 @@ def animate_bed(coll):
     return [child]
 
 
-def animate_yard_animals(coll, perch, ground, illustrated=False):
-    rooster_=rooster(coll, dawn=illustrated)
+def animate_yard_animals(coll, perch, ground, rooster_scale=(-1.30,1.30,1)):
+    rooster_=rooster(coll, dawn=True)
     rooster_["root"].location=perch
-    rooster_["root"].scale=(-1.30,1.30,1) if illustrated else (1.38,1.38,1)
-    pig_=pig(coll, dawn=illustrated)
+    rooster_["root"].scale=rooster_scale
+    pig_=pig(coll, dawn=True)
     pig_["root"].location=ground
     pig_["root"].scale=(1.17,1.17,1)
-    trough_offset = 1.24 if illustrated else 1.08
-    trough(coll, (ground[0] + trough_offset, ground[1] + .37), dawn=illustrated)
-    if illustrated:
-        shadow = Art("Grăsuțu · umbră de contact", coll, ground[:2], z=-.23)
-        shadow.oval(-.11, -.035, 1.24, .115, "c08758")
-        shadow.finish()
+    trough(coll, (ground[0] + 1.24, ground[1] + .37), dawn=True)
+    contact = Art("Grăsuțu · umbră de contact", coll, ground[:2], z=-.23)
+    contact.oval(-.11, -.035, 1.24, .115, "c08758")
+    contact.finish()
     wake=BEATS["trezire"]["start"]
     end=BEATS["mihai"]["end"]-1
     gate(rooster_["beak"],wake+3,wake+23)
     for f,x in ((wake,0),(wake+8,-.25),(wake+15,-.34),(wake+26,.03),(wake+36,-.05)):
         key(rooster_["head"],f,turn=(0,0,x))
-    if not illustrated:
-        key(rooster_["root"],BEATS["trezire"]["cues"][1]["start"],position=perch,scale=(1.38,1.38,1))
-        key(rooster_["root"],BEATS["troaca"]["start"]-3,position=(4.80,perch[1],perch[2]),scale=(.94,.94,1))
     grunt=BEATS["troaca"]["cues"][-1]["end"]+2
     first=BEATS["trezire"]["cues"][1]["start"]-6
     for obj,positions in (
@@ -350,19 +357,18 @@ def animate_yard_dawn(coll):
                       depth=-3.2, silhouette="ograda-gard-magazie.svg")
     # The feet track the top edge of the painted rail. The pig and trough
     # share a ground plane in the open foreground beside the shed.
-    animate_yard_animals(coll, perch=(2.76,.637,-2.73), ground=(-1.81,-2.42,-.05),
-                         illustrated=True)
+    animate_yard_animals(coll, perch=(2.76,.637,-2.73), ground=(-1.81,-2.42,-.05))
     return []
 
 
 def animate_yard(coll):
-    farmyard(coll)
-    animate_yard_animals(coll, perch=(1.26,-.99,-2.73), ground=(-2.81,-3.17,-.05))
+    build_late_yard(coll)
+    animate_yard_animals(coll, LATE_PERCH, LATE_GROUND, LATE_ROOSTER_SCALE)
     end=BEATS["mihai"]["end"]-1
     grunt=BEATS["troaca"]["cues"][-1]["end"]+2
     start=BEATS["troaca"]["start"]
     child=actor(coll,"cleopa","Costică · ogradă",(2.63,-1.49,.21),1.16,hat=True)
-    shadow(child)
+    shadow(child, "c08758")
     reveal_actor(child,start,end+1)
     stand(child,start-3)
     breathing(child,start,end,.7)
@@ -380,10 +386,13 @@ def animate_yard(coll):
     hand_pose(child,"R",speech["start"]+8,"open")
     hand_pose(child,"R",speech["end"]+7,"rest")
 
-    brother=actor(coll,"brother_01","Mihai · ogradă",(-.38,-1.48,-.61),1.13,look=1)
+    brother=actor(coll,"brother_01","Mihai · ogradă",(-.38,-1.48,LATE_BROTHER_DEPTH),1.13,look=1)
     m0=BEATS["mihai"]["start"]
     walk_end=m0+67
-    position_paths(brother,[(m0,-3.42,0),(m0+14,-3.42,0),(walk_end,0,0),(end,0,0)])
+    position_paths(brother,mihai_entrance(m0,end))
+    for frame, factor in mihai_entrance_scale(m0,end):
+        size = brother["size"] * factor
+        key(brother["rig"],frame,scale=(size,size,.50))
     step(brother,m0+14,walk_end,2.5)
     stand(brother,m0)
     r=relax_wrist(brother,"R")
@@ -399,20 +408,21 @@ def animate_yard(coll):
     hand_pose(brother,"R",line["start"]-4,"open")
     hand_pose(brother,"R",line["end"]+6,"rest")
     voice(brother,cues("mihai","mihai"))
-    shadow(brother)
+    shadow(brother, "c08758")
     reveal_actor(brother,m0,end+1)
     return [child,brother]
 
 
 def animate_kitchen(coll):
-    loaf,flame=kitchen(coll)
+    loaf,flame=painted_kitchen(coll)
+    paint_crust(loaf)
     begin=BEATS["cuptor"]["start"]
     end=BEATS["intai"]["end"]-1
     prayer_start=BEATS["la-icoane"]["start"]
-    mother=actor(coll,"mother","Mama · bucătărie",(-1.72,-2.37,.08),1.22,look=1)
-    child=actor(coll,"cleopa","Costică · bucătărie",(2.22,-2.47,1.14),1.15)
-    brother=actor(coll,"brother_01","Mihai · bucătărie",(4.23,-2.40,.61),1.13,look=-1)
-    father=actor(coll,"father","Tata · prag",(6.62,-2.62,1.67),1.30,look=-1)
+    mother=actor(coll,"mother","Mama · bucătărie",(-1.72,-2.37,.08),1.22,look=1,interior=True)
+    child=actor(coll,"cleopa","Costică · bucătărie",(2.22,-2.47,1.14),1.15,interior=True)
+    brother=actor(coll,"brother_01","Mihai · bucătărie",(4.23,-2.40,.61),1.13,look=-1,interior=True)
+    father=actor(coll,"father","Tata · prag",(6.62,-2.62,1.67),1.30,look=-1,interior=True)
     prop_book(brother,center=.32)
     short_beard(father)
     for a in (mother, child, brother, father):
@@ -534,6 +544,22 @@ def animate_kitchen(coll):
     reveal_actor(father,door,prayer_start)
     kitchen_replies(mother,child,brother,father,end)
     return [mother,child,brother,father,*prayer_tableau(coll,prayer_start,TIMING["end"])]
+
+
+def paint_crust(loaf):
+    crust = next(obj for obj in loaf.children if obj.name.startswith("Round scored bread"))
+    art = Art("Pâine · reflexe în coajă", loaf.users_collection[0], (0, -2.97), z=3.852)
+    art.line("M -1.206 .024 Q -1.173 .159 -1.054 .244", "f5c37d", .020)
+    art.line("M -.982 .316 Q -.821 .467 -.620 .521", "f9d58f", .014)
+    art.line("M .437 .533 Q .719 .493 .888 .401", "f2bf7b", .018)
+    art.line("M .496 -.134 Q .798 -.163 1.123 -.093", "cf8e51", .018)
+    for x, y, angle in ((-1.073,.115,-.24),(-.707,.251,.45),(-.584,.330,.32),
+                        (-.104,.325,.55),(.348,.210,.3),(.582,.314,-.13),(.967,.190,.45)):
+        art.oval(x,y,.019,.010,"ce8c51",angle=angle)
+    accents = art.finish()
+    accents.parent = loaf
+    accents.location = crust.location
+    accents.scale = crust.scale
 
 
 def short_beard(father):
@@ -729,10 +755,10 @@ def second_icon(coll,start,end):
 
 def prayer_tableau(coll,start,end):
     second_icon(coll,start,end+1)
-    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1)
-    mother = actor(coll,"mother","Mama · rugăciune",(-1.24,-2.43,1.49),1.13,look=-1)
-    brother = actor(coll,"brother_01","Mihai · rugăciune",(1.00,-2.48,1.35),1.10,look=-1)
-    child = actor(coll,"cleopa","Costică · rugăciune",(3.23,-2.49,1.56),1.09,look=-1)
+    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1,interior=True)
+    mother = actor(coll,"mother","Mama · rugăciune",(-1.24,-2.43,1.49),1.13,look=-1,interior=True)
+    brother = actor(coll,"brother_01","Mihai · rugăciune",(1.00,-2.48,1.35),1.10,look=-1,interior=True)
+    child = actor(coll,"cleopa","Costică · rugăciune",(3.23,-2.49,1.56),1.09,look=-1,interior=True)
     short_beard(father)
     book = Art("Carte de rugăciuni deschisă",father["collection"],(-.21,.93),(1,1),z=.62)
     book.shape("M -.78 .22 Q -.40 .35 0 .14 Q .40 .35 .78 .22 L .70 -.30 Q .35 -.22 0 -.38 Q -.35 -.22 -.70 -.30 Z",
@@ -800,8 +826,8 @@ def cameras(scene):
         ("Cocoșul și purcelușul",BEATS["trezire"]["start"],"yard_dawn",(0,0),11.9,(.10,0,-.24)),
         ("Trezirea lui Costică",next_bed,"bed",(.27,-.70),12.0,(.14,.17,-.27)),
         ("Ghiorrr!",BEATS["burtica"]["start"],"bed",(1.47,-.24),7.25,(.04,0,-.12)),
-        ("La troacă",BEATS["troaca"]["start"],"yard",(.27,-.51),11.0,(.10,0,-.18)),
-        ("Mihai apare de după șură",BEATS["mihai"]["start"],"yard",(-.63,-.40),12.1,(.28,.04,-.11)),
+        ("La troacă",BEATS["troaca"]["start"],"yard",(.28,-.34),11.0,(.10,-.03,-.18)),
+        ("Mihai apare de după șură",BEATS["mihai"]["start"],"yard",(0,-.15),12.1,(.10,-.02,-.11)),
         ("Pâinea caldă",BEATS["cuptor"]["start"],"kitchen",(-1.51,-.65),13.60,(.13,-.02,-.12)),
         ("Drumul spre școală",BEATS["traista"]["start"],"kitchen",(.96,-.60),10.2,(.09,.0,-.16)),
         ("Încă puțin",BEATS["aproape"]["start"],"kitchen",(1.33,-.96),8.16,(.12,-.04,-.22)),
