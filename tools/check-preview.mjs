@@ -196,6 +196,9 @@ try {
     await tests.selectOption(id);
     await assemblyTime.waitFor();
     assert.equal(await tests.inputValue(), id);
+    const sheet = await page.getByRole('link', { name: 'Foaie de cadre' }).getAttribute('href');
+    assert.equal(sheet, `/articulatii/foi/${id.slice(5)}.webp`);
+    assert.equal(await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, sheet), 200);
     const initial = await stressCanvas.screenshot();
     await assemblyTime.evaluate((slider) => {
       slider.value = '2';

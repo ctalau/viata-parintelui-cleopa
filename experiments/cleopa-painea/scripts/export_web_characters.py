@@ -1,6 +1,5 @@
 """Build animated GLBs with the episode's 2.5D character art and rigs."""
 import json
-from math import radians
 from pathlib import Path
 import struct
 import sys
@@ -12,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from build_episode import actor, arms, blink, breathing, finish_action, hand_pose, head
 from build_episode import relax_wrist, setup, short_beard, stand
+from mother_stress import create_stress_arm
 
 
 OUTPUT = Path(__file__).resolve().parents[3] / "assets" / "recuzita"
@@ -41,40 +41,6 @@ def pose(character, side, target, direction, hand):
     blink(rig, 74)
     breathing(character, FIRST, LAST)
     finish_action(rig, character["action"])
-
-
-def stress_pose(character, test):
-    rig = character["rig"]
-    side = "L"
-    stand(character, FIRST)
-    rest = relax_wrist(character, side)
-    down = (.06, -1)
-    levels = {
-        "palma": [(21, (1.10, .95), (.9, .25)), (81, (1.10, .95), (.9, .25))],
-        "cot": [(21, (1.28, .71), (.82, -.40)), (45, (.30, 1.23), (-.86, .41)),
-                (65, (.47, 1.76), (-.43, .91)), (81, (1.25, 1.04), (.92, .31))],
-        "umar": [(21, (1.03, .81), (.85, -.41)), (44, (1.62, 1.50), (.97, .24)),
-                 (64, (1.18, 2.28), (.33, .94)), (81, (1.48, 1.15), (.96, -.13))],
-    }
-    arms(character, side, [(FIRST, rest, down), *levels[test], (LAST, rest, down)])
-    for frame, drawing in ((14, "open"), (91, "rest")):
-        hand_pose(character, side, frame, drawing)
-    blink(rig, 18)
-    breathing(character, FIRST, LAST)
-    finish_action(rig, character["action"])
-
-    if test == "palma":
-        # Author palm orientations relative to the forearm, then let Bézier
-        # interpolation round the change of direction at each held pose.
-        bone = rig.pose.bones["hand."+side]
-        path = bone.path_from_id("rotation_euler")
-        curve = rig.animation_data.action.fcurves.find(path, index=2)
-        curve.keyframe_points.clear()
-        for frame, angle in ((1, 0), (21, -6), (31, 32), (39, 32), (53, -43),
-                             (61, -43), (73, 26), (84, -8), (97, 0)):
-            key = curve.keyframe_points.insert(frame, radians(angle))
-            key.interpolation = "BEZIER"
-            key.handle_left_type = key.handle_right_type = "AUTO_CLAMPED"
 
 
 def bake_drawing_switches(scene, meshes):
@@ -112,6 +78,34 @@ def linear_keys(obj):
             key.interpolation = "LINEAR"
 
 
+def bake_shapes(obj, samples):
+    basis = obj.shape_key_add(name="Basis")
+    basis.data.foreach_set("co", [value for point in samples[0][1] for value in point])
+    targets = {}
+    states = []
+    for frame, coords in samples:
+        # Held poses and repeated endpoints can share one target.
+        signature = tuple(round(value, 5) for point in coords for value in point)
+        if not states:
+            targets[signature] = None
+        elif signature not in targets:
+            shape = obj.shape_key_add(name=f"Maneca_{frame:03}")
+            shape.data.foreach_set("co", [value for point in coords for value in point])
+            targets[signature] = shape
+        states.append((frame, targets[signature]))
+    for index, (frame, shape) in enumerate(states):
+        if shape is None:
+            continue
+        previous = states[index - 1]
+        following = states[index + 1] if index + 1 < len(states) else (frame, shape)
+        for moment, value in ((previous[0], float(previous[1] == shape)),
+                              (frame, 1.0), (following[0], float(following[1] == shape))):
+            shape.value = value
+            shape.keyframe_insert("value", frame=moment)
+    if obj.data.shape_keys.animation_data:
+        linear_keys(obj.data.shape_keys)
+
+
 def bake_arm(scene, meshes, side):
     """Preserve Blender's sleeve volume and exact hand placement in glTF."""
     cloth = [obj for obj in meshes if obj.name.split(" · ")[-1] == side
@@ -136,31 +130,7 @@ def bake_arm(scene, meshes, side):
         obj.parent = None
         obj.matrix_world = Matrix.Identity(4)
         obj.modifiers.clear()
-        basis = obj.shape_key_add(name="Basis")
-        basis.data.foreach_set("co", [value for point in samples[0][1] for value in point])
-        targets = {}
-        states = []
-        for frame, coords in samples:
-            # Held poses and repeated endpoints can share one target.
-            signature = tuple(round(value, 5) for point in coords for value in point)
-            if not states:
-                targets[signature] = None
-            elif signature not in targets:
-                shape = obj.shape_key_add(name=f"Maneca_{frame:03}")
-                shape.data.foreach_set("co", [value for point in coords for value in point])
-                targets[signature] = shape
-            states.append((frame, targets[signature]))
-        for index, (frame, shape) in enumerate(states):
-            if shape is None:
-                continue
-            previous = states[index - 1]
-            following = states[index + 1] if index + 1 < len(states) else (frame, shape)
-            for moment, value in ((previous[0], float(previous[1] == shape)),
-                                  (frame, 1.0), (following[0], float(following[1] == shape))):
-                shape.value = value
-                shape.keyframe_insert("value", frame=moment)
-        if obj.data.shape_keys.animation_data:
-            linear_keys(obj.data.shape_keys)
+        bake_shapes(obj, samples)
 
     for obj, samples in poses.items():
         if not any(visible for _, _, visible in samples):
@@ -212,10 +182,7 @@ def export_character(id_, design, look, side, target, direction, hand, test=None
     if id_ == "tata":
         short_beard(character)
     if test:
-        stress_pose(character, test)
-        scene.frame_set(FIRST)
-        filename = Path(__file__).resolve().parents[1] / "scenes" / f"mama-test-{test}.blend"
-        bpy.ops.wm.save_as_mainfile(filepath=str(filename), compress=True)
+        create_stress_arm(scene, character, test, bake_shapes)
     else:
         pose(character, side, target, direction, hand)
     meshes = [obj for obj in collection.objects if obj.type == "MESH"]
@@ -225,6 +192,11 @@ def export_character(id_, design, look, side, target, direction, hand, test=None
                  for obj in meshes if not (evaluated := obj.evaluated_get(depsgraph)).hide_render
                  for point in evaluated.bound_box)
     rig.location.y -= bottom
+    if test:
+        scene.camera.location = (.18, 3.25, 20)
+        scene.camera.data.ortho_scale = 6.4
+        filename = Path(__file__).resolve().parents[1] / "scenes" / f"mama-test-{test}.blend"
+        bpy.ops.wm.save_as_mainfile(filepath=str(filename), compress=True)
     bake_arm(scene, meshes, side)
     bake_drawing_switches(scene, [obj for obj in collection.objects if obj.type == "MESH"])
 

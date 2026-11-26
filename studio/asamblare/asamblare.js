@@ -113,6 +113,8 @@ async function openClip({ id, png, mp4 }, catalog) {
     if (selection !== latest) return;
     const description = $('clip-description');
     if (description) description.textContent = descriptor.description;
+    const sheet = $('clip-sheet');
+    if (sheet) sheet.href = `/articulatii/foi/${id.slice(5)}.webp`;
     const blend = $('clip-blend');
     if (blend) blend.href = `https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/mama-test-${id.slice(5)}.blend`;
     const assembled = assembleScene(descriptor, new Map(templates));

@@ -48,7 +48,7 @@ npm run sheet -- episod 1 285 1485 3081 --source ambele --columns 2 --out /tmp/c
 npm run sheet -- mama-palma 1 21 31 53 73 96 --out /tmp/test-palma.png
 ```
 
-Pe pagina Mamei, cele trei teste au surse Blender editabile. Capsula mânecii amestecă ponderi de piept, os de umăr și braț, iar osul umărului urmează parțial rotația brațului. Testul de palmă fixează pozițiile cu chei de rotație în jurul încheieturii și folosește interpolare Bézier. În episod, filtrul de rotație adaugă chei intermediare acolo unde încheietura își schimbă direcția prea brusc. Reexportă fișierele cu următoarea comandă.
+Pe pagina Mamei, cele trei teste au surse Blender editabile. Capsula mânecii amestecă ponderi de piept, os de umăr și braț, iar osul umărului urmează parțial rotația brațului. În teste, un braț cu segmente de lungime fixă mișcă mâneca desenată continuu și palma cu formă interpolată. Cheile Bézier controlează brațul, cotul, orientarea palmei, flexia degetelor și deschiderea degetului mare. Fiecare test are o foaie de cadre lângă sursa Blender. În episod, filtrul de rotație adaugă chei intermediare acolo unde încheietura își schimbă direcția prea brusc. Reexportă fișierele cu următoarea comandă.
 
 ```bash
 blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py -- --stress
