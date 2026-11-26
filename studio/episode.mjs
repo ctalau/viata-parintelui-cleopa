@@ -1,18 +1,31 @@
 
+import timing from '../experiments/cleopa-painea/timeline.json' with { type: 'json' };
+
+const originalChapterNames = {
+  sat: 'Satul în zori',
+  trezire: 'Trezirea',
+  burtica: 'Burtica',
+  troaca: 'La troacă',
+  mihai: 'Mihai și cartea',
+  cuptor: 'Pâinea caldă',
+  traista: 'Drumul spre școală',
+  aproape: 'Încă puțin…',
+  prag: 'Tata în prag',
+  intai: 'Întâi ne rugăm',
+};
+
 export const episode = Object.freeze({
   id: 'painea-care-poate-sa-astepte',
   title: 'Pâinea care poate să aștepte',
-  duration: 2090 / 24,
+  duration: timing.end / timing.fps,
   file: 'painea_care_poate_sa_astepte.mp4',
-  chapterNames: [
-    'Satul în zori', 'Trezirea', 'Burtica', 'La troacă', 'Mihai și cartea',
-    'Pâinea caldă', 'Drumul spre școală', 'Încă puțin…', 'Tata în prag', 'Întâi ne rugăm',
-  ],
+  chapterNames: timing.beats.map(({ id, title }) => title ?? originalChapterNames[id]),
 });
 
 export function chaptersFrom(timeline) {
-  if (timeline.end / timeline.fps !== episode.duration || timeline.beats.length !== episode.chapterNames.length) {
-    throw new Error('Actualizează durata și capitolele din studio/episode.mjs.');
+  if (timeline.end / timeline.fps !== episode.duration || timeline.beats.length !== episode.chapterNames.length ||
+      episode.chapterNames.some((title) => !title)) {
+    throw new Error('Verifică durata și titlurile capitolelor din cronologia episodului.');
   }
   return timeline.beats.map(({ start }, index) => ({
     time: (start - 1) / timeline.fps,

@@ -1,6 +1,6 @@
 # Micuțul Cleopa · Pâinea care poate să aștepte
 
-Experiment Blender după primele zece pagini ale cărții ilustrate. Am păstrat rigurile, formele desenate și paleta caldă din [experimentul cu rugăciunea la masă](../cleopa-blender/README.md). Filmul are zece momente și unsprezece încadrări. Se încheie cu îndemnul tatălui din pagina zece.
+Episodul urmărește primele zece pagini ale cărții ilustrate și continuă cu dialogul furnizat în scenariu, de la șoapta către Mihai până la rugăciunea în familie. Decorurile, rigurile și paleta provin din experimentul cu rugăciunea la masă. [Vezi proiectul Blender inițial](../cleopa-blender/README.md)
 
 | Pagina | Ce se vede |
 | --- | --- |
@@ -15,7 +15,16 @@ Experiment Blender după primele zece pagini ale cărții ilustrate. Am păstrat
 | 9 | Tata, un bărbat tânăr cu mustață, intră și le face semn copiilor să aștepte. |
 | 10 | Mâna lui Costică rămâne deasupra pâinii în timp ce se aude îndemnul la rugăciune. |
 
-Dialogul are formulări mai scurte pentru rostire și o intervenție mai blândă a tatălui în prag. Scenariul și distribuția sunt în `scenariu.json`. Pistele vorbite vin de la Gemini 3.8 Flash TTS, iar melodia instrumentală vine de la Lyria 3 Clip, toate prin OpenRouter. Muzica este reluată cu suprapuneri și atenuată în timpul replicilor. Cele trei efecte sonore sunt sintetizate local. Gurile răspund la energia replicilor și la aproximarea vocalelor din text.
+| Continuare | Cadru și acțiune |
+| --- | --- |
+| Dar Grăsuțu a început-o… | În același loc, Costică retrage mâna de la pâine și se întoarce spre Mihai. Mihai păstrează cartea sub braț. Tata îl aude pe Costică. |
+| Grăsuțu e fericit | Planul se strânge pe băieți. Costică se întoarce și explică, cu mâna liberă. |
+| Porcul și omul | În plan de grup, tata își mângâie barba, apoi arată în jos și în sus. Mihai pufnește în râs. Mama își ridică un colț al baticului. |
+| Un ceas întreg?! | Costică îl întreabă pe tata cât durează rugăciunea și tresare la răspuns. |
+| Și burta zice Amin | Se aude ghiorăitul și Costică pune mâinile pe burtă. Tata spune poanta și familia râde. |
+| La icoane | Într-un plan larg, familia stă cu fața spre icoane. Tata ține cartea deschisă. Copiii își îndreaptă privirea de la pâine către icoane și familia spune împreună un vers din «Tatăl nostru». |
+
+Dialogul are formulări mai scurte pentru rostire și o intervenție mai blândă a tatălui în prag. Scenariul și distribuția sunt în `scenariu.json`. Episodul folosește aceleași voci Gemini 3.8 Flash TTS prin OpenRouter în toate momentele. Melodia instrumentală este generată cu Lyria 3 Clip. Corul a fost mixat din cele patru voci ale personajelor. Indicațiile de joc sunt folosite pentru animație și regie, iar ghiorăitul are pista sa de efect. Muzica este reluată cu suprapuneri și atenuată în timpul replicilor. Cele trei efecte sonore sunt sintetizate local. Gurile răspund la energia replicilor și la aproximarea vocalelor din text.
 
 Mânecile au câte o singură suprafață, deformată de trunchi, braț, antebraț și încheietură. Marginea dinspre umăr rămâne ancorată în haină. Brațele și antebrațele sunt scurtate, astfel încât degetele rămân vizibil deasupra genunchilor în repaus. Manșeta se deformează cu antebrațul și încheietura. Degetele au lungimi și curburi diferite în desenele de repaus, prindere, întindere și oprire. În repaus, respirația se vede discret în piept, cu picioarele pe loc. Troaca are o muchie frontală separată de interior, iar râtul lui Grăsuțu se vede deasupra tărâțelor.
 
@@ -24,7 +33,7 @@ Mânecile au câte o singură suprafață, deformată de trunchi, braț, antebra
 - `renders/painea_care_poate_sa_astepte.mp4` este filmul cu voce și muzică. Copia de descărcat are sub 5 MB, 768 × 432 la 24 fps și sunet stereo. Scena se randează la 1280 × 720, cu un desen la fiecare două cadre.
 - `scenes/painea_care_poate_sa_astepte.blend` are decorurile, camerele, rigurile, textul și pistele audio editabile. Marcajele de pe Timeline selectează camerele. Titlul și efectul grafic se editează în colecția `Titlu și efecte grafice`, iar sunetul în Video Sequencer.
 - `assets/family_rigs.blend` conține cele șase riguri 2D cu proporțiile revizuite, marcate ca active de tip Collection. Folosește **File → Append → Collection** și repoziționează rigul, sau încarcă biblioteca în Asset Browser. Generează fișierul cu `blender -b --factory-startup --python-exit-code 1 --python scripts/build_family_library.py`.
-- `renders/foaie_contact.jpg` prezintă cele zece momente.
+- `renders/foaie_contact.jpg` prezintă toate cele 16 momente.
 
 ## Reproducere
 

@@ -59,7 +59,10 @@ def build_timing(spec, lengths):
             if index != len(beat["lines"]):
                 next_frame += frames(.38 if beat["page"] in (2, 8, 10) else .24)
         next_frame += frames(beat["tail"])
-        timeline.append(dict(page=beat["page"],id=beat["id"],start=start,end=next_frame,cues=cues))
+        timed = dict(page=beat["page"],id=beat["id"],start=start,end=next_frame,cues=cues)
+        if "title" in beat:
+            timed["title"] = beat["title"]
+        timeline.append(timed)
     return timeline
 
 
@@ -69,6 +72,8 @@ def add_effects(beats):
         ("burta", beats[2]["start"] + 1, .59),
         ("grohait", beats[3]["cues"][-1]["end"] + 2, .48),
     ]
+    by_id = {beat["id"]: beat for beat in beats}
+    effects.append(("burta", by_id["amin"]["start"] + 5, .59))
     result = []
     for kind, start, duration in effects:
         file = kind + ".wav"

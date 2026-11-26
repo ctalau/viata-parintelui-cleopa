@@ -1,4 +1,4 @@
-"""Build the ten illustrated beats as one editable Blender timeline."""
+"""Build the illustrated episode as one editable Blender timeline."""
 from array import array
 from math import cos, pi, sin, tau
 from pathlib import Path
@@ -12,7 +12,7 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT/"scripts"), str(ROOT.parent/"cleopa-blender"/"scripts")]
 
-from animate_prayer import arm_key, blink, finish_action, head, prop, set_action
+from animate_prayer import arm_key, blink, channels, finish_action, head, prop, set_action, syllables
 from build_characters import create_character, profile as character_profile
 from build_rigs import bind
 from build_scene import setup
@@ -129,7 +129,7 @@ def smooth(t):
     return t*t*t*(t*(6*t-15)+10)
 
 
-def arms(a, side, waypoints, seated=False, world=False):
+def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None):
     p,rig=a["p"],a["rig"]
     prev=None
     for index,(first,second) in enumerate(zip(waypoints,waypoints[1:])):
@@ -142,7 +142,7 @@ def arms(a, side, waypoints, seated=False, world=False):
             if world:
                 bpy.context.scene.frame_set(frame)
                 point=(point-Vector((rig.location.x,rig.location.y)))/a["size"]
-            prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated)
+            prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit)
 
 
 def position_paths(a, values):
@@ -382,15 +382,17 @@ def animate_kitchen(coll):
     loaf,flame=kitchen(coll)
     begin=BEATS["cuptor"]["start"]
     end=BEATS["intai"]["end"]-1
+    prayer_start=BEATS["la-icoane"]["start"]
     mother=actor(coll,"mother","Mama · bucătărie",(-1.72,-2.37,.08),1.22,look=1)
     child=actor(coll,"cleopa","Costică · bucătărie",(2.22,-2.47,1.14),1.15)
     brother=actor(coll,"brother_01","Mihai · bucătărie",(4.23,-2.40,.61),1.13,look=-1)
     father=actor(coll,"father","Tata · prag",(6.62,-2.62,1.67),1.30,look=-1)
     prop_book(brother,center=.32)
+    short_beard(father)
     for a in (mother, child, brother, father):
         stand(a,begin)
-        breathing(a,begin,end,a["home"].x)
-    for k in range(begin,end+1,10):
+        breathing(a,begin,prayer_start-1,a["home"].x)
+    for k in range(begin,TIMING["end"]+1,10):
         key(flame,k,position=(.03*sin(k*.4),.025*sin(k*.6),0))
     settle=beat_frame("cuptor",.78)
     table_pane=(-.12,-2.56,0)
@@ -436,7 +438,7 @@ def animate_kitchen(coll):
     voice(mother,[invite])
 
     st=steam_art(coll,"Abur de pâine")
-    for f in range(begin,end+1,8):
+    for f in range(begin,TIMING["end"]+1,8):
         bpy.context.scene.frame_set(f)
         position=loaf.location.copy()
         key(st,f,position=(position.x+.07*sin(f*.085),position.y+.51+.078*sin(f*.063),.022),
@@ -501,8 +503,247 @@ def animate_kitchen(coll):
         head(father["rig"],f,bow,tilt)
     voice(father,cues("prag","tata")+cues("intai","tata"))
     blink(father["rig"],warns["end"]+7)
-    reveal_actor(father,door,end+1)
-    return [mother,child,brother,father]
+    for a in (mother,child,brother):
+        reveal_actor(a,begin,prayer_start)
+    reveal_actor(father,door,prayer_start)
+    kitchen_replies(mother,child,brother,father,end)
+    return [mother,child,brother,father,*prayer_tableau(coll,prayer_start,TIMING["end"])]
+
+
+def short_beard(father):
+    p = father["p"]
+    art = Art("Barbă scurtă", father["collection"],
+              (p["look"]*.049,p["head_y"]), (p["head_w"]*p["look"],p["head_h"]), z=.605)
+    art.shape("M -.60 -.47 Q -.53 -.59 -.31 -.60 Q -.19 -.62 -.09 -.64 Q .17 -.72 .39 -.61 Q .61 -.59 .76 -.45 Q .71 -.67 .46 -.77 Q .30 -.93 .11 -.88 Q -.10 -.97 -.33 -.81 Q -.51 -.69 -.60 -.47 Z",
+              "58372a",p["hair_dark"],.025)
+    art.line("M -.38 -.67 Q -.15 -.81 .03 -.81 M .28 -.80 Q .47 -.74 .52 -.67",
+             p["hair_light"],.020)
+    bind(art.finish(),father["rig"],"head")
+
+
+def kitchen_replies(mother, child, brother, father, start):
+    whisper, question = BEATS["farfuria"]["cues"]
+    defense = BEATS["grasutu"]["cues"][0]
+    lesson = BEATS["porcul-si-omul"]["cues"][0]
+    ask, hour, surprise = BEATS["un-ceas"]["cues"]
+    joke = BEATS["amin"]["cues"][0]
+    prayer_start = BEATS["la-icoane"]["start"]
+    growl = next(effect for effect in TIMING["effects"]
+                 if effect["file"] == "burta.wav" and effect["start"] > surprise["end"])
+    lesson_reaction = lesson["end"] + 3
+    laugh = joke["end"] + 2
+
+    rig = child["rig"]
+    # Turn toward Mihai during the whisper, back toward the table after the cut.
+    bone = rig.pose.bones["head"]
+    for f, value in ((start,1),(BEATS["farfuria"]["start"],-1),(BEATS["grasutu"]["start"],1)):
+        bone.scale.x = value
+        bone.keyframe_insert("scale",index=0,frame=f,group="Priviri")
+    for curve in channels(rig,child["action"]):
+        if curve.data_path == bone.path_from_id("scale"):
+            for point in curve.keyframe_points:
+                point.interpolation = "CONSTANT"
+
+    child_rest = relax_wrist(child,"R")
+    belly = (-.38,.12)
+    wrist_limit = 72*pi/180
+    arms(child,"R",[
+        (start,(-.88,.58),(-.99,.10)),
+        (whisper["start"]+11,child_rest,(0,-1)),
+        (defense["start"]+7,child_rest,(0,-1)),
+        (defense["start"]+21,(-.94,.78),(-.92,.31)),
+        (defense["end"],(-.94,.78),(-.92,.31)),
+        (defense["end"]+13,child_rest,(0,-1)),
+        (hour["end"]+1,child_rest,(0,-1)),
+        (surprise["start"]+8,(-1.00,.52),(-.96,-.24)),
+        (surprise["start"]+18,(-.80,.91),(-.20,.98)),
+        (growl["start"]-8,(-.80,.91),(-.20,.98)),
+        (growl["start"]+2,(-.88,.60),(-.98,.08)),
+        (growl["start"]+16,belly,(.92,.34)),
+        (joke["end"],belly,(.92,.34)),
+        (prayer_start-1,belly,(.92,.34)),
+    ],True,wrist_limit=wrist_limit)
+    for f, pose in ((whisper["start"],"rest"),(defense["start"]+13,"open"),
+                    (defense["end"]+10,"rest"),(surprise["start"]+5,"open"),
+                    (growl["start"]+7,"cup")):
+        hand_pose(child,"R",f,pose)
+    arms(child,"L",[(start,(.47,.395),(-.8,-.45)),
+                    (growl["start"]-2,(.47,.395),(-.8,-.45)),
+                    (growl["start"]+9,(.40,.25),(-.72,-.68)),
+                    (prayer_start-1,(.40,.25),(-.72,-.68))],True,wrist_limit=wrist_limit)
+    hand_pose(child,"L",growl["start"]+5,"cup")
+    for f,bow,tilt in (
+        (whisper["start"],.065,-.13),(question["start"],.015,.08),
+        (defense["start"]+5,.06,.08),(defense["end"],0,-.09),
+        (lesson["start"]+8,0,-.07),(lesson["end"],.045,.09),
+        (ask["start"],0,-.08),(hour["end"],.025,-.04),
+        (surprise["start"]+9,-.04,-.12),(growl["start"]+10,.15,.15),
+        (joke["start"]+12,.045,-.11),
+    ):
+        head(rig,f,bow,tilt)
+    blink(rig,question["start"]+5)
+    blink(rig,lesson_reaction+9)
+    voice(child,[whisper,defense,ask,surprise])
+
+    rig = father["rig"]
+    rest = relax_wrist(father,"R")
+    chin = (-.27,1.67)
+    down = (-.87,.62)
+    up = (-.92,1.56)
+    duration = lesson["end"] - lesson["start"]
+    down_at = lesson["start"] + round(duration*.55)
+    up_at = lesson["start"] + round(duration*.78)
+    arms(father,"R",[
+        (start,rest,(.03,-1)),(lesson["start"]-32,rest,(.03,-1)),
+        (lesson["start"]+2,chin,(.32,.95)),
+        (lesson["start"]+15,(-.22,1.61),(.36,.93)),
+        (lesson["start"]+28,(-.34,1.53),(.28,.96)),
+        (down_at-21,(-.81,1.09),(-.68,-.72)),
+        (down_at,down,(-.26,-.97)),(down_at+12,down,(-.26,-.97)),
+        (up_at-13,(-.93,1.02),(-.80,.60)),
+        (up_at,up,(-.12,.99)),(lesson["end"]-9,up,(-.12,.99)),
+        (lesson["end"]+12,(-.91,1.01),(-.61,.55)),
+        (lesson_reaction+35,rest,(.03,-1)),
+        (joke["start"]-8,rest,(.03,-1)),(joke["start"]+14,(-.81,.78),(-.40,-.92)),
+        (joke["end"]-3,(-.81,.78),(-.40,-.92)),
+        (laugh+22,rest,(.03,-1)),(prayer_start-1,rest,(.03,-1)),
+    ],wrist_limit=wrist_limit)
+    for f, pose in ((lesson["start"]-7,"cup"),(lesson["start"]+30,"reach"),
+                    (lesson_reaction+15,"rest"),(joke["start"]+4,"open"),(laugh+12,"rest")):
+        hand_pose(father,"R",f,pose)
+    for f,bow,tilt in (
+        (whisper["start"],.04,.08),(question["start"]+3,.025,.17),
+        (defense["end"],.05,.13),(lesson["start"]+4,.07,.10),
+        (down_at,.13,.17),(up_at,-.035,-.09),(lesson["end"],.04,.10),
+        (hour["start"]+3,.07,.12),(joke["start"]+6,.115,.14),
+    ):
+        head(rig,f,bow,tilt)
+    for f in (defense["start"]+6,lesson["start"]-4,lesson["end"]+4,hour["end"]+7):
+        blink(rig,f)
+    voice(father,[question,lesson,hour,joke])
+
+    rig = mother["rig"]
+    rest = relax_wrist(mother,"R")
+    cheek = (-.51,1.83)
+    arms(mother,"R",[
+        (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
+        (lesson_reaction+10,cheek,(.52,.85)),
+        (ask["start"]-3,cheek,(.52,.85)),(ask["start"]+29,rest,(0,-1)),
+        (laugh-26,rest,(0,-1)),(laugh+12,cheek,(.52,.85)),
+        (prayer_start-1,cheek,(.52,.85)),
+    ],wrist_limit=wrist_limit)
+    for f, pose in ((lesson_reaction+5,"cup"),(ask["start"]+12,"rest"),(laugh+8,"cup")):
+        hand_pose(mother,"R",f,pose)
+    scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
+    scarf_fold(mother,laugh+11,prayer_start)
+    blink(rig,whisper["end"])
+    for f,bow,tilt in ((start,.02,-.014),(lesson_reaction+10,.13,-.13),(ask["start"]+16,.025,-.05)):
+        head(rig,f,bow,tilt)
+    prop(rig,"mouth_pose",lesson_reaction+5,7)
+    prop(rig,"mouth_pose",ask["start"]+12,0)
+
+    rig = brother["rig"]
+    blink(rig,whisper["end"]+2)
+    head(rig,whisper["start"]+6,.08,.16)
+    head(rig,question["end"],.02,.05)
+    laugh_reaction(brother,lesson_reaction,ask["start"]+3,.16)
+    for index,a in enumerate((father,brother,mother,child)):
+        laugh_reaction(a,laugh+index*2,prayer_start-1,.12 if a is father else .17)
+
+
+def laugh_reaction(a, start, end, tilt):
+    rig = a["rig"]
+    for f,bow,mouth,eyes in ((start,.03,7,1),(start+4,.11,1,2),
+                             (start+9,.05,7,1),(start+13,.14,1,2),
+                             (start+18,.055,7,1),(end,.028,0,0)):
+        if f <= end:
+            head(rig,f,bow,tilt)
+            prop(rig,"mouth_pose",f,mouth)
+            prop(rig,"eye_pose",f,eyes)
+
+
+def scarf_fold(mother,start,end):
+    art = Art("Colțul baticului ridicat",mother["collection"],(-.36,2.03),(1,1),z=.72)
+    art.shape("M -.44 .22 Q -.29 .13 -.12 .13 Q .09 .09 .45 .10 Q .58 .08 .52 -.025 Q .42 -.18 .21 -.20 Q -.06 -.25 -.29 -.14 Q -.42 -.05 -.44 .22 Z",
+              "f7e6bf","9a6a54",.032)
+    art.line("M -.37 .08 Q -.18 -.01 .00 -.073 Q .19 -.12 .39 -.086","d09270",.024)
+    art.diamond(.33,.014,.043,.039,"aa6552")
+    obj = art.finish()
+    bind(obj,mother["rig"],"head")
+    gate(obj,start,end)
+
+
+def second_icon(coll,start,end):
+    art = Art("Icoana Maicii Domnului cu Pruncul",coll,(-7.55,2.44),(1,1),z=-3.17)
+    art.rect(-.84,-1.08,.84,1.08,"80513c","55372d",.058)
+    art.rect(-.72,-.96,.72,.96,"daad62","b57a4e",.047)
+    art.rect(-.62,-.86,.62,.86,"e9be73","a06748",.022)
+    art.oval(-.13,.31,.433,.446,"f2cd82","ad774a",.023)
+    art.oval(.26,-.076,.288,.287,"f5d189","ad774a",.025)
+    art.shape("M -.57 -.83 Q -.59 -.47 -.46 -.04 Q -.48 .47 -.20 .61 Q .08 .65 .18 .26 Q .25 -.05 .54 -.79 Z",
+              "914e4b","683f3c",.045)
+    art.line("M -.50 -.62 Q -.45 -.18 -.38 .20 Q -.31 .48 -.17 .49 Q -.00 .49 .09 .26",
+             "c58d5d",.023)
+    art.shape("M -.30 .29 Q -.14 .46 .007 .29 Q .086 .21 .042 .02 Q -.02 -.16 -.147 -.13 Q -.30 -.08 -.30 .29 Z",
+              "eac091","a1694f",.019)
+    art.line("M -.25 .21 Q -.22 .24 -.187 .204 M -.14 .21 Q -.10 .23 -.066 .191",
+             "805244",.019)
+    art.shape("M -.01 -.82 Q .00 -.44 .12 -.31 Q .25 -.22 .41 -.35 Q .55 -.58 .57 -.82 Z",
+              "8a9890","596a64",.033)
+    art.oval(.25,-.114,.186,.209,"eec699","a16c52",.025)
+    art.line("M .093 -.061 Q .207 .162 .392 -.045","98704f",.042)
+    art.line("M .158 -.123 Q .202 -.11 .222 -.137 M .274 -.133 Q .306 -.114 .336 -.143",
+             "805244",.018)
+    art.line("M .08 -.53 Q .216 -.43 .261 -.27","e5b689",.049)
+    for x in (-.68,.68):
+        for y in (-.92,.92):
+            art.diamond(x,y,.034,.052,"f3cb7d")
+    gate(art.finish(),start,end)
+
+
+def prayer_tableau(coll,start,end):
+    second_icon(coll,start,end+1)
+    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1)
+    mother = actor(coll,"mother","Mama · rugăciune",(-1.24,-2.43,1.49),1.13,look=-1)
+    brother = actor(coll,"brother_01","Mihai · rugăciune",(1.00,-2.48,1.35),1.10,look=-1)
+    child = actor(coll,"cleopa","Costică · rugăciune",(3.23,-2.49,1.56),1.09,look=-1)
+    short_beard(father)
+    book = Art("Carte de rugăciuni deschisă",father["collection"],(-.21,.93),(1,1),z=.62)
+    book.shape("M -.78 .22 Q -.40 .35 0 .14 Q .40 .35 .78 .22 L .70 -.30 Q .35 -.22 0 -.38 Q -.35 -.22 -.70 -.30 Z",
+               "784e40","54372c",.050)
+    book.shape("M -.72 .25 Q -.35 .35 0 .16 Q .35 .35 .72 .25 L .65 -.24 Q .29 -.17 0 -.34 Q -.29 -.17 -.65 -.24 Z",
+               "eed5a9","ac7c57",.034)
+    book.line([(0,.16),(0,-.34)],"a77552",.023)
+    for x in (-1,1):
+        for y in (-.14,-.045,.05,.14):
+            book.line([(x*.13,y),(x*.36,y+.07),(x*.55,y+.073)],"b38d66",.013)
+    bind(book.finish(),father["rig"],"chest")
+    for side,wrist,direction in (("L",(.44,.68),(-.69,.72)),("R",(-.84,.86),(.85,.52))):
+        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180)
+        hand_pose(father,side,start,"cup")
+    choir = BEATS["la-icoane"]["cues"][-1]
+    for index, a in enumerate((father,mother,brother,child)):
+        rig = a["rig"]
+        if a is not father:
+            stand(a,start)
+        reveal_actor(a,start,end+1)
+        breathing(a,start,end,index)
+        blink(rig,start+19+8*index)
+        blink(rig,choir["end"]+7+3*index)
+        head(rig,start,.09 if index<2 else .022,.12)
+        head(rig,choir["start"]-12,.12 if index<2 else .044,.15)
+        head(rig,choir["end"]+10,.13,.12)
+        # The reader's lower, quieter voice begins beneath the narration.
+        if index < 2:
+            syllables(rig,start+35+index*10,choir["start"]-7,8+index,lead=index==0)
+        voice(a,[choir])
+    glance = BEATS["la-icoane"]["cues"][0]["end"]-35
+    head(brother["rig"],glance,.12,.16)
+    head(child["rig"],glance-7,.23,.21)
+    prop(child["rig"],"eye_pose",glance-5,1)
+    head(child["rig"],choir["start"]-3,.025,.14)
+    prop(child["rig"],"eye_pose",choir["start"]-3,0)
+    return [father,mother,brother,child]
 
 
 def camera_cut(scene, name, frame, zone, center, width, duration, glide=(0,0,0)):
@@ -540,6 +781,12 @@ def cameras(scene):
         ("Încă puțin",BEATS["aproape"]["start"],"kitchen",(1.33,-.96),8.16,(.12,-.04,-.22)),
         ("Tata în prag",BEATS["prag"]["start"],"kitchen",(2.50,-.47),11.96,(.19,.07,-.16)),
         ("Întâi ne rugăm",BEATS["intai"]["start"],"kitchen",(1.45,-.96),7.95,(.09,.03,-.23)),
+        (BEATS["farfuria"]["title"],BEATS["farfuria"]["start"],"kitchen",(4.25,-.41),8.10,(.07,.05,-.12)),
+        (BEATS["grasutu"]["title"],BEATS["grasutu"]["start"],"kitchen",(2.57,-.47),5.56,(.04,.01,-.11)),
+        (BEATS["porcul-si-omul"]["title"],BEATS["porcul-si-omul"]["start"],"kitchen",(2.39,-.50),11.60,(.05,.04,-.17)),
+        (BEATS["un-ceas"]["title"],BEATS["un-ceas"]["start"],"kitchen",(3.75,-.45),8.86,(.05,.04,-.13)),
+        (BEATS["amin"]["title"],BEATS["amin"]["start"],"kitchen",(2.45,-.57),11.55,(.09,.01,-.10)),
+        (BEATS["la-icoane"]["title"],BEATS["la-icoane"]["start"],"kitchen",(-2.04,-.18),13.80,(.21,.06,-.24)),
     ]
     cuts=[]
     for i,(name,start,zone,center,width,glide) in enumerate(specs):
@@ -660,7 +907,7 @@ def main():
     cuts=cameras(scene)
     titles(cuts)
     make_sound_strips(scene)
-    scene["pagini"]="1–10 din Micuțul Cleopa – Pâinea care poate să aștepte"
+    scene["momente"]=len(TIMING["beats"])
     scene["redare"]="24 fps · animație pe doi timpi"
     scene.frame_set(1)
     scene.camera=cuts[0]["camera"]

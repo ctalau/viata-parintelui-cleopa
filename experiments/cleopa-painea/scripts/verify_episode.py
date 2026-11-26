@@ -11,10 +11,14 @@ source=ROOT/"scenes"/"painea_care_poate_sa_astepte.blend"
 bpy.ops.wm.open_mainfile(filepath=str(source),load_ui=False)
 scene=bpy.context.scene
 assert (scene.frame_start,scene.frame_end,scene.frame_step,scene.render.fps)==(1,data["end"],2,24)
-assert [beat["page"] for beat in data["beats"]]==list(range(1,11))
+story = json.loads((ROOT/"scenariu.json").read_text())
+assert [beat["id"] for beat in data["beats"]] == [beat["id"] for beat in story["beats"]]
+beats_by_id = {beat["id"]: beat for beat in data["beats"]}
 assert data["beats"][-1]["end"]==scene.frame_end+1
 labels=[m for m in scene.timeline_markers if m.camera]
-assert len(labels)==11
+assert len(labels) == len(beats_by_id)+1
+for beat in data["beats"][10:]:
+    assert any(marker.name == beat["title"] and marker.frame == beat["start"] for marker in labels)
 for marker in labels:
     scene.frame_set(marker.frame)
     assert scene.camera==marker.camera
@@ -22,7 +26,6 @@ for marker in labels:
 assert all(font.packed_file for font in bpy.data.fonts if font.filepath!="<builtin>")
 assert all(sound.packed_file for sound in bpy.data.sounds)
 assert not bpy.data.libraries
-story = json.loads((ROOT/"scenariu.json").read_text())
 assert {obj.data.body for obj in scene.objects if obj.type=="FONT"} == {
     story["title"],story["subtitle"],"Ghiorrr!",
 }
@@ -34,7 +37,9 @@ for cue in cues:
     assert len(matching)==1 and matching[0].frame_start==cue["start"],cue
 for name,start in (("Costică · ogradă",data["beats"][3]["start"]),
                    ("Mihai · ogradă",data["beats"][4]["start"]),
-                   ("Tata · prag",data["beats"][8]["start"])):
+                   ("Tata · prag",data["beats"][8]["start"]),
+                   *((name+" · rugăciune",beats_by_id["la-icoane"]["start"])
+                     for name in ("Tata","Mama","Mihai","Costică"))):
     drawings=[obj for obj in bpy.data.collections[name].objects if obj.type=="MESH"]
     scene.frame_set(start-1)
     assert all(obj.hide_render and obj.hide_viewport for obj in drawings),name
@@ -158,8 +163,18 @@ def verify_trough_and_father(beats):
 
     father = bpy.data.collections["Tata · prag"]
     assert any("Moustache" in obj.name for obj in father.objects)
-    assert all("Beard" not in obj.name and "Barba" not in obj.name for obj in father.objects)
+    assert "Barbă scurtă" in father.objects
     assert "mustață brună" in beats[8]["cues"][0]["text"]
+    growls = [effect for effect in data["effects"] if effect["file"] == "burta.wav"]
+    assert len(growls) == 2
+    assert beats_by_id["amin"]["start"] < growls[1]["start"] < beats_by_id["amin"]["cues"][0]["start"]
+    for growl in growls:
+        assert any(Path(strip.sound.filepath).name == growl["file"] and
+                   strip.frame_start == growl["start"] for strip in strips)
+    scene.frame_set(beats_by_id["la-icoane"]["start"])
+    assert not bpy.data.objects["Icoana Maicii Domnului cu Pruncul"].hide_render
+    assert bpy.data.objects["Icoana Maicii Domnului cu Pruncul"].hide_viewport is False
+    assert beats_by_id["la-icoane"]["cues"][-1]["speaker"] == "cor"
     print("LAYERING_OK", "râtul este deasupra hranei și în spatele muchiei din față")
 
 
@@ -203,4 +218,4 @@ verify_hands(data["beats"])
 verify_idle(data["beats"])
 verify_trough_and_father(data["beats"])
 verify_arms(rigs)
-print("EPISODE_OK",len(data["beats"]),"pagini",len(labels),"cadre de filmare",len(strips),"piste audio",flush=True)
+print("EPISODE_OK",len(data["beats"]),"momente",len(labels),"cadre de filmare",len(strips),"piste audio",flush=True)

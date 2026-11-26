@@ -1,6 +1,6 @@
 {
   "fps": 24,
-  "end": 2090,
+  "end": 3370,
   "beats": [
     {
       "page": 1,
@@ -193,6 +193,130 @@
           "end": 2041
         }
       ]
+    },
+    {
+      "page": 11,
+      "id": "farfuria",
+      "start": 2091,
+      "end": 2201,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Dar Grăsuțu a început-o cu farfuria…",
+          "file": "11-01.wav",
+          "start": 2097,
+          "end": 2163
+        },
+        {
+          "speaker": "tata",
+          "text": "Ce-ai zis, Costică?",
+          "file": "11-02.wav",
+          "start": 2169,
+          "end": 2193
+        }
+      ],
+      "title": "Dar Grăsuțu a început-o…"
+    },
+    {
+      "page": 12,
+      "id": "grasutu",
+      "start": 2201,
+      "end": 2323,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Că… Grăsuțu mănâncă de dimineață. Și el e foarte fericit.",
+          "file": "12-01.wav",
+          "start": 2207,
+          "end": 2313
+        }
+      ],
+      "title": "Grăsuțu e fericit"
+    },
+    {
+      "page": 13,
+      "id": "porcul-si-omul",
+      "start": 2323,
+      "end": 2605,
+      "cues": [
+        {
+          "speaker": "tata",
+          "text": "Apoi tu nu ești porc să mănânci de dimineață, băiete. Porcul mănâncă și se uită în jos, la troacă. Omul se roagă și se uită în sus, la Dumnezeu.",
+          "file": "13-01.wav",
+          "start": 2335,
+          "end": 2581
+        }
+      ],
+      "title": "Porcul și omul"
+    },
+    {
+      "page": 14,
+      "id": "un-ceas",
+      "start": 2605,
+      "end": 2759,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Bine, tată… dar cât ne rugăm?",
+          "file": "14-01.wav",
+          "start": 2609,
+          "end": 2677
+        },
+        {
+          "speaker": "tata",
+          "text": "Un ceas.",
+          "file": "14-02.wav",
+          "start": 2683,
+          "end": 2697
+        },
+        {
+          "speaker": "costica",
+          "text": "Un ceas întreg?!",
+          "file": "14-03.wav",
+          "start": 2703,
+          "end": 2751
+        }
+      ],
+      "title": "Un ceas întreg?!"
+    },
+    {
+      "page": 15,
+      "id": "amin",
+      "start": 2759,
+      "end": 2879,
+      "cues": [
+        {
+          "speaker": "tata",
+          "text": "Vezi? Și burta ta zice „Amin”.",
+          "file": "15-01.wav",
+          "start": 2783,
+          "end": 2849
+        }
+      ],
+      "title": "Și burta zice Amin"
+    },
+    {
+      "page": 16,
+      "id": "la-icoane",
+      "start": 2879,
+      "end": 3371,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Și așa, în fiecare dimineață, familia lui Costică stătea înaintea icoanelor. Tata citea rugăciunile cu glas gros, mama șoptea, iar copiii se străduiau să nu se uite la pâine.",
+          "file": "16-01.wav",
+          "start": 2891,
+          "end": 3217
+        },
+        {
+          "speaker": "cor",
+          "text": "Pâinea noastră cea de toate zilele dă-ne-o nouă astăzi.",
+          "file": "16-02.wav",
+          "start": 3223,
+          "end": 3327
+        }
+      ],
+      "title": "La icoane"
     }
   ],
   "effects": [
@@ -210,6 +334,11 @@
       "file": "grohait.wav",
       "start": 773,
       "end": 785
+    },
+    {
+      "file": "burta.wav",
+      "start": 2764,
+      "end": 2780
     }
   ]
 }

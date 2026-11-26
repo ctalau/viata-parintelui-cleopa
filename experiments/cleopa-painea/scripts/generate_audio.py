@@ -6,6 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import math
 import os
+import statistics
+import subprocess
+from tempfile import TemporaryDirectory
 from pathlib import Path
 import time
 from urllib.error import HTTPError, URLError
@@ -61,22 +64,22 @@ def normalized_voice(pcm, rate):
     return array("h", (round(x * gain) for x in samples)).tobytes()
 
 
-def generate_line(job):
-    file, speaker, text, model, force = job
-    out = AUDIO / file
-    if out.exists() and not force:
-        with wave.open(str(out)) as sound:
-            return file, round(sound.getnframes() / sound.getframerate(), 5)
+def duration_of(path):
+    with wave.open(str(path)) as sound:
+        return round(sound.getnframes() / sound.getframerate(), 5)
+
+
+def synthesize(out, speaker, text, model, delivery=""):
     voice, style = SPEC["voices"][speaker]
     content_type, pcm = request("audio/speech", {
         "model": model,
         "voice": voice,
         "input": text,
-        "instructions": style + " Spune exact textul în română. O singură voce, fără muzică.",
+        "instructions": (style + " " + delivery).strip() + " Spune exact textul în română. O singură voce, fără muzică.",
         "response_format": "pcm",
     })
     if "pcm" not in content_type or len(pcm) < 4800 or len(pcm) % 2:
-        raise ValueError(f"Date TTS invalide pentru {file}")
+        raise ValueError(f"Date TTS invalide pentru {out.name}")
     rate = int(content_type.split("rate=")[1].split(";")[0]) if "rate=" in content_type else 24000
     samples = normalized_voice(pcm, rate)
     temporary = out.with_suffix(".tmp")
@@ -84,9 +87,51 @@ def generate_line(job):
         sound.setparams((1, 2, rate, 0, "NONE", ""))
         sound.writeframes(samples)
     temporary.replace(out)
-    duration = round(len(samples) / (2 * rate), 5)
-    print(file, model, f"{duration:.2f}s", flush=True)
-    return file, duration
+
+
+def generate_chorus(out, speakers, text, model):
+    rate = 24000
+    with TemporaryDirectory(dir=AUDIO, prefix=".cor-") as temporary:
+        paths = [Path(temporary) / f"{speaker}.wav" for speaker in speakers]
+        for path, speaker in zip(paths, speakers):
+            synthesize(path, speaker, text, model,
+                       "Rostește rar și liniștit, în ritmul unei rugăciuni de dimineață.")
+        lengths = [duration_of(path) for path in paths]
+        target = statistics.median(lengths)
+        mix = [0.0] * round((target + 1) * rate)
+        for index, (path, length) in enumerate(zip(paths, lengths)):
+            pcm = array("h")
+            pcm.frombytes(subprocess.check_output([
+                "ffmpeg", "-v", "error", "-i", str(path), "-af",
+                f"atempo={max(.5, min(2, length / target))}",
+                "-ar", str(rate), "-ac", "1", "-f", "s16le", "-",
+            ]))
+            offset = index * rate // 65
+            if len(mix) < offset + len(pcm):
+                mix.extend([0.0] * (offset + len(pcm) - len(mix)))
+            # The adults lead and the children's voices remain audible underneath.
+            gain = (.42, .31, .29, .31)[index]
+            for i, sample in enumerate(pcm, offset):
+                mix[i] += gain * sample
+        end = max(i for i, sample in enumerate(mix) if abs(sample) > 15)
+        pcm = array("h", (round(max(-28000, min(28000, sample))) for sample in mix[:end+1]))
+        with wave.open(str(out.with_suffix(".tmp")), "wb") as sound:
+            sound.setparams((1, 2, rate, 0, "NONE", ""))
+            sound.writeframes(pcm.tobytes())
+        out.with_suffix(".tmp").replace(out)
+
+
+def generate_line(job):
+    file, speaker, text, model, force, delivery = job
+    out = AUDIO / file
+    if force or not out.exists():
+        chorus = SPEC.get("chorus", {})
+        if speaker in chorus:
+            generate_chorus(out, chorus[speaker], text, model)
+        else:
+            synthesize(out, speaker, text, model, delivery)
+        print(file, model, f"{duration_of(out):.2f}s", flush=True)
+    return file, duration_of(out)
 
 
 def generate_music():
@@ -129,7 +174,7 @@ def main():
         model = args.model
         jobs = [
             (f"{beat['page']:02d}-{i:02d}.wav", speaker, text, model,
-             f"{beat['page']:02d}-{i:02d}" in args.force)
+             f"{beat['page']:02d}-{i:02d}" in args.force, beat.get("delivery", {}).get(str(i), ""))
             for beat in SPEC["beats"]
             for i, (speaker, text) in enumerate(beat["lines"], 1)
         ]
@@ -139,7 +184,7 @@ def main():
             if model == FALLBACK_TTS or not any(code in str(error) for code in ("400", "404")):
                 raise
             model = FALLBACK_TTS
-            jobs = [(*job[:3], model, job[-1]) for job in jobs]
+            jobs = [(*job[:3], model, *job[4:]) for job in jobs]
             first = generate_line(jobs[0])
         lengths = dict([first, *pool.map(generate_line, jobs[1:])])
         music_job.result()

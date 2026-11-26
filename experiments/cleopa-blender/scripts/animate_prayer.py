@@ -76,9 +76,12 @@ def breathe(rig, start, end, phase, amplitude=.027):
         r.keyframe_insert('location',index=1,frame=frame,group='Breathing')
 
 
-def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False):
+def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None):
     angle=atan2(direction[0],-direction[1])
     rotations, scales=solve_arm(p,side,wrist,angle,seated)
+    if wrist_limit is not None:
+        bend = lift_angle(0, rotations[-1])
+        rotations = (*rotations[:2], max(-wrist_limit, min(wrist_limit, bend)))
     if previous is not None:
         rotations=tuple(lift_angle(a,b) for a,b in zip(previous,rotations))
     for i,name in enumerate(('upper_arm','forearm','hand')):

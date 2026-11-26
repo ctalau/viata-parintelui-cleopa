@@ -73,22 +73,29 @@ def verify_export(movie):
 def contact_sheet():
     width,height=489,275
     gutter=14
-    canvas=Image.new("RGB",(2*width+3*gutter,5*(height+37)+78),"#38261f")
+    beats=TIMING["beats"]
+    rows=(len(beats)+1)//2
+    canvas=Image.new("RGB",(2*width+3*gutter,rows*(height+37)+78),"#38261f")
     text=ImageDraw.Draw(canvas)
-    title="Micuțul Cleopa · Primele zece pagini"
+    title="Micuțul Cleopa · Pâinea care poate să aștepte"
     bold=ImageFont.truetype("DejaVuSans.ttf",27)
     regular=ImageFont.truetype("DejaVuSans.ttf",15)
     text.text((gutter,15),title,fill="#fae5bf",font=bold)
-    labels=("Satul în zori","Trezirea","Ghiorrr!","La troacă","Mihai și cartea",
-            "Pâinea caldă","Drumul spre școală","Încă puțin…","Tata în prag","Întâi ne rugăm")
-    for index,(beat,label) in enumerate(zip(TIMING["beats"],labels)):
-        f=beat["cues"][-1]["start"]+10
-        if index==0:
+    original_labels={
+        "sat":"Satul în zori","trezire":"Trezirea","burtica":"Ghiorrr!","troaca":"La troacă",
+        "mihai":"Mihai și cartea","cuptor":"Pâinea caldă","traista":"Drumul spre școală",
+        "aproape":"Încă puțin…","prag":"Tata în prag","intai":"Întâi ne rugăm",
+    }
+    for index,beat in enumerate(beats):
+        label=beat.get("title") or original_labels[beat["id"]]
+        f=beat["cues"][-1]["start"]+10 if beat["cues"] else (beat["start"]+beat["end"])//2
+        if beat["id"]=="sat":
             f=29
-        elif index==1:
+        elif beat["id"]=="trezire":
             f=beat["start"]+16
-        elif index==2:
+        elif beat["id"]=="burtica":
             f=beat["start"]+8
+        f=min(f,beat["end"]-1)
         f=f if f%2 else f-1
         with Image.open(RENDERS/"frames"/f"frame_{f:04}.png") as full:
             preview=full.resize((width,height), Image.Resampling.LANCZOS)

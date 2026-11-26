@@ -11,6 +11,7 @@
     "mama": ["Aoede", "Mamă blândă, apropiată, cu un zâmbet în voce, ritm firesc."],
     "tata": ["Puck", "Tată tânăr, cu voce caldă și fermă. Le vorbește copiilor blând și firesc, cu dicție clară."]
   },
+  "chorus": {"cor": ["tata", "mama", "mihai", "costica"]},
   "beats": [
     {"page": 1, "id": "sat", "lead": 2.35, "tail": 0.48, "lines": [
       ["povestitor", "Pe dealurile Botoșanilor trăia un băiețel pe nume Costică. Era vesel, curios și mereu flămând."]]},
@@ -37,6 +38,27 @@
       ["tata", "O clipă, copii. Lăsați pâinea să aștepte."]]},
     {"page": 10, "id": "intai", "lead": 0.32, "tail": 2.05, "lines": [
       ["povestitor", "Mâna lui Costică îngheță în aer, chiar lângă pâine."],
-      ["tata", "Întâi ne rugăm. Ziua începe cu Dumnezeu."]]}
+      ["tata", "Întâi ne rugăm. Ziua începe cu Dumnezeu."]]},
+    {"page": 11, "id": "farfuria", "title": "Dar Grăsuțu a început-o…", "lead": 0.24, "tail": 0.28, "lines": [
+      ["costica", "Dar Grăsuțu a început-o cu farfuria…"],
+      ["tata", "Ce-ai zis, Costică?"]],
+      "delivery": {"1": "Vorbește încet, ca atunci când îi spui un secret fratelui de lângă tine."}},
+    {"page": 12, "id": "grasutu", "title": "Grăsuțu e fericit", "lead": 0.2, "tail": 0.36, "lines": [
+      ["costica", "Că… Grăsuțu mănâncă de dimineață. Și el e foarte fericit."]],
+      "delivery": {"1": "Începe puțin ezitant, apoi își apără ideea cu inocență."}},
+    {"page": 13, "id": "porcul-si-omul", "title": "Porcul și omul", "lead": 0.5, "tail": 1.0, "lines": [
+      ["tata", "Apoi tu nu ești porc să mănânci de dimineață, băiete. Porcul mănâncă și se uită în jos, la troacă. Omul se roagă și se uită în sus, la Dumnezeu."]],
+      "delivery": {"1": "Glas cald, așezat, cu un zâmbet discret. Vorbește ca unui copil."}},
+    {"page": 14, "id": "un-ceas", "title": "Un ceas întreg?!", "lead": 0.16, "tail": 0.29, "lines": [
+      ["costica", "Bine, tată… dar cât ne rugăm?"],
+      ["tata", "Un ceas."],
+      ["costica", "Un ceas întreg?!"]],
+      "delivery": {"3": "Miră-te sincer, cu o inflexiune scurtă și amuzată."}},
+    {"page": 15, "id": "amin", "title": "Și burta zice Amin", "lead": 0.98, "tail": 1.25, "lines": [
+      ["tata", "Vezi? Și burta ta zice „Amin”."]],
+      "delivery": {"1": "Spune replica cu umor blând, accentuând ușor cuvântul Amin."}},
+    {"page": 16, "id": "la-icoane", "title": "La icoane", "lead": 0.48, "tail": 1.8, "lines": [
+      ["povestitor", "Și așa, în fiecare dimineață, familia lui Costică stătea înaintea icoanelor. Tata citea rugăciunile cu glas gros, mama șoptea, iar copiii se străduiau să nu se uite la pâine."],
+      ["cor", "Pâinea noastră cea de toate zilele dă-ne-o nouă astăzi."]]}
   ]
 }

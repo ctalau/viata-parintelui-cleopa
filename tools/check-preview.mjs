@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { episode } from '../studio/episode.mjs';
 
 const args = process.argv.slice(2);
 const address = args.find((arg) => !arg.startsWith('--')) || 'http://127.0.0.1:4173';
@@ -20,9 +21,15 @@ try {
       await route.fulfill({ status: 201, json: { id: 'browser-check' } });
     });
   }
+  const catalogResponse = page.waitForResponse((response) => new URL(response.url()).pathname === '/catalog.json');
   await page.goto(address);
-  await page.waitForFunction(() => document.querySelector('#episode')?.duration > 87);
+  const { chapters: expectedChapters } = await (await catalogResponse).json();
+  await page.waitForFunction(
+    (duration) => Math.abs(document.querySelector('#episode')?.duration - duration) < 0.05,
+    episode.duration,
+  );
   await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4);
+  assert.equal(Number(await page.locator('#seek').getAttribute('max')), episode.duration);
   await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
   await page.waitForFunction(() => {
     const video = document.querySelector('#episode');
@@ -32,7 +39,9 @@ try {
   await page.waitForFunction(() => document.querySelector('#episode').currentTime > 5.25);
   await page.getByRole('button', { name: 'Pauză', exact: true }).click();
   await page.locator('.chapters summary').click();
-  assert.equal(await page.locator('#chapters button').count(), 10);
+  const chapters = page.locator('#chapters button');
+  assert.equal(await chapters.count(), episode.chapterNames.length);
+  assert.ok((await chapters.last().textContent()).endsWith(episode.chapterNames.at(-1)));
   await page.getByRole('button', { name: /Tata în prag/ }).click();
   await page.waitForFunction(() => document.querySelector('#episode').currentTime > 65);
   const videoTime = () => page.locator('#episode').evaluate((video) => video.currentTime);
@@ -44,6 +53,11 @@ try {
     await page.getByRole('button', { name: label, exact: true }).click();
     assert.ok(Math.abs(await videoTime() - (lastTime + offset)) < 0.055, label);
   }
+  await chapters.last().click();
+  await page.waitForFunction(
+    (time) => Math.abs(document.querySelector('#episode').currentTime - time) < 0.05,
+    expectedChapters.at(-1).time,
+  );
   const markedTime = await videoTime();
   await page.getByRole('button', { name: 'Marchează o observație' }).click();
   assert.equal(await page.locator('#note').evaluate((note) => document.activeElement === note), true);

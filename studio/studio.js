@@ -14,8 +14,9 @@ const flag = document.querySelector('#flag');
 const sound = document.querySelector('#sound');
 const full = document.querySelector('#full');
 const jumpButtons = [...document.querySelectorAll('[data-skip]')];
+const episodeLength = document.querySelector('#episode-length');
 const episode = 'painea-care-poate-sa-astepte';
-const episodeDuration = 2090 / 24;
+let episodeDuration;
 let markedTime = null;
 
 function clock(time, decimal = false) {
@@ -25,16 +26,29 @@ function clock(time, decimal = false) {
   return decimal ? `${clock}.${tenths % 10}` : clock;
 }
 
+function duration() {
+  return episodeDuration ?? (Number.isFinite(video.duration) ? video.duration : 0);
+}
+
 function currentTime() {
-  return Math.min(video.currentTime, episodeDuration);
+  return Math.min(video.currentTime, duration());
 }
 
 function updateTime() {
   const time = currentTime();
   seek.value = time;
   seek.setAttribute('aria-valuetext', clock(time, true));
-  playbackTime.textContent = `${clock(time, true)} / ${clock(episodeDuration, true)}`;
+  playbackTime.textContent = `${clock(time, true)} / ${clock(duration(), true)}`;
   if (markedTime === null) timeLabel.textContent = clock(time, true);
+}
+
+function updateDuration() {
+  const seconds = Math.round(duration());
+  episodeLength.textContent = seconds ? `${Math.floor(seconds / 60)} min ${seconds % 60} s` : '';
+  seek.disabled = video.readyState === 0;
+  seek.max = seek.disabled ? 0 : duration();
+  for (const button of jumpButtons) button.disabled = seek.disabled;
+  updateTime();
 }
 
 function updatePlay() {
@@ -46,7 +60,7 @@ function jumpTo(time) {
   if (video.readyState === 0) return;
   // Show the decoded frame on the first paused seek, including before the first play.
   video.removeAttribute('poster');
-  video.currentTime = Math.max(0, Math.min(episodeDuration, time));
+  video.currentTime = Math.max(0, Math.min(duration(), time));
   updateTime();
 }
 
@@ -85,12 +99,7 @@ function toggleFull() {
 }
 
 video.addEventListener('timeupdate', updateTime);
-video.addEventListener('loadedmetadata', () => {
-  seek.max = episodeDuration;
-  seek.disabled = false;
-  for (const button of jumpButtons) button.disabled = false;
-  updateTime();
-});
+video.addEventListener('loadedmetadata', updateDuration);
 video.addEventListener('play', updatePlay);
 video.addEventListener('pause', updatePlay);
 video.addEventListener('ended', updatePlay);
@@ -121,11 +130,8 @@ document.addEventListener('keydown', (event) => {
   event.preventDefault();
 });
 video.controls = false;
-seek.disabled = video.readyState === 0;
-seek.max = video.readyState === 0 ? 0 : episodeDuration;
-for (const button of jumpButtons) button.disabled = seek.disabled;
 controls.hidden = false;
-updateTime();
+updateDuration();
 
 async function submitFeedback(event) {
   event.preventDefault();
@@ -161,7 +167,9 @@ form.addEventListener('submit', submitFeedback);
 try {
   const response = await fetch('/catalog.json');
   if (!response.ok) throw new Error('Catalog indisponibil');
-  const { chapters, library } = await response.json();
+  const { episode: listedEpisode, chapters, library } = await response.json();
+  episodeDuration = listedEpisode.duration;
+  updateDuration();
   for (const { time, title } of chapters) {
     const button = document.createElement('button');
     button.type = 'button';

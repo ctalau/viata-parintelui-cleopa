@@ -17,7 +17,7 @@ bash scripts/setup.sh
 npm run preview
 ```
 
-Deschide [atelierul local](http://127.0.0.1:4173). Filmul se poate descărca și derula la oricare dintre cele zece momente. Playerul JavaScript are steag, bară de redare și salturi de ±5 s și ±0,5 s. Steagul pune pauză și preia momentul pentru formular. Formularul salvează observația împreună cu secunda aleasă și ID-ul episodului. În preview-ul local, `npm run feedback:export -- --local` citește notele din `.feedback/`.
+Deschide [atelierul local](http://127.0.0.1:4173). Filmul se poate descărca și derula la orice capitol, de la satul în zori până la rugăciunea în familie. Playerul JavaScript are steag, bară de redare și salturi de ±5 s și ±0,5 s. Steagul pune pauză și preia momentul pentru formular. Formularul salvează observația împreună cu secunda aleasă și ID-ul episodului. În preview-ul local, `npm run feedback:export -- --local` citește notele din `.feedback/`.
 
 Pentru producția de animație, instalează Blender 4.3.2 sau 4.5 LTS, Python 3 cu `venv`, FFmpeg, FFprobe și fonturile DejaVu. `bash scripts/setup.sh --animation` creează mediul virtual cu pachetele Python folosite la export. `source .venv/bin/activate` activează mediul. Setup-ul pentru animație instalează și Chromium pentru verificarea și randarea scenelor din browser. Dacă ai deja Chromium, poți seta `CHROMIUM_BIN` la calea executabilului înainte de setup.
 
