@@ -1,0 +1,26 @@
+{
+  "id": "mama-cana",
+  "title": "Apucă o cană",
+  "description": "Așază palma pe toartă, ridică vasul cu o scurtă ezitare și îl așază pe masă înainte să elibereze priza.",
+  "category": "gesturi-mama",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.09
+    ],
+    "width": 8.25
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-cana",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

@@ -55,6 +55,22 @@ blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-pa
 npm run build
 ```
 
+## Gesturile Mamei
+
+[Deschide cele șapte gesturi în atelier](https://viata-parintelui-cleopa-seven.vercel.app/articulatii/?set=gesturi).
+Primele patru sunt semnul crucii, ridicarea cănii, râsul cu mâna la gură și mustrarea cu arătătorul. Talerul cu pâine, ridicarea baticului și indicația spre traistă corespund acțiunilor din „Pâinea caldă”, „Porcul și omul” și „Drumul spre școală”.
+
+```bash
+blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py -- --gesturi
+npm run build
+```
+
+Autorarea combină poziții de articulație interpolate cu rezolvarea cinematică a contactului. Opririle sunt descrise prin repere precum fruntea, gura, toarta sau marginile talerului. În timpul prinderii, poziția vasului și ținta mâinii se calculează din aceeași traiectorie. Între opriri se interpolează unghiurile, iar pentru contacte foarte apropiate se adaptează proiecția brațului. Mâneca și palma primesc deformări evaluate pe cadre, exportate în GLB ca morph targets. Ochii și gura folosesc desene discrete. Fișierele `mama-gest-*.blend` păstrează pozițiile, cheile și recuzita.
+
+- **Rigul** este transferabil între personajele 2.5D cu aceleași nume și ierarhii de oase. Se potrivesc lungimile, pivoții și adâncimile la silueta fiecărui personaj.
+- **Animația** își poate păstra ritmul și ordinea reperelor. Ajustează traiectoriile libere, contactele și dimensiunile obiectelor la mâna, umerii și capul noului personaj, apoi reevaluează deformarea.
+- **Meshul** se poate refolosi direct pentru același desen. Metoda și topologia pot porni un alt costum, dar conturul, textura și deformările deja exportate sunt specifice proporțiilor Mamei. Regenerarea pornește din sursa Blender/Python, unde reperele rămân editabile.
+
 ## Inspectorul de scenă
 
 Inspectorul urmărește planul „Încă puțin”. Redă fragmentul din film cu oasele proiectate prin camera Blender și cu grila evaluată a mânecii drepte. Modul Straturi izolează decorul, masa, pâinea, personajele și aburul într-un cadru ales din același plan. Datele JSON și imaginile WebP generate sunt versionate în `studio/inspectie/`, astfel încât buildul Vercel să ruleze cu Node.js.

@@ -47,7 +47,7 @@ def bake_drawing_switches(scene, meshes):
     """Turn Blender visibility drivers into portable, stepped scale tracks."""
     variants = [obj for obj in meshes if obj.animation_data and obj.animation_data.drivers]
     states = {obj: [] for obj in variants}
-    for frame in range(FIRST, LAST + 1):
+    for frame in range(FIRST, scene.frame_end + 1):
         scene.frame_set(frame)
         depsgraph = bpy.context.evaluated_depsgraph_get()
         for obj in variants:
@@ -79,6 +79,11 @@ def linear_keys(obj):
 
 
 def bake_shapes(obj, samples):
+    reference = samples[0][1]
+    if all(coords == reference for _,coords in samples):
+        obj.data.vertices.foreach_set("co", [value for point in reference for value in point])
+        obj.data.update()
+        return
     basis = obj.shape_key_add(name="Basis")
     basis.data.foreach_set("co", [value for point in samples[0][1] for value in point])
     targets = {}
@@ -175,35 +180,41 @@ def keep_face_switches_discrete(path):
                      + struct.pack("<I4s", len(encoded), b"JSON") + encoded + tail)
 
 
-def export_character(id_, design, look, side, target, direction, hand, test=None):
-    scene = setup("gest", fps=24, end=LAST)
+def export_character(id_, design, look, side, target, direction, hand, test=None, gesture=None):
+    scene = setup("gest", fps=24, end=145 if gesture else LAST)
     character = actor(scene.collection, design, id_, (0, 0, 0), look=look, interior=True)
     rig, collection = character["rig"], character["collection"]
     if id_ == "tata":
         short_beard(character)
-    if test:
+    if gesture:
+        from mother_actions import create_mother_action
+        create_mother_action(scene,character,gesture,bake_shapes)
+    elif test:
         create_stress_arm(scene, character, test, bake_shapes)
     else:
         pose(character, side, target, direction, hand)
-    meshes = [obj for obj in collection.objects if obj.type == "MESH"]
+    meshes = [obj for obj in collection.all_objects if obj.type == "MESH"]
     scene.frame_set(FIRST)
     depsgraph = bpy.context.evaluated_depsgraph_get()
     bottom = min((evaluated.matrix_world @ Vector(point)).y
-                 for obj in meshes if not (evaluated := obj.evaluated_get(depsgraph)).hide_render
+                 for obj in meshes if (not gesture or "Leather shoe" in obj.name)
+                 and not (evaluated := obj.evaluated_get(depsgraph)).hide_render
                  for point in evaluated.bound_box)
     rig.location.y -= bottom
-    if test:
+    if test or gesture:
         scene.camera.location = (.18, 3.25, 20)
         scene.camera.data.ortho_scale = 6.4
-        filename = Path(__file__).resolve().parents[1] / "scenes" / f"mama-test-{test}.blend"
+        basename = f"mama-gest-{gesture}" if gesture else f"mama-test-{test}"
+        filename = Path(__file__).resolve().parents[1] / "scenes" / f"{basename}.blend"
         bpy.ops.wm.save_as_mainfile(filepath=str(filename), compress=True)
-    bake_arm(scene, meshes, side)
-    bake_drawing_switches(scene, [obj for obj in collection.objects if obj.type == "MESH"])
+    if not gesture:
+        bake_arm(scene, meshes, side)
+    bake_drawing_switches(scene, [obj for obj in collection.all_objects if obj.type == "MESH"])
 
     scene.frame_set(FIRST)
     bpy.ops.object.select_all(action="DESELECT")
     rig.select_set(True)
-    for obj in collection.objects:
+    for obj in collection.all_objects:
         if obj.type == "MESH":
             obj.select_set(True)
     output = OUTPUT / f"{id_}.glb"
@@ -223,6 +234,10 @@ if __name__ == "__main__":
     if options == ["--stress"]:
         for test in ("palma", "cot", "umar"):
             export_character("mama-"+test, "mother", 1, "L", None, None, None, test)
+    elif options[:1] == ["--gesturi"]:
+        from mother_actions import ACTIONS
+        for gesture in options[1:] or ACTIONS:
+            export_character("mama-"+gesture, "mother", 1, "R", None, None, None, gesture=gesture)
     else:
         for args in CHARACTERS:
             export_character(*args)

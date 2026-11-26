@@ -56,11 +56,12 @@ def quadratic(a, b, c, t):
     return a.lerp(b, t).lerp(b.lerp(c, t), t)
 
 
-def sleeve_rows(shoulder, elbow, wrist):
+def sleeve_rows(shoulder, elbow, wrist, folded=False):
     upper, fore = (elbow-shoulder).normalized(), (wrist-elbow).normalized()
     nu, nf = normal(upper), normal(fore)
-    join = shoulder + upper*.23
-    ahead, behind = elbow-upper*.245, elbow+fore*.24
+    upper_length, fore_length = (elbow-shoulder).length,(wrist-elbow).length
+    join = shoulder + upper*min(.23,upper_length*.34)
+    ahead, behind = elbow-upper*min(.245,.38*upper_length), elbow+fore*min(.24,.42*fore_length)
     before_cuff, opening, hem = wrist-fore*.118, wrist-fore*.026, wrist+fore*.024
     inner_anchor = shoulder + Vector((-.245, -.188))
     outer_anchor = shoulder + Vector((-.19, .174))
@@ -79,7 +80,10 @@ def sleeve_rows(shoulder, elbow, wrist):
     for sign in (-1, 1):
         a = ahead+nu*(sign*.154)
         c = behind+nf*(sign*.132)
-        b = elbow + (nu+nf)*(.143*sign/(1+nu.dot(nf)))
+        corner = .143/(1+nu.dot(nf))
+        if folded:
+            corner = min(corner,.238)
+        b = elbow + (nu+nf)*(sign*corner)
         edges.append((a,b,c))
     for i in range(1, 5):
         t = i/4
@@ -181,18 +185,18 @@ def hand_model(coll, profile, side="L"):
     return art.finish()
 
 
-def hand_points(vertices, wrist, direction, fingers, thumb, sign=1):
+def hand_points(vertices, wrist, direction, fingers, thumb, sign=1, depth=.616, flex_power=1):
     across = normal(direction)
     for x,y,z in vertices:
         # Flex the pads with a smooth longitudinal gradient. The base of the
         # palm and wrist keep the same width and never move off the cuff.
         pad = ease((y-.115)/.245)
         thumb_pad = ease((-x-.071)/.105)*ease((y-.075)/.12)
-        curl = fingers*(.85+.18*ease((x+.032)/.145))
+        curl = fingers*flex_power*(.85+.18*ease((x+.032)/.145))
         xx = x*(1-.46*curl*pad) + thumb_pad*(.053*(1-thumb)-.022*thumb)
         yy = y-.144*curl*pad + .013*thumb*thumb_pad
         point = wrist+direction*yy+across*xx
-        yield (point.x*sign, point.y, .616+z)
+        yield (point.x*sign, point.y, depth+z)
 
 
 def key_poses(character, test):

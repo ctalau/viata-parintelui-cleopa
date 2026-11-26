@@ -1,0 +1,26 @@
+{
+  "id": "mama-batic",
+  "title": "Își ridică un colț al baticului",
+  "description": "Prinde marginea dintre degetul mare și arătător, o ridică și o lasă să cadă. Gest pentru «Porcul și omul».",
+  "category": "gesturi-mama",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.24
+    ],
+    "width": 7.3
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-batic",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

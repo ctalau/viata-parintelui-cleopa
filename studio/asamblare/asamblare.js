@@ -116,7 +116,7 @@ async function openClip({ id, png, mp4 }, catalog) {
     const sheet = $('clip-sheet');
     if (sheet) sheet.href = `/articulatii/foi/${id.slice(5)}.webp`;
     const blend = $('clip-blend');
-    if (blend) blend.href = `https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/mama-test-${id.slice(5)}.blend`;
+    if (blend) blend.href = `https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/mama-${descriptor.category === 'gesturi-mama' ? 'gest' : 'test'}-${id.slice(5)}.blend`;
     const assembled = assembleScene(descriptor, new Map(templates));
     player?.dispose();
     clip = descriptor;
@@ -142,9 +142,19 @@ async function start() {
   ]);
   renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setClearColor('#31251d');
-  const category = document.body.dataset.category;
+  const gestures = document.body.dataset.category === 'articulatii' && params.get('set') === 'gesturi';
+  const category = gestures ? 'gesturi-mama' : document.body.dataset.category;
+  if (gestures) {
+    $('mama-title').textContent = 'Gesturile Mamei';
+    $('mama-intro').textContent = 'Alege un gest și derulează până la contact. Poți examina priza și suprapunerile și din lateral.';
+    $('mama-picker-label').textContent = 'Gest';
+    for (const link of document.querySelectorAll('[data-mama-mode]')) {
+      if (link.dataset.mamaMode === 'gesturi') link.setAttribute('aria-current','page');
+      else link.removeAttribute('aria-current');
+    }
+  }
   const clips = allClips.filter((item) => item.category === category || item.id === params.get('clip'));
-  const first = clips.find(({ id }) => id === 'mama-palma' && category) ?? clips.find(({ id }) => id === 'painea-pe-masa') ?? clips[0];
+  const first = clips.find(({ id }) => id === (gestures ? 'mama-cruce' : 'mama-palma') && category) ?? clips.find(({ id }) => id === 'painea-pe-masa') ?? clips[0];
   const selected = clips.find(({ id }) => id === params.get('clip')) ?? first;
   new ResizeObserver(resize).observe($('assembly-stage'));
   for (const item of [first, ...clips.filter((entry) => entry !== first)]) {

@@ -207,6 +207,25 @@ try {
     assert.ok(!(await stressCanvas.screenshot()).equals(initial), id);
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  await page.getByRole('link', { name: 'Șapte gesturi' }).click();
+  await page.getByRole('heading', { name: 'Gesturile Mamei' }).waitFor();
+  const gestures = page.getByRole('combobox', { name: 'Gest', exact: true });
+  const actions = ['cruce', 'cana', 'ras', 'cearta', 'paine', 'batic', 'traista'];
+  assert.equal(await gestures.locator('option').count(), actions.length);
+  for (const id of actions) {
+    await gestures.selectOption(`mama-${id}`);
+    await assemblyTime.waitFor();
+    const sheet = await page.getByRole('link', { name: 'Foaie de cadre' }).getAttribute('href');
+    assert.equal(await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, sheet), 200);
+    assert.match(await page.getByRole('link', { name: 'Rigul în Blender' }).getAttribute('href'),
+      new RegExp(`mama-gest-${id}\\.blend$`));
+    const initial = await stressCanvas.screenshot();
+    await assemblyTime.evaluate((slider) => {
+      slider.value = '2.2';
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    assert.ok(!(await stressCanvas.screenshot()).equals(initial), id);
+  }
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
 } finally {

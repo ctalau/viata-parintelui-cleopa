@@ -17,12 +17,13 @@
   <main class="shell">
     <section class="assembly-intro">
       <p class="series">Atelierul de animație</p>
-      <h1>Articulațiile Mamei</h1>
-      <p class="description">Alege un test și oprește mișcarea în punctele de flexie maximă. Poți verifica articulația și din lateral.</p>
+      <h1 id="mama-title">Articulațiile Mamei</h1>
+      <p class="description" id="mama-intro">Alege un test și oprește mișcarea în punctele de flexie maximă. Poți verifica articulația și din lateral.</p>
+      <div class="assembly-links"><a href="/articulatii/" data-mama-mode="articulatii" aria-current="page">Teste de articulații</a><a href="/articulatii/?set=gesturi" data-mama-mode="gesturi">Șapte gesturi</a></div>
     </section>
     <div class="assembly">
       <section class="view" aria-label="Test interactiv">
-        <label class="plan-picker">Test de articulație <select id="clip-picker"></select></label>
+        <label class="plan-picker"><span id="mama-picker-label">Test de articulație</span> <select id="clip-picker"></select></label>
         <div class="assembly-stage" id="assembly-stage">
           <canvas id="assembly-canvas" role="img" aria-label="Mama, cu rig animat în Three.js"></canvas>
           <p id="assembly-status" role="status">Se încarcă Mama…</p>
