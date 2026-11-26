@@ -163,7 +163,8 @@ try {
   assert.ok(!(await canvas.screenshot()).equals(withBook), 'Cartea trebuie să poată fi ascunsă');
   for (const label of ['Cadru PNG', 'Clip MP4', 'Scena JSON']) {
     const link = await page.getByRole('link', { name: label, exact: true }).getAttribute('href');
-    assert.equal((await page.request.head(new URL(link, address).href)).status(), 200);
+    const status = await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, link);
+    assert.equal(status, 200);
   }
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
