@@ -1,0 +1,13 @@
+{
+ "variants": [
+  "folded",
+  "draped"
+ ],
+ "steps": true,
+ "grip": [
+  0.52,
+  0.1,
+  0.26
+ ],
+ "soft": true
+}

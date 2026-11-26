@@ -1,0 +1,13 @@
+---
+name: facut-episod
+description: Produce și verifică un episod animat pentru Viața Părintelui Cleopa sau un film cu monahi, de la textul sursă și storyboard la Blender ori preview în browser, voce și muzică OpenRouter și export compact.
+---
+
+# Producția unui episod
+
+1. **Citește sursa.** Notează paginile cerute, oamenii, locurile, dialogul și firul acțiunii. Uită-te la imaginile de referință și la episodul anterior. Lasă o scurtă fișă a episodului în folderul de lucru.
+2. **Scrie momentele.** Pentru fiecare, fixează intenția, pozițiile de start, replica, acțiunea vizibilă și camera. Urmărește dacă personajul ține ceva, dacă mâna folosită este liberă și dacă obiectul rămâne în locul în care a fost pus. Gândește tăietura astfel încât acțiunea să rămână lizibilă.
+3. **Alege traseul de producție.** Pentru stilul desenat al familiei, folosește rigurile și scripturile din `experiments/cleopa-blender/` și modelul de episod din `experiments/cleopa-painea/`. Pentru monahi, pornește de la `videos/001-demo-atelier/video.json` sau de la [descriptorul Blender/Three.js](../../../docs/DESCRIPTOR-blender.md). Folosește personajele GLB, decorurile și recuzita din `assets/` și sursele corespunzătoare din `blender/`. Randează întâi cadrul dificil și 2–3 cadre din gestul principal.
+4. **Pregătește vocea și muzica.** Folosește `OPENROUTER_API_KEY` în mediu. Verifică modelul și setarea de voce din episodul anterior. Pentru episodul Blender, sincronizează audio cu `generate_audio.py` și `prepare_timeline.py`. Pentru descriptor, rulează `npm run voice -- videos/<id>` și `npm run music -- videos/<id>`. Ascultă rezultatul, verifică ritmul replicilor și volumul muzicii sub dialog.
+5. **Verifică animația.** Rulează `npm run check:cleopa` pentru familia Cleopa. Pentru descriptor, rulează `npm run validate -- videos/<id>` și `npm run check -- videos/<id>`. Vezi cadre din pregătire, contact și revenire. Verifică mâinile în raport cu manșeta și capetele, profilul umărului, repausul și contactul cu podeaua. Orice suprapunere intenționată primește interval, cameră și explicație. Recitește gesturile după `AGENTS.md`.
+6. **Exportă și verifică.** Salvează sursele, fișierul Blender editabil cu resursele împachetate, posterul, o foaie de contact și MP4-ul compact. Pentru filmele Blender, urmează comenzile din README-ul experimentului. `npm run build` și `npm run preview` servesc atelierul la `127.0.0.1:4173`. Testează filmul, derularea la un capitol și trimiterea unei observații. Indică în livrare linkul către film și către sursele din GitHub.

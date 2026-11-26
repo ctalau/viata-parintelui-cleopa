@@ -1,0 +1,2686 @@
+{
+  "id": "_gallery",
+  "title": "Galeria de componente",
+  "captions": false,
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "characters": {
+    "macarie": {
+      "name": "elder-monk + halo",
+      "look": {
+        "preset": "elder-monk",
+        "halo": true,
+        "cross": true
+      }
+    },
+    "pavel": {
+      "name": "elder-monk kamilavka",
+      "look": {
+        "preset": "elder-monk",
+        "robe": "darkGray",
+        "legs": "darkGray",
+        "hat": "kamilavka",
+        "beardColor": "lightGray"
+      }
+    },
+    "ioan": {
+      "name": "monk",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "mihail": {
+      "name": "young-monk",
+      "look": {
+        "preset": "young-monk"
+      }
+    },
+    "omul": {
+      "name": "villager",
+      "look": {
+        "preset": "villager",
+        "bandColor": "red"
+      }
+    },
+    "femeia": {
+      "name": "woman",
+      "look": {
+        "preset": "woman"
+      }
+    },
+    "copil": {
+      "name": "child",
+      "look": {
+        "preset": "child"
+      }
+    },
+    "narrator": {
+      "name": "-"
+    },
+    "a": {
+      "name": "neutral",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "b": {
+      "name": "happy",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "c": {
+      "name": "joy",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "d": {
+      "name": "sad",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "e": {
+      "name": "surprised",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "f": {
+      "name": "thinking",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "g": {
+      "name": "sick",
+      "look": {
+        "preset": "monk"
+      }
+    },
+    "m": {
+      "name": "gesturi",
+      "look": {
+        "preset": "elder-monk",
+        "halo": true
+      }
+    },
+    "plugar": {
+      "name": "Plugarul",
+      "color": "#a0522d",
+      "look": {
+        "preset": "villager",
+        "robe": "reddishBrown",
+        "hat": "none",
+        "hair": "short",
+        "beard": "short"
+      }
+    },
+    "pimen2": {
+      "name": "cowl + flowing beard",
+      "look": {
+        "preset": "elder-monk",
+        "robeLong": true,
+        "hat": "cowl",
+        "beard": "flowing",
+        "beardLength": 1.2,
+        "brows": "bushy",
+        "browColor": "white",
+        "eyes": "big",
+        "blush": false,
+        "cord": "darkGray",
+        "belt": "darkGray"
+      }
+    },
+    "antonie2": {
+      "name": "cowl + forked beard",
+      "look": {
+        "preset": "elder-monk",
+        "robe": "#8b5a2b",
+        "legs": "#8b5a2b",
+        "robeLong": true,
+        "hat": "cowl",
+        "hatColor": "#7a4a26",
+        "beard": "flowing",
+        "beardShape": "forked",
+        "beardColor": "lightGray",
+        "brows": "bushy",
+        "browColor": "lightGray",
+        "eyes": "big",
+        "blush": false,
+        "cord": "tan",
+        "belt": "tan"
+      }
+    },
+    "plugar2": {
+      "name": "straw hat + vest",
+      "look": {
+        "preset": "villager",
+        "hat": "straw",
+        "bandColor": "reddishBrown",
+        "robe": "cream",
+        "legs": "reddishBrown",
+        "vest": "reddishBrown",
+        "stripe": "cream",
+        "belt": "darkBrown",
+        "beard": "short",
+        "beardColor": "darkBrown",
+        "hair": "short",
+        "hairColor": "darkBrown",
+        "eyes": "big"
+      }
+    },
+    "plugar3": {
+      "name": "straw hat + mustache",
+      "look": {
+        "preset": "villager",
+        "hat": "straw",
+        "bandColor": "reddishBrown",
+        "robe": "green",
+        "legs": "darkTan",
+        "stripe": "green",
+        "beard": "mustache",
+        "beardColor": "gray",
+        "age": "elder",
+        "blush": false,
+        "hair": "short",
+        "hairColor": "lightGray",
+        "eyes": "big"
+      }
+    },
+    "pelerin": {
+      "name": "cape + bag",
+      "look": {
+        "preset": "villager",
+        "hat": "none",
+        "hair": "short",
+        "hairColor": "brown",
+        "robe": "tan",
+        "legs": "tan",
+        "stripe": "tan",
+        "belt": "reddishBrown",
+        "beard": "short",
+        "beardColor": "brown",
+        "cloak": true,
+        "cape": true,
+        "cloakColor": "blue",
+        "cloakTrim": false,
+        "bag": "reddishBrown",
+        "bagStrap": "darkBrown",
+        "eyes": "big"
+      }
+    },
+    "siluan": {
+      "name": "Avva Siluan",
+      "color": "#3f2a1d",
+      "look": {
+        "preset": "elder-monk",
+        "robe": "#3b2a20",
+        "legs": "#3b2a20",
+        "hat": "cowl",
+        "hatColor": "#3b2a20",
+        "beard": "flowing",
+        "beardLength": 1.25,
+        "beardColor": "white",
+        "brows": "bushy",
+        "robeLong": true,
+        "fabric": true,
+        "cloak": true,
+        "cape": true,
+        "cloakColor": "#3b2a20",
+        "cloakTrim": false
+      },
+      "voice": {
+        "voice": "Charon"
+      }
+    },
+    "zenon": {
+      "name": "Fratele Zenon",
+      "color": "#82422a",
+      "look": {
+        "preset": "young-monk",
+        "robe": "tan",
+        "legs": "tan",
+        "hat": "none",
+        "hair": "curly",
+        "hairColor": "#5a3820",
+        "cloak": true,
+        "cape": true,
+        "cloakColor": "brown",
+        "cloakTrim": false,
+        "fabric": "cloak",
+        "cloakKind": "shaggy"
+      },
+      "voice": {
+        "voice": "Achird"
+      }
+    },
+    "taranTurban": {
+      "name": "Omul cu turban",
+      "color": "#8a5a32",
+      "look": {
+        "preset": "villager",
+        "hat": "turban",
+        "hatColor": "#e3cfa3",
+        "bandColor": "#8a5a32",
+        "robe": "#e8d3a6",
+        "legs": "#d9bf8a",
+        "print": "tunic",
+        "stripe": "#e8d3a6",
+        "vest": "#8a5a32",
+        "beard": "short",
+        "beardColor": "#3a2416"
+      },
+      "voice": {
+        "voice": "Puck",
+        "style": "vesel; ritm natural"
+      }
+    }
+  },
+  "scenes": [
+    {
+      "id": "lineup",
+      "set": {
+        "type": "desert-lavra"
+      },
+      "cast": {
+        "macarie": {
+          "at": "cell1+-6,1"
+        },
+        "pavel": {
+          "at": "cell1+-4,1"
+        },
+        "ioan": {
+          "at": "cell1+-2,1"
+        },
+        "mihail": {
+          "at": "cell1+0,1"
+        },
+        "omul": {
+          "at": "cell1+2,1"
+        },
+        "femeia": {
+          "at": "cell1+4,1"
+        },
+        "copil": {
+          "at": "cell1+6,1"
+        }
+      },
+      "props": {
+        "grapes": {
+          "type": "grapes",
+          "in": "macarie"
+        },
+        "staff": {
+          "type": "staff",
+          "in": "pavel",
+          "hand": "L"
+        },
+        "jug": {
+          "type": "jug",
+          "in": "mihail",
+          "hand": "L"
+        },
+        "basket": {
+          "type": "basket",
+          "in": "omul",
+          "filled": "grapePurple"
+        },
+        "bread": {
+          "type": "bread",
+          "in": "femeia"
+        },
+        "book": {
+          "type": "book",
+          "in": "ioan"
+        },
+        "rock": {
+          "type": "rock",
+          "at": "cell1+8,3"
+        },
+        "cosStricat": {
+          "type": "basket",
+          "broken": true,
+          "bend": 1,
+          "at": "cell1+9.5,4.5",
+          "y": 0.2
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "cell1",
+        "dist": 30,
+        "height": 2,
+        "y": 2.4,
+        "fov": 40
+      },
+      "beats": [
+        {
+          "duration": 1
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "macarie"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "pavel"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "ioan"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "mihail"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "omul"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "femeia"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "copil"
+          }
+        }
+      ]
+    },
+    {
+      "id": "emotions",
+      "set": {
+        "type": "desert-lavra"
+      },
+      "cast": {
+        "a": {
+          "at": "cell1+-6,1",
+          "emotion": "neutral"
+        },
+        "b": {
+          "at": "cell1+-4,1",
+          "emotion": "happy"
+        },
+        "c": {
+          "at": "cell1+-2,1",
+          "emotion": "joy"
+        },
+        "d": {
+          "at": "cell1+0,1",
+          "emotion": "sad"
+        },
+        "e": {
+          "at": "cell1+2,1",
+          "emotion": "surprised"
+        },
+        "f": {
+          "at": "cell1+4,1",
+          "emotion": "thinking"
+        },
+        "g": {
+          "at": "cell1+6,1",
+          "emotion": "sick"
+        }
+      },
+      "camera": {
+        "shot": "close",
+        "on": "a"
+      },
+      "beats": [
+        {
+          "duration": 1
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "b"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "c"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "d"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "e"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "f"
+          }
+        },
+        {
+          "duration": 1,
+          "camera": {
+            "shot": "close",
+            "on": "g"
+          }
+        }
+      ]
+    },
+    {
+      "id": "gestures",
+      "set": {
+        "type": "desert-lavra"
+      },
+      "cast": {
+        "m": {
+          "at": "cell1",
+          "emotion": "happy"
+        }
+      },
+      "camera": {
+        "shot": "medium",
+        "on": "m",
+        "dist": 9
+      },
+      "beats": [
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "wave"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "cross"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "pray"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "bow"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "think"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "jump"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "eat"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "gesture": "wipe"
+          }
+        },
+        {
+          "do": {
+            "actor": "m",
+            "posture": "sit"
+          },
+          "duration": 1
+        },
+        {
+          "do": {
+            "actor": "m",
+            "posture": "kneel"
+          },
+          "duration": 1
+        },
+        {
+          "do": {
+            "actor": "m",
+            "posture": "lie"
+          },
+          "duration": 1
+        }
+      ]
+    },
+    {
+      "id": "satul",
+      "set": {
+        "type": "egypt-village"
+      },
+      "cast": {
+        "omul": {
+          "at": "baker",
+          "emotion": "joy"
+        }
+      },
+      "props": {
+        "uscata": {
+          "type": "bread",
+          "dry": true,
+          "at": "bakery+-2,-1.5"
+        },
+        "calda": {
+          "type": "bread",
+          "fresh": true,
+          "at": "bakery+-1,-1.5"
+        },
+        "cojoc": {
+          "type": "cojoc",
+          "bread": "dry",
+          "at": "bakery+0.5,-1.5"
+        },
+        "cojocCald": {
+          "type": "cojoc",
+          "bread": "fresh",
+          "at": "bakery+2,-1.5"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 30,
+        "height": 12,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2.5
+        },
+        {
+          "duration": 2.5,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              3,
+              -5.4
+            ],
+            "dist": 10,
+            "height": 2,
+            "angle": 68,
+            "y": 3
+          }
+        },
+        {
+          "duration": 2.5,
+          "camera": {
+            "shot": "wide",
+            "on": "bakery",
+            "dist": 6,
+            "height": 1.5,
+            "angle": 180,
+            "y": 0.6
+          }
+        }
+      ]
+    },
+    {
+      "id": "piggyback",
+      "set": {
+        "type": "desert-lavra"
+      },
+      "cast": {
+        "macarie": {
+          "at": "cell1+0,6",
+          "emotion": "happy"
+        },
+        "omul": {
+          "at": "cell1+0,8",
+          "face": "macarie",
+          "emotion": "sick",
+          "posture": "sit"
+        }
+      },
+      "camera": {
+        "shot": "medium",
+        "on": "macarie",
+        "dist": 10,
+        "angle": 60
+      },
+      "beats": [
+        {
+          "duration": 1.5,
+          "do": {
+            "actor": "omul",
+            "ride": "macarie"
+          }
+        },
+        {
+          "duration": 3,
+          "do": {
+            "actor": "macarie",
+            "walk": "cell1+0,2",
+            "speed": 1.6,
+            "style": "slow"
+          }
+        },
+        {
+          "duration": 1.5,
+          "camera": {
+            "shot": "medium",
+            "on": "macarie",
+            "dist": 10,
+            "angle": -120
+          },
+          "do": [
+            {
+              "actor": "omul",
+              "ride": false
+            },
+            {
+              "actor": "omul",
+              "emotion": "joy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ogor",
+      "set": {
+        "type": "wheat-field",
+        "reaped": 0.4
+      },
+      "sky": "morning",
+      "cast": {
+        "mihail": {
+          "at": "reapL",
+          "emotion": "happy"
+        },
+        "omul": {
+          "at": "center+3,1",
+          "face": "mihail",
+          "emotion": "joy"
+        },
+        "pavel": {
+          "at": "tree",
+          "posture": "sit",
+          "emotion": "warm"
+        }
+      },
+      "props": {
+        "secera": {
+          "type": "sickle",
+          "in": "mihail"
+        },
+        "snop": {
+          "type": "sheaf",
+          "in": "omul",
+          "hand": "L"
+        },
+        "punga": {
+          "type": "pouch",
+          "in": "omul"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 30,
+        "height": 12,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        },
+        {
+          "duration": 2.5,
+          "camera": {
+            "shot": "medium",
+            "on": "mihail",
+            "dist": 9,
+            "angle": 150
+          },
+          "do": {
+            "actor": "mihail",
+            "gesture": "reap"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "punga",
+            "dist": 3,
+            "angle": 20
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "wide",
+            "on": "tree",
+            "dist": 14,
+            "height": 4,
+            "angle": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "palete-rose",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "rose"
+      },
+      "sky": "evening",
+      "cast": {
+        "macarie": {
+          "at": "cell1"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 42,
+        "height": 20,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "palete-stone",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "stone"
+      },
+      "sky": "day",
+      "cast": {
+        "macarie": {
+          "at": "cell1"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 42,
+        "height": 20,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "palete-oasis",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "oasis"
+      },
+      "sky": "day",
+      "cast": {
+        "macarie": {
+          "at": "cell1"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 42,
+        "height": 20,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "palete-terra",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "terra"
+      },
+      "sky": "evening",
+      "cast": {
+        "macarie": {
+          "at": "cell1"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 42,
+        "height": 20,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "temnita",
+      "set": {
+        "type": "egypt-village"
+      },
+      "sky": "evening",
+      "cast": {
+        "omul": {
+          "at": "house5+0,-0.6",
+          "emotion": "sad"
+        },
+        "macarie": {
+          "at": "house5+0,3.2",
+          "face": "omul"
+        }
+      },
+      "props": {
+        "temnita": {
+          "type": "jail",
+          "at": "house5+0,-0.6"
+        },
+        "temnitaDeschisa": {
+          "type": "jail",
+          "open": true,
+          "at": "house5+0,-0.6",
+          "visible": false
+        },
+        "cos": {
+          "type": "basket",
+          "eggs": true,
+          "loaf": true,
+          "in": "macarie",
+          "hand": "L"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "house5",
+        "dist": 14,
+        "height": 4,
+        "angle": 20,
+        "y": 2.5
+      },
+      "beats": [
+        {
+          "duration": 2
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "cos"
+          }
+        },
+        {
+          "duration": 2.5,
+          "camera": {
+            "shot": "wide",
+            "on": "house5",
+            "dist": 14,
+            "height": 4,
+            "angle": -20,
+            "y": 2.5
+          },
+          "do": [
+            {
+              "prop": "temnita",
+              "show": false
+            },
+            {
+              "prop": "temnitaDeschisa",
+              "show": true
+            },
+            {
+              "actor": "omul",
+              "emotion": "joy"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "haina",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "stone"
+      },
+      "sky": "dream",
+      "cast": {
+        "omul": {
+          "at": "center+-2,2",
+          "face": "macarie",
+          "emotion": "sad",
+          "look": {
+            "hat": "none",
+            "hair": "long"
+          }
+        },
+        "macarie": {
+          "at": "center+2,2",
+          "face": "omul",
+          "emotion": "warm",
+          "look": {
+            "cloak": true,
+            "cloakColor": "#2e6e8e"
+          }
+        }
+      },
+      "props": {
+        "haina": {
+          "type": "cloak",
+          "color": "#2e6e8e",
+          "in": "omul"
+        },
+        "icoana": {
+          "type": "icon",
+          "src": "assets/icons/mantuitorul-pe-tron-novgorod.jpg",
+          "size": 4,
+          "at": "cell1+0,2",
+          "y": 0.4,
+          "visible": false
+        }
+      },
+      "camera": {
+        "shot": "two",
+        "on": [
+          "omul",
+          "macarie"
+        ],
+        "height": 2.6
+      },
+      "beats": [
+        {
+          "duration": 2.4,
+          "do": {
+            "actor": "omul",
+            "gesture": "shiver"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "medium",
+            "on": "macarie",
+            "dist": 8,
+            "world": true,
+            "angle": 150
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "haina",
+            "angle": 60,
+            "dist": 4
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              0,
+              7.5
+            ],
+            "dist": 7,
+            "height": 0.5,
+            "world": true,
+            "angle": 180,
+            "y": 2.8
+          },
+          "do": [
+            {
+              "prop": "icoana",
+              "show": true
+            },
+            {
+              "actor": "omul",
+              "show": false
+            },
+            {
+              "actor": "macarie",
+              "show": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blocky-town",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "town",
+        "smooth": true
+      },
+      "sky": "day",
+      "cast": {
+        "macarie": {
+          "at": "center+-6,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky",
+            "cloak": true,
+            "cloakColor": "#2e6e8e"
+          },
+          "emotion": "happy"
+        },
+        "pavel": {
+          "at": "center+-4,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        },
+        "ioan": {
+          "at": "center+-2,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        },
+        "mihail": {
+          "at": "center+0,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        },
+        "omul": {
+          "at": "center+2,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        },
+        "femeia": {
+          "at": "center+4,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        },
+        "copil": {
+          "at": "center+6,2",
+          "face": "camera",
+          "look": {
+            "style": "blocky"
+          },
+          "emotion": "happy"
+        }
+      },
+      "props": {
+        "oala": {
+          "type": "pot",
+          "at": "center+-3,-2"
+        },
+        "bol": {
+          "type": "bowl",
+          "in": "omul",
+          "hand": "R"
+        },
+        "oalaMica": {
+          "type": "pot",
+          "at": "center+3,-2",
+          "smoke": "small",
+          "color": "reddishBrown"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 9,
+        "height": 3,
+        "angle": 0,
+        "y": 2.4
+      },
+      "beats": [
+        {
+          "duration": 2,
+          "do": [
+            {
+              "actor": "mihail",
+              "gesture": "wave"
+            },
+            {
+              "actor": "copil",
+              "gesture": "jump"
+            },
+            {
+              "actor": "ioan",
+              "gesture": "cross"
+            },
+            {
+              "actor": "femeia",
+              "gesture": "clap"
+            }
+          ]
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "close",
+            "on": "macarie",
+            "angle": 0
+          },
+          "do": {
+            "actor": "macarie",
+            "gesture": "nod"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "close",
+            "on": "femeia",
+            "angle": -20
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "bol",
+            "dist": 3.5
+          },
+          "do": {
+            "actor": "omul",
+            "gesture": "eat"
+          }
+        },
+        {
+          "duration": 2.5,
+          "camera": {
+            "shot": "wide",
+            "on": "oala",
+            "dist": 6,
+            "height": 2,
+            "angle": 20,
+            "world": true,
+            "y": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "palete-ruby",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "ruby"
+      },
+      "sky": "morning",
+      "cast": {},
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 30,
+        "height": 14,
+        "angle": 20
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "drum-pustiu",
+      "set": {
+        "type": "desert-road",
+        "cells": 2
+      },
+      "sky": "day",
+      "cast": {
+        "macarie": {
+          "at": "rock",
+          "posture": "sit",
+          "emotion": "happy"
+        },
+        "ioan": {
+          "at": "center",
+          "face": "camera",
+          "emotion": "happy"
+        },
+        "mihail": {
+          "at": "oasis",
+          "emotion": "happy"
+        }
+      },
+      "props": {
+        "cutit": {
+          "type": "knife",
+          "in": "macarie",
+          "hand": "R"
+        },
+        "frunze": {
+          "type": "palmLeaves",
+          "at": "rock+1.2,1.2"
+        },
+        "orz": {
+          "type": "grains",
+          "in": "ioan",
+          "hand": "R"
+        },
+        "camila": {
+          "type": "camel",
+          "at": "oasis+-1,3",
+          "sacks": true
+        },
+        "camila2": {
+          "type": "camel",
+          "sitting": true,
+          "at": "oasis+3,1.5"
+        },
+        "frunzaMana": {
+          "type": "palmLeaves",
+          "in": "macarie",
+          "hand": "L",
+          "scale": 0.45
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 26,
+        "height": 10,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        },
+        {
+          "duration": 2.4,
+          "camera": {
+            "shot": "close",
+            "on": "macarie",
+            "angle": 0
+          },
+          "do": {
+            "actor": "macarie",
+            "gesture": "cut"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "orz",
+            "dist": 3
+          },
+          "do": {
+            "actor": "ioan",
+            "gesture": "offer"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "medium",
+            "on": "ioan",
+            "angle": 0
+          },
+          "do": {
+            "actor": "ioan",
+            "gesture": "hungry"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "wide",
+            "on": "oasis",
+            "dist": 12,
+            "height": 4,
+            "angle": 0,
+            "y": 2
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "wide",
+            "on": "cell1",
+            "dist": 18,
+            "height": 6,
+            "angle": 0,
+            "y": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "pustiu-dusk",
+      "set": {
+        "type": "desert-road",
+        "palette": "dusk"
+      },
+      "sky": "day",
+      "cast": {},
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 26,
+        "height": 10,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "pustiu-rosu",
+      "set": {
+        "type": "desert-road",
+        "palette": "red"
+      },
+      "sky": "evening",
+      "cast": {},
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 26,
+        "height": 10,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "pustiu-granit",
+      "set": {
+        "type": "desert-road",
+        "palette": "granite",
+        "cells": 1
+      },
+      "sky": "evening",
+      "cast": {},
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 26,
+        "height": 10,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "pustiu-noaptea",
+      "set": {
+        "type": "desert-road",
+        "palette": "apricot",
+        "road": false,
+        "oasis": false,
+        "clear": [
+          0,
+          0,
+          8
+        ]
+      },
+      "sky": "night",
+      "cast": {
+        "omul": {
+          "at": [
+            0.8,
+            0.6
+          ],
+          "face": 0
+        },
+        "ioan": {
+          "at": [
+            -1.4,
+            -0.4
+          ],
+          "face": 20
+        }
+      },
+      "props": {
+        "felinar": {
+          "type": "lantern",
+          "in": "omul",
+          "hand": "L"
+        },
+        "felinarJos": {
+          "type": "lantern",
+          "at": [
+            -0.4,
+            1.6
+          ]
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          0,
+          0
+        ],
+        "world": true,
+        "dist": 11,
+        "height": 4,
+        "angle": 15,
+        "y": 2
+      },
+      "beats": [
+        {
+          "duration": 2
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "prop",
+            "on": "felinar"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pustiu-apricot",
+      "set": {
+        "type": "desert-road",
+        "palette": "apricot",
+        "cells": 2
+      },
+      "sky": "morning",
+      "cast": {},
+      "camera": {
+        "shot": "wide",
+        "on": "center",
+        "dist": 26,
+        "height": 10,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "biserica",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "amber",
+        "church": 3
+      },
+      "sky": "day",
+      "cast": {
+        "macarie": {
+          "at": "church+-1.6,2.4"
+        },
+        "omul": {
+          "at": "church+1.6,2.4",
+          "face": "macarie"
+        }
+      },
+      "props": {
+        "aur": {
+          "type": "basket",
+          "coins": true,
+          "scale": 0.8,
+          "at": "church+3.6,1.6"
+        },
+        "caramida": {
+          "type": "brick",
+          "in": "omul",
+          "hand": "R"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "church",
+        "dist": 17,
+        "height": 8,
+        "angle": 0,
+        "y": 5
+      },
+      "beats": [
+        {
+          "say": "narrator",
+          "text": "Bisericuța lavrei, un coș cu aur și o cărămidă.",
+          "do": {
+            "give": "caramida",
+            "from": "omul",
+            "to": "macarie",
+            "hand": "R",
+            "at": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "id": "pustiul-alb",
+      "set": {
+        "type": "desert-road",
+        "palette": "salt",
+        "cells": 2
+      },
+      "sky": "day",
+      "cast": {
+        "e": {
+          "at": [
+            -1.4,
+            4
+          ],
+          "emotion": "angry"
+        },
+        "f": {
+          "at": [
+            1.4,
+            4
+          ],
+          "emotion": "ashamed"
+        }
+      },
+      "props": {
+        "lemne": {
+          "type": "firewood",
+          "in": "e",
+          "hand": "R"
+        },
+        "carte": {
+          "type": "book",
+          "ornate": true,
+          "chest": true,
+          "scale": 0.8,
+          "in": "f",
+          "hand": "R"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "center+0,4",
+        "dist": 9,
+        "height": 2.5,
+        "angle": 0,
+        "y": 1.8
+      },
+      "beats": [
+        {
+          "say": "narrator",
+          "text": "Pustiul alb: lemne, o carte scumpă, un om supărat și unul rușinat."
+        }
+      ]
+    },
+    {
+      "id": "palete-olive",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "olive",
+        "cells": 2
+      },
+      "sky": "day",
+      "cast": {},
+      "props": {
+        "chiupGol": {
+          "type": "breadJar",
+          "full": 0,
+          "at": [
+            -4,
+            2
+          ]
+        },
+        "chiupPlin": {
+          "type": "breadJar",
+          "full": 1,
+          "at": [
+            4,
+            2
+          ]
+        },
+        "chiupJumate": {
+          "type": "breadJar",
+          "full": 0.5,
+          "at": [
+            0,
+            2
+          ]
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          0,
+          2
+        ],
+        "dist": 14,
+        "height": 6,
+        "angle": 0,
+        "y": 1.5
+      },
+      "beats": [
+        {
+          "duration": 2
+        }
+      ]
+    },
+    {
+      "id": "nilul",
+      "set": {
+        "type": "nile-bank"
+      },
+      "sky": "day",
+      "cast": {
+        "e": {
+          "at": "hut+0,1.4",
+          "posture": "sit",
+          "seat": 1.6,
+          "emotion": "happy"
+        },
+        "f": {
+          "at": "bank",
+          "emotion": "joy"
+        }
+      },
+      "props": {
+        "scaun": {
+          "type": "stool",
+          "at": "hut+0,1.4"
+        },
+        "mreaja": {
+          "type": "net",
+          "in": "e",
+          "hand": "L",
+          "scale": 0.9
+        },
+        "plasa": {
+          "type": "net",
+          "spread": true,
+          "at": "hut+-3.2,1.6"
+        },
+        "mreajaF": {
+          "type": "net",
+          "in": "f",
+          "hand": "R",
+          "scale": 0.9
+        },
+        "pasare": {
+          "type": "bird",
+          "at": [
+            -8.8,
+            -8.04
+          ],
+          "y": 7.62,
+          "scale": 2,
+          "back": true,
+          "fly": [
+            6,
+            3,
+            -8
+          ],
+          "bend": 1
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          0,
+          -8
+        ],
+        "world": true,
+        "dist": 30,
+        "height": 9,
+        "angle": 0,
+        "y": 3
+      },
+      "beats": [
+        {
+          "say": "narrator",
+          "text": "Malul Nilului: apă, papirus, o barcă, o mreajă la uscat și o chilie.",
+          "do": [
+            {
+              "prop": "pasare",
+              "bend": 0,
+              "duration": 3,
+              "at": 0.3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "palete-lilac",
+      "set": {
+        "type": "desert-lavra",
+        "palette": "lilac",
+        "church": 3
+      },
+      "sky": "day",
+      "cast": {
+        "pavel": {
+          "at": [
+            0,
+            3
+          ],
+          "face": [
+            8,
+            -6
+          ]
+        }
+      },
+      "props": {
+        "cos": {
+          "type": "basket",
+          "filled": "sand",
+          "leak": true,
+          "leakFall": 1.6,
+          "in": "pavel",
+          "hand": "L",
+          "scale": 0.85
+        },
+        "dara": {
+          "type": "sandTrail",
+          "points": [
+            [
+              8,
+              -6
+            ],
+            [
+              0,
+              3
+            ]
+          ],
+          "follow": "pavel"
+        },
+        "copac": {
+          "type": "tree",
+          "at": [
+            -9,
+            -3
+          ],
+          "bow": 40
+        },
+        "pom": {
+          "type": "sapling",
+          "at": [
+            -3,
+            -5
+          ],
+          "y": 0.2
+        },
+        "fructe": {
+          "type": "basket",
+          "fruit": true,
+          "at": [
+            -1,
+            -4
+          ],
+          "y": 0.45
+        },
+        "fruct": {
+          "type": "fruit",
+          "at": [
+            0.5,
+            -4
+          ],
+          "y": 0.2
+        },
+        "ulcior": {
+          "type": "jug",
+          "in": "pavel",
+          "hand": "R"
+        },
+        "putini": {
+          "type": "coins",
+          "n": 3,
+          "at": [
+            1.5,
+            -2
+          ],
+          "y": 0.2
+        },
+        "multi": {
+          "type": "coins",
+          "n": 14,
+          "at": [
+            2.5,
+            -2
+          ],
+          "y": 0.2
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          -2,
+          0
+        ],
+        "dist": 20,
+        "height": 7,
+        "angle": 40,
+        "world": true,
+        "y": 2
+      },
+      "beats": [
+        {
+          "duration": 2,
+          "do": [
+            {
+              "actor": "pavel",
+              "walk": [
+                -3,
+                6
+              ],
+              "speed": 1.5,
+              "wait": false
+            },
+            {
+              "prop": "copac",
+              "bend": 1,
+              "duration": 2
+            },
+            {
+              "prop": "pom",
+              "bend": 0.4,
+              "duration": 2
+            },
+            {
+              "actor": "pavel",
+              "gesture": "pick",
+              "at": 0.2,
+              "duration": 1.8,
+              "after": "pavel"
+            }
+          ]
+        },
+        {
+          "duration": 2,
+          "do": [
+            {
+              "prop": "copac",
+              "bend": 0,
+              "duration": 2
+            },
+            {
+              "prop": "pom",
+              "bend": 1,
+              "duration": 2
+            },
+            {
+              "actor": "pavel",
+              "gesture": "pour",
+              "duration": 2,
+              "after": "pavel"
+            },
+            {
+              "prop": "ulcior",
+              "bend": 1,
+              "duration": 0.6,
+              "at": 0.2,
+              "after": "pavel"
+            },
+            {
+              "prop": "ulcior",
+              "bend": 0,
+              "duration": 0.5,
+              "at": 1.4,
+              "after": "pavel"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "semanat",
+      "set": {
+        "type": "wheat-field",
+        "grown": 0
+      },
+      "sky": "morning",
+      "transition": "cut",
+      "cast": {
+        "plugar": {
+          "at": "fieldEdge+0,1",
+          "face": 0,
+          "emotion": "happy"
+        }
+      },
+      "props": {
+        "seminte": {
+          "type": "basket",
+          "in": "plugar",
+          "hand": "L",
+          "filled": "tan",
+          "scale": 0.8
+        }
+      },
+      "camera": {
+        "shot": "medium",
+        "on": "plugar",
+        "dist": 9,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 3,
+          "do": {
+            "actor": "plugar",
+            "gesture": "sow"
+          }
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "wide",
+            "on": "field",
+            "dist": 24,
+            "height": 9,
+            "angle": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "neghina",
+      "set": {
+        "type": "wheat-field",
+        "grown": 1,
+        "sparse": 0.35,
+        "tares": 0.25
+      },
+      "sky": "day",
+      "transition": "cut",
+      "cast": {
+        "plugar": {
+          "at": "fieldEdge+0,1",
+          "face": 0,
+          "emotion": "warm"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": "field",
+        "dist": 24,
+        "height": 9,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 2
+        },
+        {
+          "duration": 2,
+          "camera": {
+            "shot": "medium",
+            "on": "plugar",
+            "dist": 9,
+            "angle": 40
+          }
+        }
+      ]
+    },
+    {
+      "id": "pateric-asset",
+      "set": {
+        "type": "desert-road",
+        "road": false,
+        "oasis": false,
+        "rock": false,
+        "cells": 0,
+        "clear": [
+          0,
+          0,
+          12
+        ],
+        "pieces": [
+          {
+            "type": "chapel",
+            "at": [
+              -14,
+              -14
+            ],
+            "h": 20
+          },
+          {
+            "type": "bellTower",
+            "at": [
+              -3,
+              -18
+            ],
+            "free": 5
+          },
+          {
+            "type": "gate",
+            "at": [
+              14,
+              -16
+            ],
+            "h": -10,
+            "free": 13
+          },
+          {
+            "type": "hermitCell",
+            "at": [
+              25,
+              4
+            ],
+            "h": -80,
+            "free": 10
+          },
+          {
+            "type": "stoneWell",
+            "at": [
+              -13,
+              1
+            ],
+            "free": 5
+          },
+          {
+            "type": "wall",
+            "at": [
+              -3,
+              -9
+            ],
+            "free": 5
+          },
+          {
+            "type": "palm",
+            "at": [
+              -22,
+              -4
+            ],
+            "free": 4
+          },
+          {
+            "type": "cypress",
+            "at": [
+              3,
+              -22
+            ],
+            "free": 3
+          },
+          {
+            "type": "cypress",
+            "at": [
+              -8,
+              -22
+            ],
+            "seed": 5,
+            "free": 3
+          },
+          {
+            "type": "leafyTree",
+            "at": [
+              22,
+              10
+            ],
+            "free": 6
+          },
+          {
+            "type": "bush",
+            "at": [
+              14,
+              3
+            ],
+            "free": 4
+          },
+          {
+            "type": "rocks",
+            "at": [
+              -22,
+              12
+            ],
+            "h": 40,
+            "free": 9
+          },
+          {
+            "type": "hill",
+            "at": [
+              -1,
+              -30
+            ],
+            "free": 9
+          },
+          {
+            "type": "plowedPlot",
+            "at": [
+              -8,
+              16
+            ],
+            "free": 8
+          },
+          {
+            "type": "wheatPatch",
+            "at": [
+              8,
+              16
+            ],
+            "free": 6
+          },
+          {
+            "type": "pathTiles",
+            "at": [
+              1,
+              -1
+            ],
+            "length": 8,
+            "free": 3
+          }
+        ]
+      },
+      "sky": "day",
+      "transition": "cut",
+      "cast": {
+        "pimen2": {
+          "at": [
+            -3,
+            4
+          ],
+          "face": 0,
+          "emotion": "happy"
+        },
+        "antonie2": {
+          "at": [
+            -1,
+            4
+          ],
+          "face": 0,
+          "emotion": "warm"
+        },
+        "plugar2": {
+          "at": [
+            1.5,
+            4
+          ],
+          "face": 0,
+          "emotion": "happy"
+        },
+        "plugar3": {
+          "at": [
+            4,
+            4
+          ],
+          "face": 0,
+          "emotion": "happy"
+        },
+        "pelerin": {
+          "at": [
+            6.5,
+            4
+          ],
+          "face": 0,
+          "emotion": "happy"
+        }
+      },
+      "props": {
+        "galeata": {
+          "type": "bucket",
+          "at": [
+            -9,
+            5
+          ],
+          "y": 0.2
+        },
+        "banca": {
+          "type": "bench",
+          "at": [
+            5,
+            -6
+          ],
+          "y": 0.2
+        },
+        "amfora": {
+          "type": "amphora",
+          "at": [
+            -7,
+            -5
+          ],
+          "y": 0.2
+        },
+        "caruta": {
+          "type": "cart",
+          "at": [
+            13,
+            8
+          ],
+          "face": -60,
+          "y": 0.2
+        },
+        "magar": {
+          "type": "donkey",
+          "at": [
+            17.5,
+            10
+          ],
+          "face": -60,
+          "y": 0.2
+        },
+        "foc": {
+          "type": "campfire",
+          "at": [
+            -4,
+            9
+          ],
+          "y": 0.35
+        },
+        "toiag1": {
+          "type": "staff",
+          "straight": true,
+          "in": "pimen2"
+        },
+        "toiag2": {
+          "type": "staff",
+          "straight": true,
+          "in": "pelerin"
+        },
+        "sapa": {
+          "type": "hoe",
+          "in": "plugar2"
+        },
+        "furca": {
+          "type": "pitchfork",
+          "in": "plugar3"
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          0,
+          -4
+        ],
+        "dist": 44,
+        "height": 20,
+        "angle": 0
+      },
+      "beats": [
+        {
+          "duration": 3
+        },
+        {
+          "duration": 3,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              1.5,
+              4
+            ],
+            "dist": 14,
+            "height": 4,
+            "angle": 35,
+            "y": 2.5
+          }
+        },
+        {
+          "duration": 3,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              -6,
+              -14
+            ],
+            "dist": 26,
+            "height": 8,
+            "angle": 25,
+            "y": 4
+          }
+        },
+        {
+          "duration": 3,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              12,
+              6
+            ],
+            "dist": 22,
+            "height": 8,
+            "angle": -30,
+            "y": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "chilia-din-pustie",
+      "set": {
+        "type": "desert-hermitage"
+      },
+      "sky": "day",
+      "transition": "fade",
+      "cast": {
+        "macarie": {
+          "at": "door.in",
+          "emotion": "warm"
+        },
+        "pavel": {
+          "at": [
+            8.4,
+            -1.6
+          ],
+          "face": 145,
+          "emotion": "joy"
+        }
+      },
+      "props": {
+        "usa": {
+          "type": "plankDoor",
+          "at": "door.hinge",
+          "y": 0.2
+        },
+        "tava": {
+          "type": "tray",
+          "in": "pavel",
+          "hand": "R",
+          "loaves": 3
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          7,
+          -3
+        ],
+        "dist": 18,
+        "height": 5,
+        "angle": -25,
+        "world": true,
+        "y": 3
+      },
+      "beats": [
+        {
+          "duration": 4,
+          "do": [
+            {
+              "prop": "usa",
+              "bend": 1,
+              "duration": 1.8,
+              "at": 0.6
+            },
+            {
+              "actor": "macarie",
+              "gesture": "offer",
+              "hand": "L",
+              "at": 2.6
+            }
+          ]
+        },
+        {
+          "duration": 3,
+          "camera": {
+            "shot": "wide",
+            "on": [
+              8.4,
+              -2.4
+            ],
+            "dist": 8,
+            "height": 3.4,
+            "angle": -45,
+            "world": true,
+            "y": 3
+          },
+          "do": [
+            {
+              "prop": "tava",
+              "bend": 0.4,
+              "duration": 0.05,
+              "at": 1.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pestera-apus",
+      "set": {
+        "type": "cave-hermitage"
+      },
+      "sky": "sunset",
+      "transition": "fade",
+      "cast": {
+        "siluan": {
+          "at": "cave",
+          "face": -62,
+          "posture": "sit",
+          "seat": 1.2,
+          "emotion": "warm"
+        },
+        "zenon": {
+          "at": "seat",
+          "face": 62,
+          "posture": "sit",
+          "seat": 1.2,
+          "emotion": "sad",
+          "hands": "knees"
+        }
+      },
+      "props": {
+        "toiag": {
+          "type": "staff",
+          "straight": true,
+          "in": "siluan",
+          "hand": "L",
+          "scale": 0.85
+        },
+        "icona": {
+          "type": "icon",
+          "src": "assets/icons/mantuitorul-pe-tron-novgorod.jpg",
+          "at": "icon",
+          "y": 3.6,
+          "size": 1.8
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          1.8,
+          -5.9
+        ],
+        "dist": 7,
+        "height": 0.5,
+        "angle": 6,
+        "world": true,
+        "y": 3.4,
+        "fov": 44
+      },
+      "beats": [
+        {
+          "duration": 3,
+          "card": {
+            "title": "cave-hermitage · sunset",
+            "y": 0.1
+          },
+          "do": [
+            {
+              "actor": "siluan",
+              "gesture": "offer",
+              "at": 0.4
+            }
+          ]
+        },
+        {
+          "duration": 3,
+          "camera": {
+            "shot": "wide",
+            "on": "cave",
+            "dist": 26,
+            "height": 6,
+            "angle": -10,
+            "y": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "curtea-manastirii",
+      "set": {
+        "type": "monastery-yard"
+      },
+      "sky": "morning",
+      "transition": "fade",
+      "cast": {
+        "taranTurban": {
+          "at": [
+            -3,
+            2
+          ],
+          "face": 0,
+          "emotion": "joy"
+        }
+      },
+      "props": {
+        "cos": {
+          "type": "basket",
+          "onions": true,
+          "in": "taranTurban",
+          "hand": "R",
+          "scale": 0.7
+        },
+        "sac1": {
+          "type": "sack",
+          "fill": "wheat",
+          "at": [
+            -9.6,
+            -8
+          ],
+          "y": 0.2
+        },
+        "sac2": {
+          "type": "sack",
+          "fill": "poor",
+          "at": [
+            -6.8,
+            -8
+          ],
+          "y": 0.2
+        },
+        "sac3": {
+          "type": "sack",
+          "fill": "coins",
+          "at": [
+            -4,
+            -8
+          ],
+          "y": 0.2
+        },
+        "vas": {
+          "type": "grainJar",
+          "fill": "wheat",
+          "at": [
+            -1,
+            0
+          ],
+          "y": 0.35
+        },
+        "sul": {
+          "type": "scroll",
+          "at": [
+            1.5,
+            2
+          ],
+          "y": 0.2
+        },
+        "masa": {
+          "type": "desk",
+          "at": [
+            3.5,
+            -2
+          ],
+          "y": 0.2
+        }
+      },
+      "camera": {
+        "shot": "wide",
+        "on": [
+          -4,
+          -4
+        ],
+        "dist": 26,
+        "height": 8,
+        "angle": 10,
+        "world": true,
+        "y": 3
+      },
+      "beats": [
+        {
+          "say": "narrator",
+          "text": "Curtea mănăstirii: saci cu grâu, un vas de lut și ceapă.",
+          "do": [
+            {
+              "prop": "vas",
+              "bend": 1,
+              "at": 0.3,
+              "duration": 1.5
+            },
+            {
+              "prop": "vas",
+              "bend": 2,
+              "at": 2.2,
+              "duration": 0.4
+            }
+          ],
+          "camera": {
+            "shot": "wide",
+            "on": [
+              -3,
+              -3
+            ],
+            "dist": 14,
+            "height": 4,
+            "angle": 0,
+            "world": true,
+            "y": 2
+          }
+        }
+      ]
+    }
+  ]
+}

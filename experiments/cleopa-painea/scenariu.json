@@ -1,0 +1,42 @@
+{
+  "title": "Micuțul Cleopa",
+  "subtitle": "Pâinea care poate să aștepte",
+  "tts_model": "google/gemini-3.8-flash-tts",
+  "music_model": "google/lyria-3-clip-preview",
+  "music_prompt": "Instrumental underscore for a short hand-drawn picture-book about a cheerful child in a rural Moldavian village at dawn. Warm, gently playful at about 90 BPM in 3/4. Soft cimbalom, thumb-plucked strings, very sparse wooden flute, and a warm quiet bass. Intimate and pastoral. Light forward motion, gentle recurring three-note theme and even dynamics to sit well under spoken Romanian. Entirely instrumental with no humming, voices, drums or sound effects. Begin and end on matching tonic with little tail, suitable for a soft crossfade loop.",
+  "voices": {
+    "povestitor": ["Sulafat", "Povestitoare caldă, luminoasă, pentru copii. Povestește viu, cu dicție clară și ritm natural."],
+    "costica": ["Zephyr", "Băiețel curios de poveste, cu o voce jucăușă și firească. Dicție limpede."],
+    "mihai": ["Achird", "Frate mai mare binevoitor și vesel, voce tânără, ritm natural."],
+    "mama": ["Aoede", "Mamă blândă, apropiată, cu un zâmbet în voce, ritm firesc."],
+    "tata": ["Puck", "Tată tânăr, cu voce caldă și fermă. Le vorbește copiilor blând și firesc, cu dicție clară."]
+  },
+  "beats": [
+    {"page": 1, "id": "sat", "lead": 2.35, "tail": 0.48, "lines": [
+      ["povestitor", "Pe dealurile Botoșanilor trăia un băiețel pe nume Costică. Era vesel, curios și mereu flămând."]]},
+    {"page": 2, "id": "trezire", "lead": 0.42, "tail": 0.35, "lines": [
+      ["povestitor", "Dimineața, cocoșul cânta primul. Apoi se trezea purcelușul Grăsuțu."],
+      ["povestitor", "Și burtica lui Costică se trezea."]]},
+    {"page": 3, "id": "burtica", "lead": 0.62, "tail": 0.5, "lines": [
+      ["costica", "Șșș… Să nu te audă tata!"]]},
+    {"page": 4, "id": "troaca", "lead": 0.32, "tail": 0.65, "lines": [
+      ["povestitor", "În ogradă, purcelușul Grăsuțu mânca deja din troacă."],
+      ["costica", "Grăsuțule, ce noroc ai!"]]},
+    {"page": 5, "id": "mihai", "lead": 0.30, "tail": 0.5, "lines": [
+      ["povestitor", "Din spatele șurii ieși Mihai, fratele mai mare. Avea o carte groasă sub braț."],
+      ["mihai", "Hai, tata ne așteaptă!"]]},
+    {"page": 6, "id": "cuptor", "lead": 0.32, "tail": 0.48, "lines": [
+      ["povestitor", "În casă mirosea a pâine caldă. Mama scosese din cuptor o pâine mare și rumenă."]]},
+    {"page": 7, "id": "traista", "lead": 0.32, "tail": 0.46, "lines": [
+      ["mama", "Copii, rupeți câte o bucată și puneți și în traistă. Aveți drum lung până la școală."]]},
+    {"page": 8, "id": "aproape", "lead": 0.25, "tail": 0.7, "lines": [
+      ["povestitor", "Costică întinse mâna spre pâine. Mirosul îl învăluia ca un nor auriu."],
+      ["costica", "Mai e puțin… Doar încă puțin…"]]},
+    {"page": 9, "id": "prag", "lead": 0.3, "tail": 0.38, "lines": [
+      ["povestitor", "Atunci intră tata. Era înalt cât ușa și avea o mustață brună."],
+      ["tata", "O clipă, copii. Lăsați pâinea să aștepte."]]},
+    {"page": 10, "id": "intai", "lead": 0.32, "tail": 2.05, "lines": [
+      ["povestitor", "Mâna lui Costică îngheță în aer, chiar lângă pâine."],
+      ["tata", "Întâi ne rugăm. Ziua începe cu Dumnezeu."]]}
+  ]
+}

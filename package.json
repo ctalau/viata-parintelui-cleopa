@@ -1,0 +1,50 @@
+{
+  "name": "viata-parintelui-cleopa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Atelierul de animație Viața Părintelui Cleopa și biblioteca de producție.",
+  "scripts": {
+    "voice": "node tools/voice.mjs",
+    "music": "node tools/music.mjs",
+    "preview": "node tools/studio-preview.mjs",
+    "site": "node tools/site.mjs",
+    "poster": "node tools/record.mjs --poster",
+    "still": "node tools/record.mjs --stills",
+    "record": "node tools/record.mjs",
+    "validate": "node tools/validate.mjs",
+    "check": "node tools/record.mjs --check",
+    "runpod": "node tools/runpod.mjs",
+    "spend": "node tools/spend.mjs",
+    "publish": "node tools/publish.mjs",
+    "gate": "node tools/gate.mjs",
+    "youtube": "node tools/youtube.mjs",
+    "board": "node tools/board.mjs",
+    "next": "node tools/next.mjs",
+    "produce": "node tools/produce.mjs",
+    "review": "node tools/review.mjs",
+    "beats": "node tools/beats.mjs",
+    "library": "node tools/library.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "compare": "node tools/compare.mjs",
+    "omni": "node tools/omni.mjs",
+    "short-youtube": "node tools/short-youtube.mjs",
+    "assets": "python3 blender/characters/build_monk.py",
+    "clipcheck": "node tools/clipcheck.mjs",
+    "char": "node tools/char.mjs",
+    "setup": "bash scripts/setup.sh",
+    "build": "node tools/build-studio.mjs",
+    "preview:engine": "node tools/serve.mjs",
+    "check:cleopa": "bash scripts/check-cleopa.sh",
+    "feedback:export": "node tools/feedback-export.mjs"
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "@vercel/blob": "^2.9.0",
+    "three": "0.170.0",
+    "three-mesh-bvh": "0.9.1"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

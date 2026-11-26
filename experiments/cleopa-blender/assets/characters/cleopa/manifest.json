@@ -1,0 +1,33 @@
+{
+  "id": "cleopa",
+  "label": "Constantin (Cleopa)",
+  "collection": "CHAR_cleopa",
+  "armature": "RIG_cleopa",
+  "measurements": {
+    "head_w": 0.755,
+    "head_h": 0.78,
+    "head_y": 1.99,
+    "shoulder_x": 0.53,
+    "shoulder_y": 1.26,
+    "upper": 0.72,
+    "lower": 0.83,
+    "hand": 0.31,
+    "leg": 1.25
+  },
+  "markers": [
+    "forehead",
+    "chest",
+    "shoulder_R",
+    "shoulder_L",
+    "hand_rest"
+  ],
+  "art_source": "../../../scripts/build_characters.py",
+  "actions": [
+    "cleopa__blink",
+    "cleopa__cross_orthodox_R",
+    "cleopa__head_bow",
+    "cleopa__idle_breathe",
+    "cleopa__pray_speech",
+    "cleopa__sit_idle"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "father",
+  "label": "Tatăl",
+  "collection": "CHAR_father",
+  "armature": "RIG_father",
+  "measurements": {
+    "head_w": 0.89,
+    "head_h": 0.89,
+    "head_y": 2.48,
+    "shoulder_x": 0.76,
+    "shoulder_y": 1.68,
+    "upper": 0.95,
+    "lower": 1.04,
+    "hand": 0.39,
+    "leg": 1.72
+  },
+  "markers": [
+    "forehead",
+    "chest",
+    "shoulder_R",
+    "shoulder_L",
+    "hand_rest"
+  ],
+  "art_source": "../../../scripts/build_characters.py",
+  "actions": [
+    "father__blink",
+    "father__cross_orthodox_R",
+    "father__head_bow",
+    "father__idle_breathe",
+    "father__pray_speech",
+    "father__sit_idle"
+  ]
+}

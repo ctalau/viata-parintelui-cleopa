@@ -1,0 +1,9 @@
+{
+ "bone": "hand_L",
+ "mirrorBone": "hand_R",
+ "origin": [
+  0.86,
+  1.37,
+  0.032
+ ]
+}

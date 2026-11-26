@@ -1,0 +1,16 @@
+{
+ "variants": [
+  "empty",
+  "raw",
+  "baked"
+ ],
+ "steps": true,
+ "hands": 1,
+ "carry": "side",
+ "grip": [
+  0,
+  0.45,
+  0
+ ],
+ "notes": "a wooden bread peel 3.5 long (handle 2.55 + blade 0.95 wide), held at the side by the handle (lean 0); \"tilt\": 90 lays it forward at hand height, the loaf on top \u2248 3.0 ahead of the hand. bend 0 empty \u00b7 0.5 raw loaf \u00b7 1 baked loaf"
+}

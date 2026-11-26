@@ -1,0 +1,349 @@
+{
+ "name": "river-ford",
+ "title": "Vadul râului (un râu verde prin pustiu)",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "bank-left": {
+   "pos": [
+    -8.42,
+    -0.01,
+    2.0
+   ],
+   "face": 90.0,
+   "note": "on the left bank at the ford, facing the water (+X)"
+  },
+  "water-left": {
+   "pos": [
+    -3.02,
+    -0.85,
+    2.0
+   ],
+   "face": 90.0,
+   "note": "in the water near the left bank (shallow), facing across (+X)"
+  },
+  "ford-mid": {
+   "pos": [
+    0.38,
+    -0.98,
+    2.0
+   ],
+   "face": 90.0,
+   "note": "the middle of the river at the ford: the water reaches the shins"
+  },
+  "water-right": {
+   "pos": [
+    3.78,
+    -0.85,
+    2.0
+   ],
+   "face": 90.0,
+   "note": "in the water near the right bank, facing across (+X)"
+  },
+  "bank-right": {
+   "pos": [
+    9.18,
+    -0.01,
+    2.0
+   ],
+   "face": 90.0,
+   "note": "on the right bank at the ford, facing on (+X)"
+  },
+  "path-left": {
+   "pos": [
+    -19.994,
+    0.0,
+    5.848
+   ],
+   "face": 90.0,
+   "note": "on the footpath coming to the ford from the front left"
+  },
+  "path-right": {
+   "pos": [
+    19.494,
+    -0.0,
+    -1.047
+   ],
+   "face": 90.0,
+   "note": "on the footpath going on from the ford to the back right"
+  },
+  "offstage-left": {
+   "pos": [
+    -53.735,
+    3.709,
+    12.41
+   ],
+   "face": 90.0,
+   "note": "out of frame on the left footpath (enter walking +X)"
+  },
+  "offstage-right": {
+   "pos": [
+    53.152,
+    3.661,
+    -10.797
+   ],
+   "face": -90.0,
+   "note": "out of frame on the right footpath (enter walking -X)"
+  },
+  "downstream": {
+   "pos": [
+    0.852,
+    -1.18,
+    16.0
+   ],
+   "face": 0.0,
+   "note": "on the water, downstream towards the camera (where things float away)"
+  },
+  "upstream": {
+   "pos": [
+    -0.637,
+    -1.18,
+    -22.0
+   ],
+   "face": 0.0,
+   "note": "on the water, upstream far behind"
+  }
+ },
+ "seats": {},
+ "bounds": [
+  [
+   -60,
+   -1.5,
+   -32
+  ],
+  [
+   60,
+   14,
+   24
+  ]
+ ],
+ "acting": {
+  "rect": [
+   [
+    -40,
+    -22
+   ],
+   [
+    40,
+    14
+   ]
+  ],
+  "river": {
+   "centre": "x = sin(0.045 z + 0.3)",
+   "water_y": -0.38,
+   "ford_z": 2.0
+  },
+  "paths": [
+   [
+    [
+     -70.0,
+     15.0
+    ],
+    [
+     -64.36,
+     14.13
+    ],
+    [
+     -58.94,
+     13.27
+    ],
+    [
+     -53.74,
+     12.41
+    ],
+    [
+     -48.75,
+     11.56
+    ],
+    [
+     -43.99,
+     10.72
+    ],
+    [
+     -39.44,
+     9.89
+    ],
+    [
+     -35.11,
+     9.07
+    ],
+    [
+     -31.0,
+     8.25
+    ],
+    [
+     -27.12,
+     7.44
+    ],
+    [
+     -23.45,
+     6.64
+    ],
+    [
+     -19.99,
+     5.85
+    ],
+    [
+     -16.76,
+     5.06
+    ],
+    [
+     -13.75,
+     4.29
+    ],
+    [
+     -10.95,
+     3.52
+    ],
+    [
+     -8.38,
+     2.75
+    ],
+    [
+     -6.02,
+     2.0
+    ]
+   ],
+   [
+    [
+     6.78,
+     2.0
+    ],
+    [
+     8.81,
+     1.58
+    ],
+    [
+     11.1,
+     1.06
+    ],
+    [
+     13.64,
+     0.45
+    ],
+    [
+     16.44,
+     -0.25
+    ],
+    [
+     19.49,
+     -1.05
+    ],
+    [
+     22.8,
+     -1.94
+    ],
+    [
+     26.37,
+     -2.92
+    ],
+    [
+     30.2,
+     -4.0
+    ],
+    [
+     34.27,
+     -5.17
+    ],
+    [
+     38.61,
+     -6.44
+    ],
+    [
+     43.2,
+     -7.8
+    ],
+    [
+     48.05,
+     -9.25
+    ],
+    [
+     53.15,
+     -10.8
+    ],
+    [
+     58.51,
+     -12.44
+    ],
+    [
+     64.13,
+     -14.17
+    ],
+    [
+     70.0,
+     -16.0
+    ]
+   ]
+  ]
+ },
+ "skies": [
+  "day",
+  "morning",
+  "evening"
+ ],
+ "sky": {
+  "day": {
+   "sunAz": -38,
+   "sunElev": 50
+  },
+  "morning": {
+   "sunAz": -66,
+   "sunElev": 15
+  },
+  "evening": {
+   "sunAz": -100,
+   "sunElev": 8
+  }
+ },
+ "shadow": {
+  "center": [
+   0,
+   -2
+  ],
+  "radius": 46
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    0,
+    9.5,
+    36
+   ],
+   "target": [
+    0,
+    1.5,
+    -4
+   ],
+   "fov": 42,
+   "note": "the river towards the back, both banks, the ford"
+  },
+  "ford": {
+   "pos": [
+    2,
+    2.6,
+    16
+   ],
+   "target": [
+    0.5,
+    1.2,
+    2
+   ],
+   "fov": 40,
+   "note": "the ford from the front: people wading across"
+  },
+  "bank": {
+   "pos": [
+    -14,
+    3.2,
+    12
+   ],
+   "target": [
+    -6,
+    1.8,
+    2
+   ],
+   "fov": 38,
+   "note": "the left bank where the path meets the water"
+  }
+ },
+ "notes": "The river runs along Z (flowing towards +Z); people cross it along X at z = 2 (the ford), in profile to a +Z camera. The ground under the water is the walkable bed (the feet go down into the water, the water hides the shins); water.river is a separate, semi-transparent node (anim \"flow\": the ripples move downstream). Collision: col:palmN, col:reedsN, col:rockN, col:bushN."
+}

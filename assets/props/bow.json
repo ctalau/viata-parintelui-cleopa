@@ -1,0 +1,27 @@
+{
+ "hands": 1,
+ "carry": "side",
+ "grip": [
+  0,
+  1.4,
+  0
+ ],
+ "variants": [
+  "s0",
+  "s1",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
+  "s6",
+  "s7",
+  "s8"
+ ],
+ "steps": true,
+ "notes": "a hunter's bow 2.8 tall, no arrow; hold it in \"hand\": \"L\" with \"lean\": 0 (upright, back towards the figure's left, string towards his right); the string follows the other hand: while the clips draw1 / draw2 / draw3 hold it, it is drawn exactly as far as the hand pulls (no `bend` needed)",
+ "string": {
+  "brace": 0.35,
+  "pull": 1.0,
+  "grip": 1.4
+ }
+}

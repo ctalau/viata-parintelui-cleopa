@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viața Părintelui Cleopa · Școala Evlaviei</title>
+  <meta name="description" content="Vezi episoadele din Viața Părintelui Cleopa și lasă o observație la un moment din film.">
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <script src="/studio.js" type="module"></script>
+</head>
+<body>
+  <header class="top shell">
+    <a class="brand" href="/" aria-label="Școala Evlaviei, acasă"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="#film">Episod</a><a href="#biblioteca">Bibliotecă</a></nav>
+  </header>
+  <main class="shell">
+    <section class="hero" id="film" aria-labelledby="title">
+      <p class="series">Viața Părintelui Cleopa</p>
+      <h1 id="title">Pâinea care<br class="desktop-break"> poate să aștepte</h1>
+      <p class="description">Pentru Costică, într-o dimineață de sat, nimic nu miroase mai bine decât pâinea scoasă din cuptor. Dar la masă, familia mai are ceva de făcut.</p>
+    </section>
+    <section class="atelier" aria-label="Redare și observații">
+      <div class="watch">
+        <video id="episode" controls playsinline preload="metadata" poster="/media/episod.webp" src="/media/painea_care_poate_sa_astepte.mp4" aria-label="Pâinea care poate să aștepte"></video>
+        <div class="watch-meta"><span>Primele zece pagini · 1 min 27 s</span><a download href="/media/painea_care_poate_sa_astepte.mp4">Descarcă MP4 <span aria-hidden="true">↓</span></a></div>
+        <details class="chapters"><summary>Momente din episod</summary><div class="chapter-list" id="chapters"></div></details>
+      </div>
+      <aside class="feedback" aria-labelledby="feedback-heading">
+        <h2 id="feedback-heading">O observație la film</h2>
+        <p>Alege momentul din film și spune-ne ce ai observat.</p>
+        <form id="feedback-form">
+          <label for="note">Observația ta</label>
+          <textarea id="note" name="message" required maxlength="1200" rows="5" placeholder="De exemplu, gestul din pragul casei…"></textarea>
+          <div class="trap" aria-hidden="true"><label for="website">Site web</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+          <button class="time" type="button" id="capture" title="Folosind poziția de acum din film">Folosește momentul <span id="timestamp">0:00</span></button>
+          <button class="submit" type="submit">Trimite observația</button>
+          <p id="feedback-status" role="status"></p>
+        </form>
+      </aside>
+    </section>
+    <section class="library" id="biblioteca" aria-labelledby="library-heading">
+      <div class="library-head"><h2 id="library-heading">Biblioteca de producție</h2><a href="/001-demo-atelier/">Vezi demonstrația cu monahi <span aria-hidden="true">↗</span></a></div>
+      <div class="library-grid" id="library-items"></div>
+    </section>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span><a href="https://github.com/ctalau/viata-parintelui-cleopa">Proiectul pe GitHub</a></footer>
+</body>
+</html>

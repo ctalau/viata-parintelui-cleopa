@@ -1,0 +1,29 @@
+{
+ "variants": [
+  "flour",
+  "shaggy",
+  "dough",
+  "loaves1",
+  "loaves2",
+  "loaves3",
+  "loaves4",
+  "loaves5",
+  "loaves6",
+  "flour6",
+  "shaggy6",
+  "dough6",
+  "loaves7",
+  "loaves8",
+  "loaves9",
+  "loaves10",
+  "loaves11",
+  "loaves12",
+  "empty",
+  "five"
+ ],
+ "steps": true,
+ "soft": true,
+ "hands": 2,
+ "carry": "front",
+ "notes": "a flat wooden kneading board 2.0 \u00d7 1.05 with a low lip (along X, centre at x -0.55) on a floured table top, the shaped loaves to its right (x 0.55 \u2026 1.55, 3 columns \u00d7 4 rows, the first six in front). Put it on a table top (\"y\": the table height). bend steps (20, step i = i / 19): flour \u00b7 shaggy \u00b7 dough \u00b7 loaves1 \u2026 loaves5 (the dough smaller with each) \u00b7 loaves6 \u00b7 flour6 \u00b7 shaggy6 \u00b7 dough6 (a second batch, the first six loaves still there) \u00b7 loaves7 \u2026 loaves11 \u00b7 loaves12 \u00b7 empty \u00b7 five (5 loaves, the board empty). Kneaders stand 1.37 behind it, facing it."
+}

@@ -1,0 +1,8 @@
+{
+ "variants": [
+  "cold",
+  "lit"
+ ],
+ "steps": true,
+ "notes": "a ring of stones (radius 0.62, 0.3 high) with crossed sticks; bend 0 = cold, 1 = lit (flames 0.9 high, a flickering light). A pot on it: y 0.3"
+}

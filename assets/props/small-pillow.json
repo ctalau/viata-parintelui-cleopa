@@ -1,0 +1,16 @@
+{
+ "variants": [
+  "flat",
+  "pressed"
+ ],
+ "steps": true,
+ "grip": [
+  0.46,
+  0.1,
+  0
+ ],
+ "soft": true,
+ "collisionParts": [
+  "leg"
+ ]
+}

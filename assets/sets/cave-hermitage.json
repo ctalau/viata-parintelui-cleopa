@@ -1,0 +1,262 @@
+{
+ "name": "cave-hermitage",
+ "title": "Peștera pustnicului",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "seat-elder": {
+   "pos": [
+    -1.154,
+    0.0,
+    -9.692
+   ],
+   "face": 70.0,
+   "note": "stand here before sitting down on seat:elder"
+  },
+  "seat-guest": {
+   "pos": [
+    1.154,
+    0.0,
+    -9.692
+   ],
+   "face": -70.0,
+   "note": "stand here before sitting down on seat:guest"
+  },
+  "pray-a": {
+   "pos": [
+    -5.4,
+    0.0,
+    -12.6
+   ],
+   "face": 180.0,
+   "note": "praying spot left, facing the icon"
+  },
+  "pray-b": {
+   "pos": [
+    -2.6,
+    0.0,
+    -12.6
+   ],
+   "face": 180.0,
+   "note": "praying spot right, facing the icon"
+  },
+  "icon": {
+   "pos": [
+    -4.0,
+    2.78,
+    -16.65
+   ],
+   "face": 0.0,
+   "note": "the icon on its shelf (prop target; y = shelf top)"
+  },
+  "inside": {
+   "pos": [
+    0.0,
+    0.0,
+    -8.0
+   ],
+   "face": 0.0,
+   "note": "middle of the cave, facing out"
+  },
+  "entrance": {
+   "pos": [
+    0.0,
+    0.0,
+    -3.5
+   ],
+   "face": 0.0,
+   "note": "in the cave mouth, facing out"
+  },
+  "outside": {
+   "pos": [
+    -2.0,
+    0.0,
+    5.0
+   ],
+   "face": 180.0,
+   "note": "outside the mouth on the path, facing in"
+  },
+  "path": {
+   "pos": [
+    -8.0,
+    0.0,
+    12.0
+   ],
+   "face": 150.0,
+   "note": "on the path coming in from the front left"
+  },
+  "offstage": {
+   "pos": [
+    -24.0,
+    0.0,
+    26.0
+   ],
+   "face": 140.0,
+   "note": "out of frame, front left"
+  }
+ },
+ "seats": {
+  "elder": {
+   "pos": [
+    -2.0,
+    0.62,
+    -10.0
+   ],
+   "face": 70.0,
+   "note": "top centre of the sitting stone"
+  },
+  "guest": {
+   "pos": [
+    2.0,
+    0.62,
+    -10.0
+   ],
+   "face": -70.0,
+   "note": "top centre of the sitting stone"
+  }
+ },
+ "bounds": [
+  [
+   -25,
+   -0.1,
+   -27
+  ],
+  [
+   25,
+   17,
+   20
+  ]
+ ],
+ "acting": {
+  "inside": "floor y=0 from z=-19 to -3, x -9..9 is clear except the dressing",
+  "clear": "the path x -10..2, z -3..20 and a 1.5 radius round every anchor"
+ },
+ "skies": [
+  "evening",
+  "night"
+ ],
+ "sky": {
+  "evening": {
+   "sunAz": -16,
+   "sunElev": 12,
+   "sunColor": "#ffc088",
+   "sunIntensity": 2.5,
+   "zenith": "#5a62b8",
+   "mid": "#f2bd9c",
+   "ground": "#e8c8a0",
+   "horizon": "#ffae6a",
+   "sunSize": 1.8,
+   "envIntensity": 0.95,
+   "exposure": 1.0,
+   "grade": {
+    "warm": 0.02,
+    "sat": 1.1,
+    "lift": 0.03
+   }
+  },
+  "night": {
+   "sunAz": 40,
+   "sunElev": 35
+  }
+ },
+ "shadow": {
+  "center": [
+   0,
+   -6
+  ],
+  "radius": 30
+ },
+ "lights": [
+  {
+   "pos": [
+    0,
+    5.5,
+    -11
+   ],
+   "color": "#ffe2bc",
+   "intensity": 12,
+   "distance": 22,
+   "flicker": 0.04
+  },
+  {
+   "pos": [
+    0.0,
+    2.6,
+    -8.0
+   ],
+   "color": "#ffd9a8",
+   "intensity": 4,
+   "distance": 12,
+   "flicker": 0.03
+  },
+  {
+   "pos": [
+    0,
+    5.0,
+    -3
+   ],
+   "color": "#ffe2c4",
+   "intensity": 7,
+   "distance": 20,
+   "flicker": 0.0
+  }
+ ],
+ "shots": {
+  "wide": {
+   "pos": [
+    0,
+    6,
+    22
+   ],
+   "target": [
+    0,
+    3,
+    -10
+   ],
+   "fov": 42,
+   "note": "the whole cave mouth and the path"
+  },
+  "seats": {
+   "pos": [
+    0,
+    3.4,
+    2.0
+   ],
+   "target": [
+    0,
+    1.8,
+    -10.5
+   ],
+   "fov": 38,
+   "note": "the two seats, both faces"
+  },
+  "icon": {
+   "pos": [
+    -1.0,
+    4.0,
+    -7.5
+   ],
+   "target": [
+    -4.0,
+    3.2,
+    -17.5
+   ],
+   "fov": 40,
+   "note": "the prayer corner"
+  },
+  "side": {
+   "pos": [
+    7.5,
+    3.2,
+    -6.0
+   ],
+   "target": [
+    -1.0,
+    1.8,
+    -11.0
+   ],
+   "fov": 40,
+   "note": "from the right inside the cave"
+  }
+ },
+ "notes": "First version. The cave is open towards +Z (mouth 15 wide, 7.5 high): film from the front or from inside."
+}

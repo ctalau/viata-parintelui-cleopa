@@ -1,0 +1,200 @@
+{
+ "name": "scetis-cell",
+ "anchors": {
+  "bench:elder": {
+   "pos": [
+    -4.36,
+    0,
+    1.6
+   ],
+   "face": 0
+  },
+  "bench:ioan": {
+   "pos": [
+    -2.18,
+    0,
+    1.6
+   ],
+   "face": 0
+  },
+  "door-out": {
+   "pos": [
+    1.27,
+    0,
+    1.42
+   ],
+   "face": 180
+  },
+  "threshold": {
+   "pos": [
+    1.76,
+    0,
+    0.92
+   ],
+   "face": 0
+  },
+  "door-in": {
+   "pos": [
+    1.27,
+    0,
+    -1.55
+   ],
+   "face": 0
+  },
+  "lamp-corner": {
+   "pos": [
+    -0.9,
+    0,
+    -3.45
+   ],
+   "face": -156
+  },
+  "path-start": {
+   "pos": [
+    1.6,
+    0,
+    4.15
+   ],
+   "face": 16
+  },
+  "path-far": {
+   "pos": [
+    7.4,
+    0,
+    12
+   ],
+   "face": 24
+  },
+  "offstage-path": {
+   "pos": [
+    12.55,
+    0,
+    26
+   ],
+   "face": 19
+  },
+  "fox-spot": {
+   "pos": [
+    2.98,
+    0,
+    2.19
+   ],
+   "face": 0
+  },
+  "bench-basket": {
+   "pos": [
+    -0.89,
+    0.67,
+    1.04
+   ],
+   "face": 0
+  },
+  "jar-place": {
+   "pos": [
+    -6.85,
+    0,
+    2.57
+   ],
+   "face": 0
+  },
+  "bench-front": {
+   "pos": [
+    -3.2,
+    0,
+    3.1
+   ],
+   "face": 0
+  },
+  "bread-front": {
+   "pos": [
+    -3.15,
+    0,
+    2.45
+   ],
+   "face": 0
+  },
+  "gate-step": {
+   "pos": [
+    1.35,
+    0,
+    1.95
+   ],
+   "face": 0
+  },
+  "hand-over": {
+   "pos": [
+    -0.48,
+    0,
+    2.99
+   ],
+   "face": -90
+  }
+ },
+ "seats": {
+  "elder": {
+   "pos": [
+    -4.57,
+    0.67,
+    1.02
+   ],
+   "face": 16
+  },
+  "ioan": {
+   "pos": [
+    -2.01,
+    0.67,
+    1.02
+   ],
+   "face": -15
+  },
+  "threshold": {
+   "pos": [
+    2.05,
+    0.6,
+    1.26
+   ],
+   "face": 16
+  }
+ },
+ "doors": [
+  "cell"
+ ],
+ "doorLeaves": {
+  "cell": {
+   "hinge": [
+    2.67,
+    0.17
+   ],
+   "length": 2.84,
+   "out": [
+    0,
+    -1
+   ],
+   "swing": -1.62
+  }
+ },
+ "colliders": [
+  {
+   "name": "banca",
+   "at": [
+    -3.34,
+    1.05
+   ],
+   "size": [
+    4.08,
+    1.04
+   ],
+   "seats": [
+    "elder",
+    "ioan"
+   ]
+  }
+ ],
+ "shadow": {
+  "center": [
+   0,
+   0
+  ],
+  "radius": 28
+ }
+}

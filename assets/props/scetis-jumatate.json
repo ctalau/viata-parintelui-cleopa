@@ -1,0 +1,21 @@
+{
+ "name": "scetis-jumatate",
+ "grip": [
+  -0.19,
+  0.18,
+  0.28
+ ],
+ "bite": [
+  0.09,
+  0.235,
+  0.39
+ ],
+ "biteByGrip": {
+  "grip.opus": [
+   -0.18,
+   0.23,
+   -0.44
+  ]
+ },
+ "carryPose": "front"
+}

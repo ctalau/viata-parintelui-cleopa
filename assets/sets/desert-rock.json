@@ -1,0 +1,442 @@
+{
+ "name": "desert-rock",
+ "title": "Piatra (chilia de piatră a lui Avva Moise) și schitul",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "cell": {
+   "pos": [
+    2.895,
+    0.0,
+    -4.277
+   ],
+   "face": 0.0,
+   "note": "in front of the stone cell door, facing out (towards the camera side)"
+  },
+  "cell-door": {
+   "pos": [
+    2.895,
+    0.0,
+    -6.978
+   ],
+   "face": 0.0,
+   "note": "standing in the doorway, facing out (enter / leave the cell)"
+  },
+  "cell-in": {
+   "pos": [
+    3.195,
+    0.0,
+    -8.878
+   ],
+   "face": 0.0,
+   "note": "inside the stone cell, just behind the closed door"
+  },
+  "cell-deep": {
+   "pos": [
+    4.095,
+    0.0,
+    -10.678
+   ],
+   "face": 180.0,
+   "note": "deep inside the stone cell, facing the shelf with the cross (praying, seen through the open door)"
+  },
+  "yard": {
+   "pos": [
+    6.895,
+    0.0,
+    -0.678
+   ],
+   "face": 0.0,
+   "note": "the dry yard in front of the stone cell"
+  },
+  "center": {
+   "pos": [
+    2.0,
+    0.0,
+    2.0
+   ],
+   "face": 0.0,
+   "note": "the middle of the yard (the acting area)"
+  },
+  "rock": {
+   "pos": [
+    11.5,
+    0.0,
+    -6.5
+   ],
+   "face": 135.0,
+   "note": "at the foot of the Rock, facing it"
+  },
+  "schit": {
+   "pos": [
+    -13.311,
+    0.0,
+    28.698
+   ],
+   "face": 180.0,
+   "note": "in front of the white cell of the schit, facing away from it (towards the Rock, -Z)"
+  },
+  "schit-door": {
+   "pos": [
+    -13.311,
+    0.0,
+    31.398
+   ],
+   "face": 180.0,
+   "note": "in the doorway of the white cell, facing out (-Z)"
+  },
+  "schit-in": {
+   "pos": [
+    -13.611,
+    0.0,
+    33.298
+   ],
+   "face": 180.0,
+   "note": "inside the white cell, just behind its closed door"
+  },
+  "path-near": {
+   "pos": [
+    -4.712,
+    0.0,
+    4.581
+   ],
+   "face": 144.1,
+   "note": "on the path from the schit to the Rock, facing along it towards the stone cell"
+  },
+  "path-mid": {
+   "pos": [
+    -9.766,
+    0.0,
+    13.724
+   ],
+   "face": 156.7,
+   "note": "on the path from the schit to the Rock, facing along it towards the stone cell"
+  },
+  "path-far": {
+   "pos": [
+    -12.422,
+    0.0,
+    22.45
+   ],
+   "face": 167.8,
+   "note": "on the path from the schit to the Rock, facing along it towards the stone cell"
+  },
+  "offstage-left": {
+   "pos": [
+    -62.0,
+    1.037,
+    15.0
+   ],
+   "face": 90.0,
+   "note": "out of frame on the left path (enter walking +X)"
+  },
+  "offstage-front": {
+   "pos": [
+    6.0,
+    0.0,
+    46.0
+   ],
+   "face": 180.0,
+   "note": "far towards the camera side (enter walking -Z)"
+  }
+ },
+ "seats": {},
+ "doors": [
+  "cell",
+  "schit"
+ ],
+ "doorLeaves": {
+  "cell": {
+   "hinge": [
+    1.638,
+    -6.58
+   ],
+   "length": 2.675,
+   "out": [
+    0.0,
+    1.0
+   ]
+  },
+  "schit": {
+   "hinge": [
+    -11.914,
+    31.181
+   ],
+   "length": 2.95,
+   "out": [
+    0.139,
+    -0.99
+   ]
+  }
+ },
+ "bounds": [
+  [
+   -60,
+   -1.5,
+   -50
+  ],
+  [
+   60,
+   16,
+   56
+  ]
+ ],
+ "acting": {
+  "rect": [
+   [
+    -10,
+    -6
+   ],
+   [
+    15,
+    12
+   ]
+  ],
+  "paths": [
+   [
+    [
+     -13.31,
+     29.1
+    ],
+    [
+     -13.2,
+     27.74
+    ],
+    [
+     -13.06,
+     26.4
+    ],
+    [
+     -12.88,
+     25.07
+    ],
+    [
+     -12.67,
+     23.75
+    ],
+    [
+     -12.42,
+     22.45
+    ],
+    [
+     -12.14,
+     21.16
+    ],
+    [
+     -11.83,
+     19.89
+    ],
+    [
+     -11.49,
+     18.63
+    ],
+    [
+     -11.11,
+     17.38
+    ],
+    [
+     -10.69,
+     16.15
+    ],
+    [
+     -10.25,
+     14.93
+    ],
+    [
+     -9.77,
+     13.72
+    ],
+    [
+     -9.25,
+     12.53
+    ],
+    [
+     -8.7,
+     11.36
+    ],
+    [
+     -8.12,
+     10.19
+    ],
+    [
+     -7.51,
+     9.04
+    ],
+    [
+     -6.86,
+     7.91
+    ],
+    [
+     -6.18,
+     6.78
+    ],
+    [
+     -5.46,
+     5.68
+    ],
+    [
+     -4.71,
+     4.58
+    ],
+    [
+     -3.93,
+     3.5
+    ],
+    [
+     -3.11,
+     2.43
+    ],
+    [
+     -2.26,
+     1.38
+    ],
+    [
+     -1.38,
+     0.34
+    ],
+    [
+     -0.46,
+     -0.68
+    ],
+    [
+     0.49,
+     -1.7
+    ],
+    [
+     1.48,
+     -2.69
+    ],
+    [
+     2.5,
+     -3.68
+    ]
+   ],
+   [
+    [
+     -78.0,
+     16.0
+    ],
+    [
+     -72.12,
+     15.52
+    ],
+    [
+     -66.48,
+     15.06
+    ],
+    [
+     -61.07,
+     14.64
+    ],
+    [
+     -55.91,
+     14.25
+    ],
+    [
+     -50.98,
+     13.89
+    ],
+    [
+     -46.29,
+     13.56
+    ],
+    [
+     -41.84,
+     13.27
+    ],
+    [
+     -37.62,
+     13.0
+    ],
+    [
+     -33.65,
+     12.77
+    ],
+    [
+     -29.91,
+     12.56
+    ],
+    [
+     -26.42,
+     12.39
+    ],
+    [
+     -23.16,
+     12.25
+    ],
+    [
+     -20.13,
+     12.14
+    ],
+    [
+     -17.35,
+     12.06
+    ],
+    [
+     -14.81,
+     12.02
+    ],
+    [
+     -12.5,
+     12.0
+    ]
+   ]
+  ]
+ },
+ "skies": [
+  "morning",
+  "day",
+  "evening"
+ ],
+ "sky": {
+  "day": {
+   "sunAz": -30,
+   "sunElev": 50
+  },
+  "morning": {
+   "sunAz": -60,
+   "sunElev": 18
+  },
+  "evening": {
+   "sunAz": 50,
+   "sunElev": 10
+  }
+ },
+ "shadow": {
+  "center": [
+   0,
+   6
+  ],
+  "radius": 50
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    2,
+    6.0,
+    30
+   ],
+   "target": [
+    4,
+    3.0,
+    -8
+   ],
+   "fov": 42,
+   "note": "the yard, the stone cell, the Rock on the right"
+  },
+  "schit": {
+   "pos": [
+    -12,
+    4.0,
+    14
+   ],
+   "target": [
+    -14,
+    3.5,
+    34
+   ],
+   "fov": 40,
+   "note": "the white cell of the schit (looking +Z)"
+  }
+ },
+ "notes": "Stone cell (chilie-piatra ×6.5): centre [4, -11], doorway at [2.90, -6.68] (door:cell, hinge on the left, opens outwards); inside: anchors cell-in, cell-deep. White cell of the schit (chilie-alba ×7.5) at [-14, 36], turned 172° (its door towards -Z) at [-13.31, 31.10] (door:schit). The Rock [18.5, -16]. Collision: col:cell-*, col:schit-*, col:rock*, col:boulderN, col:palmN, col:bushN."
+}

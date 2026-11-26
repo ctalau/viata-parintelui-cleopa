@@ -1,0 +1,104 @@
+{
+ "name": "constantinople-palace",
+ "anchors": {
+  "center": {
+   "pos": [
+    0,
+    0,
+    0
+   ],
+   "face": 0
+  },
+  "teacher": {
+   "pos": [
+    -1.55,
+    0,
+    1.5
+   ],
+   "face": 0
+  },
+  "pupil-1": {
+   "pos": [
+    0.87,
+    0,
+    0.35
+   ],
+   "face": 0
+  },
+  "pupil-2": {
+   "pos": [
+    2.55,
+    0,
+    1.55
+   ],
+   "face": 0
+  },
+  "servant-1": {
+   "pos": [
+    -5.96,
+    0,
+    -4.34
+   ],
+   "face": 0
+  },
+  "servant-2": {
+   "pos": [
+    -3.97,
+    0,
+    -4.34
+   ],
+   "face": 0
+  },
+  "servant-3": {
+   "pos": [
+    0.88,
+    0,
+    -4.34
+   ],
+   "face": 0
+  },
+  "servant-4": {
+   "pos": [
+    3.26,
+    0,
+    -4.34
+   ],
+   "face": 0
+  },
+  "bed": {
+   "pos": [
+    6.05,
+    0,
+    1.35
+   ],
+   "face": 0
+  },
+  "exit": {
+   "pos": [
+    -1.57,
+    0,
+    -9.18
+   ],
+   "face": 0
+  }
+ },
+ "lights": [
+  {
+   "pos": [
+    0,
+    5.8,
+    3
+   ],
+   "color": "#ffe6ad",
+   "intensity": 26,
+   "distance": 23
+  }
+ ],
+ "shadow": {
+  "center": [
+   0,
+   0
+  ],
+  "radius": 23
+ }
+}

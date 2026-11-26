@@ -1,0 +1,33 @@
+{
+  "id": "priest",
+  "label": "Preotul satului",
+  "collection": "CHAR_priest",
+  "armature": "RIG_priest",
+  "measurements": {
+    "head_w": 0.83,
+    "head_h": 0.865,
+    "head_y": 2.52,
+    "shoulder_x": 0.8,
+    "shoulder_y": 1.66,
+    "upper": 0.94,
+    "lower": 1.08,
+    "hand": 0.385,
+    "leg": 1.72
+  },
+  "markers": [
+    "forehead",
+    "chest",
+    "shoulder_R",
+    "shoulder_L",
+    "hand_rest"
+  ],
+  "art_source": "../../../scripts/build_characters.py",
+  "actions": [
+    "priest__blink",
+    "priest__cross_orthodox_R",
+    "priest__head_bow",
+    "priest__idle_breathe",
+    "priest__pray_speech",
+    "priest__sit_idle"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "mother",
+  "label": "Mama",
+  "collection": "CHAR_mother",
+  "armature": "RIG_mother",
+  "measurements": {
+    "head_w": 0.8,
+    "head_h": 0.865,
+    "head_y": 2.45,
+    "shoulder_x": 0.65,
+    "shoulder_y": 1.59,
+    "upper": 0.87,
+    "lower": 0.98,
+    "hand": 0.345,
+    "leg": 1.64
+  },
+  "markers": [
+    "forehead",
+    "chest",
+    "shoulder_R",
+    "shoulder_L",
+    "hand_rest"
+  ],
+  "art_source": "../../../scripts/build_characters.py",
+  "actions": [
+    "mother__blink",
+    "mother__cross_orthodox_R",
+    "mother__head_bow",
+    "mother__idle_breathe",
+    "mother__pray_speech",
+    "mother__sit_idle"
+  ]
+}

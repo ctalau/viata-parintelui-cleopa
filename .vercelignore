@@ -1,0 +1,13 @@
+.git
+.github
+node_modules
+dist
+.venv
+.feedback
+.env*
+blender
+experiments/cleopa-blender
+experiments/cleopa-painea/audio
+experiments/cleopa-painea/scenes
+experiments/cleopa-painea/renders/frames
+experiments/cleopa-painea/renders/draft

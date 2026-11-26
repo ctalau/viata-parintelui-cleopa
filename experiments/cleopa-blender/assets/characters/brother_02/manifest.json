@@ -1,0 +1,33 @@
+{
+  "id": "brother_02",
+  "label": "Fratele mai mare II",
+  "collection": "CHAR_brother_02",
+  "armature": "RIG_brother_02",
+  "measurements": {
+    "head_w": 0.77,
+    "head_h": 0.81,
+    "head_y": 2.24,
+    "shoulder_x": 0.66,
+    "shoulder_y": 1.5,
+    "upper": 0.85,
+    "lower": 0.92,
+    "hand": 0.33,
+    "leg": 1.48
+  },
+  "markers": [
+    "forehead",
+    "chest",
+    "shoulder_R",
+    "shoulder_L",
+    "hand_rest"
+  ],
+  "art_source": "../../../scripts/build_characters.py",
+  "actions": [
+    "brother_02__blink",
+    "brother_02__cross_orthodox_R",
+    "brother_02__head_bow",
+    "brother_02__idle_breathe",
+    "brother_02__pray_speech",
+    "brother_02__sit_idle"
+  ]
+}

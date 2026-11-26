@@ -1,0 +1,15 @@
+{
+ "hands": 1,
+ "carry": "side",
+ "variants": [
+  "intact",
+  "broken",
+  "new"
+ ],
+ "grip": [
+  0,
+  1.3,
+  0
+ ],
+ "notes": "height 1.3 with the handle; hang it from the grip at the side"
+}

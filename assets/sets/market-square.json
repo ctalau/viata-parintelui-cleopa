@@ -1,0 +1,192 @@
+{
+ "name": "market-square",
+ "title": "Piața cetății",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "center": {
+   "pos": [
+    0.0,
+    0.0,
+    3.0
+   ],
+   "face": 0.0,
+   "note": "middle of the square, facing the camera side"
+  },
+  "road": {
+   "pos": [
+    0.0,
+    0.0,
+    22.0
+   ],
+   "face": 180.0,
+   "note": "on the road into town, facing the square"
+  },
+  "road-far": {
+   "pos": [
+    0.0,
+    0.0,
+    34.0
+   ],
+   "face": 180.0,
+   "note": "far out on the road (behind the usual camera)"
+  },
+  "fruit-stall": {
+   "pos": [
+    -11.2,
+    0.0,
+    -2.4
+   ],
+   "face": 192.0,
+   "note": "customer spot in front of the fruit stall, facing it"
+  },
+  "fruit-seller": {
+   "pos": [
+    -10.0,
+    0.0,
+    -9.4
+   ],
+   "face": 12.0,
+   "note": "behind the fruit stall counter, facing the square"
+  },
+  "bread-stall": {
+   "pos": [
+    9.0,
+    0.0,
+    -7.2
+   ],
+   "face": 172.0,
+   "note": "customer spot in front of the bread stall, facing it"
+  },
+  "amphorae": {
+   "pos": [
+    16.0,
+    0.0,
+    -0.5
+   ],
+   "face": -110.0,
+   "note": "by the big clay jars, facing the square"
+  },
+  "side-street": {
+   "pos": [
+    30.0,
+    0.0,
+    14.0
+   ],
+   "face": -100.0,
+   "note": "the side street coming in from the front right"
+  },
+  "offstage-left": {
+   "pos": [
+    -16.0,
+    0.0,
+    30.0
+   ],
+   "face": 140.0,
+   "note": "out of frame, front left (leave town)"
+  },
+  "offstage-right": {
+   "pos": [
+    34.0,
+    0.0,
+    14.0
+   ],
+   "face": -100.0,
+   "note": "out of frame, right"
+  }
+ },
+ "seats": {},
+ "bounds": [
+  [
+   -34,
+   -0.1,
+   -26
+  ],
+  [
+   34,
+   20,
+   40
+  ]
+ ],
+ "acting": {
+  "square": "paved, clear: x -8..14, z -5..14 (and the road x -3..3 up to z 34)",
+  "clear": "the side street x 12..34, z 8..20; a 1.5 radius round every anchor"
+ },
+ "skies": [
+  "morning",
+  "day",
+  "evening"
+ ],
+ "sky": {
+  "morning": {
+   "sunAz": -55,
+   "sunElev": 30
+  },
+  "day": {
+   "sunAz": -38,
+   "sunElev": 50
+  },
+  "evening": {
+   "sunAz": -60,
+   "sunElev": 34,
+   "sunIntensity": 2.8,
+   "exposure": 1.08,
+   "grade": {
+    "warm": 0.04,
+    "sat": 1.15,
+    "lift": 0.03
+   }
+  }
+ },
+ "shadow": {
+  "center": [
+   0,
+   -2
+  ],
+  "radius": 40
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    0,
+    8,
+    30
+   ],
+   "target": [
+    0,
+    3,
+    -6
+   ],
+   "fov": 42,
+   "note": "the whole square: stalls, walls, tower"
+  },
+  "stall": {
+   "pos": [
+    -6,
+    4,
+    4
+   ],
+   "target": [
+    -11,
+    2.4,
+    -8
+   ],
+   "fov": 40,
+   "note": "the fruit stall"
+  },
+  "jars": {
+   "pos": [
+    9,
+    4,
+    6
+   ],
+   "target": [
+    19,
+    2.2,
+    -3
+   ],
+   "fov": 40,
+   "note": "the amphorae by the colonnade"
+  }
+ },
+ "notes": "Toy-city sandstone look (film 040 poster). Paving is walkable (ground_paving)."
+}

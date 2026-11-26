@@ -1,0 +1,362 @@
+{
+ "name": "bakery-yard",
+ "title": "Pităria lavrei (curtea brutăriei, cu cuptorul)",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "table": {
+   "pos": [
+    -3.55,
+    0.0,
+    -4.5
+   ],
+   "face": 0.0,
+   "note": "behind the kneading table, over the trough (the film puts `dough-trough` on the table at [tx, tz - 0.35], y 1.55), facing the camera"
+  },
+  "table-r": {
+   "pos": [
+    -1.25,
+    0.0,
+    -4.5
+   ],
+   "face": 0.0,
+   "note": "behind the table, right of the trough (over the shaped loaves), facing the camera"
+  },
+  "table-front": {
+   "pos": [
+    -3.0,
+    0.0,
+    0.0
+   ],
+   "face": 180.0,
+   "note": "in front of the table, facing it (and the kneaders)"
+  },
+  "bench": {
+   "pos": [
+    -6.7,
+    0.0,
+    2.0
+   ],
+   "face": -95.0,
+   "note": "beside the bench, facing it (put a sack on the bench at [-8.6, 1.6], y 0.9)"
+  },
+  "oven": {
+   "pos": [
+    4.954,
+    0.0,
+    -2.944
+   ],
+   "face": 155.0,
+   "note": "in front of the oven mouth, facing it, the right hand on the mouth's axis: a peel held in the right hand and tilted 90° lays the loaf on the oven's first spot"
+  },
+  "oven-back": {
+   "pos": [
+    4.404,
+    0.0,
+    -1.766
+   ],
+   "face": 155.0,
+   "note": "a step back from `oven` (walk from here to `oven`: the peel slides into the mouth)"
+  },
+  "oven-side": {
+   "pos": [
+    2.778,
+    0.0,
+    -4.29
+   ],
+   "face": 115.0,
+   "note": "beside the oven on the table side, facing the mouth (a helper watching / holding the basket)"
+  },
+  "yard": {
+   "pos": [
+    2.0,
+    0.0,
+    2.5
+   ],
+   "face": 0.0,
+   "note": "the middle of the yard (the acting area)"
+  },
+  "center": {
+   "pos": [
+    1.0,
+    0.0,
+    6.0
+   ],
+   "face": 0.0,
+   "note": "the front of the yard, towards the camera"
+  },
+  "path-near": {
+   "pos": [
+    -14.722,
+    0.0,
+    4.222
+   ],
+   "face": 102.9,
+   "note": "on the path from the cells (left), facing along it towards the yard"
+  },
+  "path-mid": {
+   "pos": [
+    -29.36,
+    0.0,
+    6.96
+   ],
+   "face": 99.1,
+   "note": "on the path from the cells (left), facing along it towards the yard"
+  },
+  "path-far": {
+   "pos": [
+    -44.16,
+    0.146,
+    8.96
+   ],
+   "face": 96.8,
+   "note": "on the path from the cells (left), facing along it towards the yard"
+  },
+  "offstage-left": {
+   "pos": [
+    -62.0,
+    0.802,
+    10.5
+   ],
+   "face": 95.0,
+   "note": "out of frame on the path, left (enter walking +X)"
+  },
+  "offstage-right": {
+   "pos": [
+    50.0,
+    0.249,
+    10.0
+   ],
+   "face": -90.0,
+   "note": "out of frame, right (enter walking -X)"
+  }
+ },
+ "seats": {},
+ "bounds": [
+  [
+   -60,
+   -1.5,
+   -50
+  ],
+  [
+   60,
+   16,
+   56
+  ]
+ ],
+ "acting": {
+  "rect": [
+   [
+    -11,
+    -6
+   ],
+   [
+    16,
+    10
+   ]
+  ],
+  "paths": [
+   [
+    [
+     -80.0,
+     12.0
+    ],
+    [
+     -76.7,
+     11.8
+    ],
+    [
+     -73.45,
+     11.58
+    ],
+    [
+     -70.26,
+     11.36
+    ],
+    [
+     -67.13,
+     11.13
+    ],
+    [
+     -64.06,
+     10.89
+    ],
+    [
+     -61.04,
+     10.64
+    ],
+    [
+     -58.08,
+     10.38
+    ],
+    [
+     -55.18,
+     10.12
+    ],
+    [
+     -52.34,
+     9.84
+    ],
+    [
+     -49.56,
+     9.56
+    ],
+    [
+     -46.83,
+     9.26
+    ],
+    [
+     -44.16,
+     8.96
+    ],
+    [
+     -41.55,
+     8.65
+    ],
+    [
+     -39.0,
+     8.33
+    ],
+    [
+     -36.5,
+     8.0
+    ],
+    [
+     -34.06,
+     7.66
+    ],
+    [
+     -31.68,
+     7.32
+    ],
+    [
+     -29.36,
+     6.96
+    ],
+    [
+     -27.1,
+     6.6
+    ],
+    [
+     -24.89,
+     6.22
+    ],
+    [
+     -22.74,
+     5.84
+    ],
+    [
+     -20.65,
+     5.45
+    ],
+    [
+     -18.62,
+     5.05
+    ],
+    [
+     -16.64,
+     4.64
+    ],
+    [
+     -14.72,
+     4.22
+    ],
+    [
+     -12.86,
+     3.8
+    ],
+    [
+     -11.06,
+     3.36
+    ],
+    [
+     -9.32,
+     2.92
+    ],
+    [
+     -7.63,
+     2.46
+    ],
+    [
+     -6.0,
+     2.0
+    ]
+   ]
+  ]
+ },
+ "oven": {
+  "at": [
+   7.2,
+   -6.2
+  ],
+  "face": -25.0,
+  "note": "place the `bread-oven` prop here"
+ },
+ "table": {
+  "at": [
+   -3.0,
+   -2.9
+  ],
+  "top": 1.55,
+  "trough": [
+   -3.0,
+   -3.25
+  ]
+ },
+ "skies": [
+  "morning",
+  "day",
+  "evening"
+ ],
+ "sky": {
+  "day": {
+   "sunAz": -30,
+   "sunElev": 50
+  },
+  "morning": {
+   "sunAz": -60,
+   "sunElev": 20
+  },
+  "evening": {
+   "sunAz": 55,
+   "sunElev": 11
+  }
+ },
+ "shadow": {
+  "center": [
+   1,
+   -2
+  ],
+  "radius": 45
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    1,
+    7.0,
+    26
+   ],
+   "target": [
+    1,
+    2.5,
+    -6
+   ],
+   "fov": 42,
+   "note": "the yard: house left, table, oven right"
+  },
+  "table": {
+   "pos": [
+    -3,
+    4.2,
+    6.5
+   ],
+   "target": [
+    -3,
+    2.2,
+    -3.5
+   ],
+   "fov": 38,
+   "note": "the kneading table from the front"
+  }
+ },
+ "notes": "Bakery yard: house (AI pitarie-casa) at [-15.5, -12.5]; kneading table [-3.0, -2.9], top 1.55 (col:table + legs); the oven prop goes at [7.2, -6.2] face -25 (`bread-oven`). The brothers come along the path from the left (offstage-left → path-far → path-mid → path-near). Collision: col:pitarie-*, col:table*, col:wall*, col:cellwN, col:church, col:palmN, col:bushN."
+}

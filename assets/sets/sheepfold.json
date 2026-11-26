@@ -1,0 +1,361 @@
+{
+ "name": "sheepfold",
+ "title": "Stâna de pe deal (Cipru)",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "gate": {
+   "pos": [
+    0.0,
+    0.0,
+    -2.4
+   ],
+   "face": 180.0,
+   "note": "in front of the gate, facing it (to open it / reach over it)"
+  },
+  "gate-left": {
+   "pos": [
+    -2.0,
+    0.0,
+    -2.5
+   ],
+   "face": 160.0,
+   "note": "in front of the fold left of the gate, facing it"
+  },
+  "gate-right": {
+   "pos": [
+    2.0,
+    0.0,
+    -2.5
+   ],
+   "face": 200.0,
+   "note": "in front of the fold right of the gate, facing it"
+  },
+  "fold-in": {
+   "pos": [
+    0.0,
+    0.0,
+    -6.6
+   ],
+   "face": 180.0,
+   "note": "inside the fold, just behind the gate, facing the sheep"
+  },
+  "fold": {
+   "pos": [
+    0.0,
+    0.0,
+    -9.5
+   ],
+   "face": 0.0,
+   "note": "the middle of the fold (sheep all round)"
+  },
+  "hut": {
+   "pos": [
+    19.0,
+    0.0,
+    -4.1
+   ],
+   "face": 0.0,
+   "note": "in front of the house door, facing out"
+  },
+  "hut-door": {
+   "pos": [
+    19.0,
+    0.0,
+    -6.8
+   ],
+   "face": 0.0,
+   "note": "standing in the doorway, facing out"
+  },
+  "hut-in": {
+   "pos": [
+    18.8,
+    0.0,
+    -8.4
+   ],
+   "face": 0.0,
+   "note": "inside, just behind the closed door (start hidden here, show, open the door, walk out)"
+  },
+  "tree": {
+   "pos": [
+    -10.5,
+    0.0,
+    1.3
+   ],
+   "face": 0.0,
+   "note": "under the olive tree (the owl above), facing the camera side"
+  },
+  "trough": {
+   "pos": [
+    -8.1,
+    0.0,
+    -7.6
+   ],
+   "face": -60.0,
+   "note": "beside the water trough"
+  },
+  "center": {
+   "pos": [
+    0.0,
+    0.0,
+    3.0
+   ],
+   "face": 0.0,
+   "note": "the middle of the meadow in front of the fold"
+  },
+  "path-left": {
+   "pos": [
+    -41.778,
+    1.058,
+    8.156
+   ],
+   "face": 99.4,
+   "note": "on the path from the left, facing along it towards the gate"
+  },
+  "path-mid": {
+   "pos": [
+    -21.319,
+    0.0,
+    4.289
+   ],
+   "face": 103.1,
+   "note": "on the path from the left, facing along it towards the gate"
+  },
+  "path-near": {
+   "pos": [
+    -8.663,
+    0.0,
+    0.914
+   ],
+   "face": 108.6,
+   "note": "on the path from the left, facing along it towards the gate"
+  },
+  "path-hut": {
+   "pos": [
+    9.75,
+    0.0,
+    -1.725
+   ],
+   "face": 100.0,
+   "note": "on the path between the gate and the house, facing the house"
+  },
+  "offstage-left": {
+   "pos": [
+    -62.0,
+    5.321,
+    12.0
+   ],
+   "face": 90.0,
+   "note": "out of frame on the path, left (enter walking +X)"
+  },
+  "offstage-right": {
+   "pos": [
+    50.0,
+    2.643,
+    6.0
+   ],
+   "face": -90.0,
+   "note": "out of frame, right (enter walking -X)"
+  }
+ },
+ "seats": {},
+ "bounds": [
+  [
+   -60,
+   -1.0,
+   -60
+  ],
+  [
+   60,
+   16,
+   26
+  ]
+ ],
+ "acting": {
+  "rect": [
+   [
+    -30,
+    -4
+   ],
+   [
+    30,
+    14
+   ]
+  ],
+  "path": [
+   [
+    -78.0,
+    13.0
+   ],
+   [
+    -72.91,
+    12.41
+   ],
+   [
+    -67.99,
+    11.82
+   ],
+   [
+    -63.22,
+    11.22
+   ],
+   [
+    -58.61,
+    10.62
+   ],
+   [
+    -54.16,
+    10.01
+   ],
+   [
+    -49.88,
+    9.4
+   ],
+   [
+    -45.75,
+    8.78
+   ],
+   [
+    -41.78,
+    8.16
+   ],
+   [
+    -37.97,
+    7.53
+   ],
+   [
+    -34.32,
+    6.89
+   ],
+   [
+    -30.83,
+    6.25
+   ],
+   [
+    -27.5,
+    5.6
+   ],
+   [
+    -24.33,
+    4.95
+   ],
+   [
+    -21.32,
+    4.29
+   ],
+   [
+    -18.47,
+    3.62
+   ],
+   [
+    -15.78,
+    2.96
+   ],
+   [
+    -13.25,
+    2.28
+   ],
+   [
+    -10.88,
+    1.6
+   ],
+   [
+    -8.66,
+    0.91
+   ],
+   [
+    -6.61,
+    0.22
+   ],
+   [
+    -4.72,
+    -0.48
+   ],
+   [
+    -2.99,
+    -1.18
+   ],
+   [
+    -1.41,
+    -1.89
+   ],
+   [
+    0.0,
+    -2.6
+   ]
+  ],
+  "fold": {
+   "centre": [
+    0.0,
+    -9.5
+   ],
+   "half_axes": [
+    7.5,
+    5.5
+   ],
+   "wall_h": 1.5,
+   "gate_z": -4.0
+  }
+ },
+ "skies": [
+  "day",
+  "morning",
+  "evening",
+  "night"
+ ],
+ "sky": {
+  "day": {
+   "sunAz": -35,
+   "sunElev": 46
+  },
+  "morning": {
+   "sunAz": -62,
+   "sunElev": 14
+  },
+  "evening": {
+   "sunAz": 55,
+   "sunElev": 8
+  },
+  "night": {
+   "sunAz": 35,
+   "sunElev": 36
+  }
+ },
+ "shadow": {
+  "center": [
+   2,
+   -6
+  ],
+  "radius": 44
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    0,
+    6.0,
+    26
+   ],
+   "target": [
+    0,
+    2.0,
+    -8
+   ],
+   "fov": 42,
+   "note": "the fold in the middle, the olive tree left, the house right, hills behind"
+  },
+  "gate": {
+   "pos": [
+    3,
+    3.0,
+    6
+   ],
+   "target": [
+    0,
+    2.2,
+    -4
+   ],
+   "fov": 40,
+   "note": "the gate and the sheep behind it"
+  }
+ },
+ "notes": "The fold: an oval dry-stone wall 1.5 high round [0, -9.5] (half axes 7.5 × 5.5), its gate at the front (x = 0, z = -4, node door:gate, hinge on the left post; open = swings inwards). Sheep inside are set dressing (col:sheepN). The house: door node door:hut at x = 19, front wall z = -6.5 (hut-in = behind the closed door). Collision: col:foldN, col:gatepost*, col:sheepN, col:hut-*, col:olive*, col:cypressN, col:bushN, col:trough, col:beehives."
+}

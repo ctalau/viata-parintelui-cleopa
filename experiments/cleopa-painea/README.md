@@ -1,0 +1,55 @@
+# Micuțul Cleopa · Pâinea care poate să aștepte
+
+Experiment Blender după primele zece pagini ale cărții ilustrate. Am păstrat rigurile, formele desenate și paleta caldă din [experimentul cu rugăciunea la masă](../cleopa-blender/README.md). Filmul are zece momente și unsprezece încadrări. Se încheie cu îndemnul tatălui din pagina zece.
+
+| Pagina | Ce se vede |
+| --- | --- |
+| 1 | Satul Botoșanilor în zori, Costică în căciulă și rândunelele deasupra dealurilor. |
+| 2 | Cocoșul cântă pe gard, Grăsuțu cască, iar Costică se trezește în pat cu mâinile la burtă. |
+| 3 | Se aude burta. Costică îi șoptește să nu-l trezească pe tata. |
+| 4 | Purcelușul mănâncă din troacă, apoi ridică râtul și grohăie. |
+| 5 | Mihai vine dinspre șură cu o carte sub braț și-l cheamă pe Costică. |
+| 6 | Mama duce pâinea de lângă cuptor, o așază pe masă și își retrage mâinile. |
+| 7 | Mama arată pâinea și le amintește copiilor de traiste și de drumul la școală. |
+| 8 | Costică întinde mâna către pâine. Firicelele de abur se adună într-un nor auriu. |
+| 9 | Tata, un bărbat tânăr cu mustață, intră și le face semn copiilor să aștepte. |
+| 10 | Mâna lui Costică rămâne deasupra pâinii în timp ce se aude îndemnul la rugăciune. |
+
+Dialogul are formulări mai scurte pentru rostire și o intervenție mai blândă a tatălui în prag. Scenariul și distribuția sunt în `scenariu.json`. Pistele vorbite vin de la Gemini 3.8 Flash TTS, iar melodia instrumentală vine de la Lyria 3 Clip, toate prin OpenRouter. Muzica este reluată cu suprapuneri și atenuată în timpul replicilor. Cele trei efecte sonore sunt sintetizate local. Gurile răspund la energia replicilor și la aproximarea vocalelor din text.
+
+Mânecile au câte o singură suprafață, deformată de trunchi, braț, antebraț și încheietură. Marginea dinspre umăr rămâne ancorată în haină. Brațele și antebrațele sunt scurtate, astfel încât degetele rămân vizibil deasupra genunchilor în repaus. Manșeta se deformează cu antebrațul și încheietura. Degetele au lungimi și curburi diferite în desenele de repaus, prindere, întindere și oprire. În repaus, respirația se vede discret în piept, cu picioarele pe loc. Troaca are o muchie frontală separată de interior, iar râtul lui Grăsuțu se vede deasupra tărâțelor.
+
+## Redare și editare
+
+- `renders/painea_care_poate_sa_astepte.mp4` este filmul cu voce și muzică. Copia de descărcat are sub 5 MB, 768 × 432 la 24 fps și sunet stereo. Scena se randează la 1280 × 720, cu un desen la fiecare două cadre.
+- `scenes/painea_care_poate_sa_astepte.blend` are decorurile, camerele, rigurile, textul și pistele audio editabile. Marcajele de pe Timeline selectează camerele. Titlul și efectul grafic se editează în colecția `Titlu și efecte grafice`, iar sunetul în Video Sequencer.
+- `renders/foaie_contact.jpg` prezintă cele zece momente.
+
+## Reproducere
+
+Din acest folder, cu Blender 4.3.2, FFmpeg, Python 3, NumPy, Pillow și fonturile DejaVu. Scriptul Blender importă constructorii de personaje și decor din `../cleopa-blender/scripts`. Fișierul Blender salvat include fonturile, vocile și muzica.
+
+```bash
+python3 scripts/prepare_timeline.py
+blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
+blender -b --factory-startup --python-exit-code 1 --python scripts/verify_episode.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/check_overlaps.py -- --step 1
+mkdir -p renders/frames
+blender -b scenes/painea_care_poate_sa_astepte.blend -o //../renders/frames/frame_#### -F PNG -a
+python3 scripts/export_episode.py
+```
+
+Vocile se pot regenera cu `OPENROUTER_API_KEY` setată în mediu. După o modificare în scenariu, `--force` primește ID-urile fișierelor WAV schimbate, fără extensie. De exemplu, pentru prima replică din pagina 2 se folosește `--force 02-01`.
+
+```bash
+python3 scripts/generate_audio.py
+python3 scripts/prepare_timeline.py
+python3 scripts/verify_openrouter.py
+python3 scripts/prepare_timeline.py
+```
+
+## Verificarea suprapunerilor
+
+`scripts/check_overlaps.py` proiectează contururile convexe ale capetelor și mâinilor în camera activă. Raportează intervalele în care se suprapun capetele, în care o mână acoperă sau e acoperită de capul altui personaj și în care se suprapun două mâini. Semnalează separat intersecțiile la adâncimi aproape egale. Implicit examinează cadrele randate, iar `--step 1` verifică și cadrele dintre ele.
+
+`--json raport.json` salvează intervalele și procentul de suprapunere al conturului mai mic. `--report-only` afișează rezultatele fără a opri verificarea cu o eroare. Pentru o suprapunere intenționată, `--allow exceptii.json` acceptă o listă de excepții cu câmpurile `kind`, `camera`, `parts`, `start`, `end` și `reason`. Denumirile apar în raport, iar explicația și intervalul fac excepția specifică acelei mișcări.

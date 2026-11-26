@@ -1,0 +1,321 @@
+{
+ "name": "harvest-field",
+ "title": "Ogorul cu grâu (secerișul, lângă casa gospodarului)",
+ "units": "engine units (figure 4.2 tall), three.js Y-up, +Z towards the usual camera",
+ "anchors": {
+  "reap-a": {
+   "pos": [
+    -5.0,
+    0.0,
+    -1.225
+   ],
+   "face": 180.0,
+   "note": "on the margin facing the wheat (-Z): the reaper stands here; put a `wheat` patch 1.3 in front of him (z - 1.3)"
+  },
+  "reap-b": {
+   "pos": [
+    0.0,
+    0.0,
+    -0.705
+   ],
+   "face": 180.0,
+   "note": "on the margin facing the wheat (-Z): the reaper stands here; put a `wheat` patch 1.3 in front of him (z - 1.3)"
+  },
+  "reap-c": {
+   "pos": [
+    5.0,
+    0.0,
+    -0.243
+   ],
+   "face": 180.0,
+   "note": "on the margin facing the wheat (-Z): the reaper stands here; put a `wheat` patch 1.3 in front of him (z - 1.3)"
+  },
+  "margin-left": {
+   "pos": [
+    -12.0,
+    0.0,
+    -0.961
+   ],
+   "face": 0.0,
+   "note": "on the straw margin in front of the field, left"
+  },
+  "margin-right": {
+   "pos": [
+    11.0,
+    0.0,
+    -0.267
+   ],
+   "face": 0.0,
+   "note": "on the straw margin in front of the field, right"
+  },
+  "center": {
+   "pos": [
+    0.0,
+    0.0,
+    4.0
+   ],
+   "face": 0.0,
+   "note": "the middle of the acting area, between the field and the path"
+  },
+  "road-left": {
+   "pos": [
+    -26.0,
+    0.0,
+    7.5
+   ],
+   "face": 90.0,
+   "note": "on the path, left (walking +X towards the house)"
+  },
+  "road-mid": {
+   "pos": [
+    0.0,
+    0.0,
+    5.6
+   ],
+   "face": 90.0,
+   "note": "on the path in the middle"
+  },
+  "road-right": {
+   "pos": [
+    14.0,
+    0.0,
+    4.6
+   ],
+   "face": 90.0,
+   "note": "on the path near the house"
+  },
+  "house": {
+   "pos": [
+    20.175,
+    0.0,
+    3.255
+   ],
+   "face": -38.0,
+   "note": "in front of the farmer's door, facing out"
+  },
+  "house-door": {
+   "pos": [
+    21.037,
+    0.0,
+    2.152
+   ],
+   "face": -38.0,
+   "note": "standing in the doorway, facing out (enter / leave the house)"
+  },
+  "tree": {
+   "pos": [
+    -15.6,
+    0.0,
+    4.5
+   ],
+   "face": 150.0,
+   "note": "in the shade of the fig tree, facing the field"
+  },
+  "offstage-left": {
+   "pos": [
+    -62.0,
+    3.121,
+    9.0
+   ],
+   "face": 90.0,
+   "note": "out of frame on the path, left (enter walking +X)"
+  },
+  "offstage-right": {
+   "pos": [
+    46.0,
+    0.083,
+    6.0
+   ],
+   "face": -90.0,
+   "note": "out of frame, right (enter walking -X)"
+  }
+ },
+ "seats": {},
+ "bounds": [
+  [
+   -60,
+   -1.5,
+   -60
+  ],
+  [
+   60,
+   14,
+   26
+  ]
+ ],
+ "acting": {
+  "rect": [
+   [
+    -30,
+    -2
+   ],
+   [
+    30,
+    14
+   ]
+  ],
+  "edge": "z = -3 + 0.5 sin(0.11 x + 0.4) + 0.25 sin(0.31 x)",
+  "path": [
+   [
+    -75.0,
+    10.0
+   ],
+   [
+    -69.65,
+    9.59
+   ],
+   [
+    -64.42,
+    9.19
+   ],
+   [
+    -59.31,
+    8.81
+   ],
+   [
+    -54.33,
+    8.44
+   ],
+   [
+    -49.47,
+    8.08
+   ],
+   [
+    -44.74,
+    7.74
+   ],
+   [
+    -40.13,
+    7.41
+   ],
+   [
+    -35.65,
+    7.1
+   ],
+   [
+    -31.29,
+    6.79
+   ],
+   [
+    -27.05,
+    6.5
+   ],
+   [
+    -22.94,
+    6.23
+   ],
+   [
+    -18.96,
+    5.96
+   ],
+   [
+    -15.09,
+    5.71
+   ],
+   [
+    -11.36,
+    5.48
+   ],
+   [
+    -7.74,
+    5.26
+   ],
+   [
+    -4.26,
+    5.05
+   ],
+   [
+    -0.89,
+    4.85
+   ],
+   [
+    2.35,
+    4.67
+   ],
+   [
+    5.46,
+    4.5
+   ],
+   [
+    8.46,
+    4.34
+   ],
+   [
+    11.32,
+    4.2
+   ],
+   [
+    14.06,
+    4.07
+   ],
+   [
+    16.68,
+    3.96
+   ],
+   [
+    19.18,
+    3.86
+   ]
+  ]
+ },
+ "skies": [
+  "morning",
+  "day",
+  "evening"
+ ],
+ "sky": {
+  "day": {
+   "sunAz": -38,
+   "sunElev": 50
+  },
+  "morning": {
+   "sunAz": -66,
+   "sunElev": 15
+  },
+  "evening": {
+   "sunAz": 58,
+   "sunElev": 8
+  }
+ },
+ "shadow": {
+  "center": [
+   0,
+   -2
+  ],
+  "radius": 46
+ },
+ "options": {
+  "reaped": "true → the field is cut: stubble and stooks of sheaves instead of the standing wheat"
+ },
+ "shots": {
+  "wide": {
+   "pos": [
+    0,
+    6.5,
+    30
+   ],
+   "target": [
+    0,
+    2.0,
+    -4
+   ],
+   "fov": 42,
+   "note": "the field across the back, the house right, the tree left"
+  },
+  "edge": {
+   "pos": [
+    3,
+    2.4,
+    9
+   ],
+   "target": [
+    0,
+    1.8,
+    -2
+   ],
+   "fov": 40,
+   "note": "the reaping place at the field edge"
+  }
+ },
+ "notes": "The wheat field fills z < edge(x) ≈ -3; reap on the margin in front of it with the `wheat` prop patches (2.6 wide), the reaper 1.3 in front of the patch facing -Z. The path runs along x at z ≈ 5–7 to the house on the right (door node door:house, anchors house / house-door). Collision: col:house*, col:granaryN, col:tree*, col:palmN, col:bushN, col:donkey."
+}

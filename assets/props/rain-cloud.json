@@ -1,0 +1,8 @@
+{
+ "variants": [
+  "dry",
+  "rain"
+ ],
+ "steps": true,
+ "notes": "a friendly rain cloud \u2248 9 wide, 6.5 tall with a little face towards +Z (origin = belly middle); bend 0 = dry, 1 = raining: streaks fall 9 below the belly"
+}

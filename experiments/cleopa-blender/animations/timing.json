@@ -1,0 +1,13 @@
+{
+  "fps": 24,
+  "frame_start": 1,
+  "frame_end": 720,
+  "provisional": true,
+  "characters": ["father", "brother_01", "brother_02", "cleopa", "mother", "priest"],
+  "cross_hand": "R",
+  "cross_order": ["forehead", "chest", "shoulder_R", "shoulder_L", "hand_rest"],
+  "contact_frames_leader": {"first": [44, 60, 76, 92, 110], "second": [620, 636, 652, 668, 690]},
+  "offset_frames": {"father": 0, "brother_01": 2, "brother_02": 3, "cleopa": 5, "mother": 1, "priest": 0},
+  "prayer_frames": [121, 576],
+  "amen_frames": [577, 600]
+}

@@ -1,0 +1,26 @@
+{
+  "id": "001-demo-atelier",
+  "title": "Dimineață la schit",
+  "engine": "2d",
+  "captions": false,
+  "music": false,
+  "format": { "width": 1280, "height": 720, "fps": 24 },
+  "logo": "scoala",
+  "characters": {
+    "parinte": { "name": "Părintele", "look": { "preset": "elder-monk", "robe": "plum" } },
+    "ucenic": { "name": "Ucenicul", "look": { "preset": "young-monk", "robe": "navy" } }
+  },
+  "scenes": [{
+    "id": "schit",
+    "set": { "type": "lavra2d", "palette": "ochre", "cells": 3, "dome": "drum", "roofs": "vault", "sky": "morning" },
+    "cast": { "parinte": { "at": [-2.3, 0] }, "ucenic": { "at": [2.3, 0] } },
+    "props": { "paine": { "type": "bread", "at": [0, 0.3] } },
+    "camera": { "shot": "wide", "on": "center", "dist": 16, "height": 5.5, "y": 2.5 },
+    "beats": [
+      { "duration": 1.5 },
+      { "duration": 3, "do": { "actor": "parinte", "gesture": "pray" } },
+      { "duration": 3, "do": { "actor": "ucenic", "gesture": "bow" } },
+      { "duration": 1.5 }
+    ]
+  }]
+}
