@@ -6,7 +6,7 @@ dist
 .feedback
 .env*
 experiments/cleopa-blender
-experiments/cleopa-painea/assets
+experiments/cleopa-painea/assets/*.blend
 experiments/cleopa-painea/audio
 experiments/cleopa-painea/scenes
 experiments/cleopa-painea/renders/frames
