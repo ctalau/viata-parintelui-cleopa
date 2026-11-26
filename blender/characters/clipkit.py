@@ -370,8 +370,11 @@ def bake(clip, solver, rig):
     # write an action with one slot for the armature
     act = bpy.data.actions.new(clip.name)
     act.use_fake_user = True
-    slot = act.slots.new(id_type='OBJECT', name=rig.name)
-    cb = anim_utils.action_ensure_channelbag_for_slot(act, slot)
+    if hasattr(act, 'slots'):
+        slot = act.slots.new(id_type='OBJECT', name=rig.name)
+        curves = anim_utils.action_ensure_channelbag_for_slot(act, slot).fcurves
+    else:
+        curves = act.fcurves
     frames = np.array([t * FPS for t in times])
     for b in names:
         qs = recQ[b]
@@ -383,7 +386,7 @@ def bake(clip, solver, rig):
             # identity all along: still key it once so the clip fully defines the pose when blended
             pass
         for i in range(4):
-            fc = cb.fcurves.new(f'pose.bones["{b}"].rotation_quaternion', index=i)
+            fc = curves.new(f'pose.bones["{b}"].rotation_quaternion', index=i)
             vals = np.array([q[i] for q in qs])
             fc.keyframe_points.add(len(vals))
             co = np.stack([frames, vals], -1).ravel()
@@ -391,7 +394,7 @@ def bake(clip, solver, rig):
             fc.keyframe_points.foreach_set('interpolation', [1] * len(vals))  # LINEAR (dense keys)
             fc.update()
     for i in range(3):
-        fc = cb.fcurves.new('pose.bones["pelvis"].location', index=i)
+        fc = curves.new('pose.bones["pelvis"].location', index=i)
         vals = np.array([p[i] for p in recP['pelvis']])
         fc.keyframe_points.add(len(vals))
         fc.keyframe_points.foreach_set('co', np.stack([frames, vals], -1).ravel())

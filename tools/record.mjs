@@ -45,7 +45,10 @@ const quality = args.quality || (draft ? 'draft' : 'final');
 const url = `http://127.0.0.1:${port}/lib/engine/render.html?video=${rel}&scale=${scale}&quality=${quality}`;
 // Default: software WebGL (SwiftShader) so it works in any container. On a machine with a real GPU pass --gpu (much faster).
 // --gpu uses ANGLE on EGL (works headless on NVIDIA in Docker with NVIDIA_DRIVER_CAPABILITIES=all); --gl vulkan is the alternative.
-const launchArgs = browserArgs(args);
+const launchOptions = {
+  args: browserArgs(args),
+  ...(process.env.CHROMIUM_BIN && { executablePath: process.env.CHROMIUM_BIN }),
+};
 
 async function openPage(browser, pageUrl = url) {
   const page = await browser.newPage();
@@ -63,7 +66,7 @@ async function openPage(browser, pageUrl = url) {
   return page;
 }
 
-const browser = await chromium.launch({ args: launchArgs });
+const browser = await chromium.launch(launchOptions);
 try {
   if (tl.warnings.length) console.warn('Warnings:\n  ' + tl.warnings.join('\n  '));
   if (tl.missingAudio) console.warn(`⚠ ${tl.missingAudio} line(s) have no audio yet (run /voice); using estimated timings.`);
@@ -182,7 +185,7 @@ async function video() {
   // --browsers N: separate Chromium processes (each has its own GPU process; one GPU process serialises all pages)
   const nBrowsers = Math.max(1, Math.min(workers, parseInt(args.browsers || 1)));
   const browsers = [browser];
-  for (let i = 1; i < nBrowsers; i++) browsers.push(await chromium.launch({ args: launchArgs }));
+  for (let i = 1; i < nBrowsers; i++) browsers.push(await chromium.launch(launchOptions));
   const outDir = path.join(dir, 'out');
   fs.mkdirSync(outDir, { recursive: true });
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'lego-rec-'));

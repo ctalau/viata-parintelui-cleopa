@@ -4,28 +4,125 @@ const timeLabel = document.querySelector('#timestamp');
 const status = document.querySelector('#feedback-status');
 const capture = document.querySelector('#capture');
 const submit = form.querySelector('[type="submit"]');
+const screen = document.querySelector('#screen');
+const controls = document.querySelector('#player-controls');
+const play = document.querySelector('#play');
+const seek = document.querySelector('#seek');
+const playbackTime = document.querySelector('#play-time');
+const playbackStatus = document.querySelector('#play-status');
+const flag = document.querySelector('#flag');
+const sound = document.querySelector('#sound');
+const full = document.querySelector('#full');
+const jumpButtons = [...document.querySelectorAll('[data-skip]')];
 const episode = 'painea-care-poate-sa-astepte';
+const episodeDuration = 2090 / 24;
 let markedTime = null;
 
-function clock(time) {
+function clock(time, decimal = false) {
   const seconds = Math.floor(time);
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  return decimal ? `${clock}.${Math.floor((time - seconds) * 10 + 1e-7) % 10}` : clock;
 }
 
 function currentTime() {
-  return Math.min(video.currentTime, 2090 / 24);
+  return Math.min(video.currentTime, episodeDuration);
 }
 
-video.addEventListener('timeupdate', () => {
-  if (markedTime === null) timeLabel.textContent = clock(currentTime());
-});
-capture.addEventListener('click', () => {
+function updateTime() {
+  const time = currentTime();
+  seek.value = time;
+  seek.setAttribute('aria-valuetext', clock(time, true));
+  playbackTime.textContent = `${clock(time, true)} / ${clock(episodeDuration, true)}`;
+  if (markedTime === null) timeLabel.textContent = clock(time, true);
+}
+
+function updatePlay() {
+  play.setAttribute('aria-label', video.paused ? 'Redă filmul' : 'Pauză');
+  play.firstElementChild.textContent = video.paused ? '▶' : '❚❚';
+}
+
+function jumpTo(time) {
+  if (video.readyState === 0) return;
+  video.currentTime = Math.max(0, Math.min(episodeDuration, time));
+  updateTime();
+}
+
+async function togglePlayback() {
+  if (!video.paused) {
+    video.pause();
+    return;
+  }
+  try {
+    await video.play();
+    playbackStatus.hidden = true;
+  } catch {
+    playbackStatus.hidden = false;
+    playbackStatus.textContent = 'Filmul nu s-a putut porni. Folosește linkul de descărcare.';
+  }
+}
+
+function markTime() {
   video.pause();
   markedTime = currentTime();
-  timeLabel.textContent = clock(markedTime);
+  timeLabel.textContent = clock(markedTime, true);
   status.removeAttribute('data-error');
-  status.textContent = `Moment ales la ${clock(markedTime)}.`;
+  status.textContent = `Moment ales la ${clock(markedTime, true)}.`;
+}
+
+async function flagMoment() {
+  if (document.fullscreenElement === screen) await document.exitFullscreen();
+  markTime();
+  form.elements.message.focus();
+}
+
+function toggleFull() {
+  if (document.fullscreenElement === screen) return document.exitFullscreen();
+  if (screen.requestFullscreen) return screen.requestFullscreen();
+  video.webkitEnterFullscreen?.();
+}
+
+video.addEventListener('timeupdate', updateTime);
+video.addEventListener('loadedmetadata', () => {
+  seek.max = episodeDuration;
+  seek.disabled = false;
+  for (const button of jumpButtons) button.disabled = false;
+  updateTime();
 });
+video.addEventListener('play', updatePlay);
+video.addEventListener('pause', updatePlay);
+video.addEventListener('ended', updatePlay);
+play.addEventListener('click', togglePlayback);
+video.addEventListener('click', togglePlayback);
+seek.addEventListener('input', () => jumpTo(Number(seek.value)));
+for (const button of jumpButtons) {
+  button.addEventListener('click', () => jumpTo(currentTime() + Number(button.dataset.skip)));
+}
+flag.addEventListener('click', flagMoment);
+capture.addEventListener('click', markTime);
+sound.addEventListener('click', () => {
+  video.muted = !video.muted;
+  sound.setAttribute('aria-pressed', String(video.muted));
+  sound.setAttribute('aria-label', video.muted ? 'Pornește sunetul' : 'Oprește sunetul');
+});
+full.addEventListener('click', () => Promise.resolve(toggleFull()).catch(() => {}));
+document.addEventListener('keydown', (event) => {
+  if (event.target.matches('input, textarea, button, a, summary, [contenteditable]') || event.metaKey || event.ctrlKey || event.altKey) return;
+  switch (event.key.toLowerCase()) {
+    case ' ': togglePlayback(); break;
+    case 'arrowleft': jumpTo(currentTime() - (event.shiftKey ? 5 : 0.5)); break;
+    case 'arrowright': jumpTo(currentTime() + (event.shiftKey ? 5 : 0.5)); break;
+    case 'r': flagMoment(); break;
+    case 'f': full.click(); break;
+    default: return;
+  }
+  event.preventDefault();
+});
+video.controls = false;
+seek.disabled = video.readyState === 0;
+seek.max = video.readyState === 0 ? 0 : episodeDuration;
+for (const button of jumpButtons) button.disabled = seek.disabled;
+controls.hidden = false;
+updateTime();
 
 async function submitFeedback(event) {
   event.preventDefault();
@@ -46,7 +143,7 @@ async function submitFeedback(event) {
     form.reset();
     markedTime = null;
     status.textContent = 'Mulțumim! Observația a fost salvată.';
-    timeLabel.textContent = clock(currentTime());
+    updateTime();
   } catch (error) {
     status.setAttribute('data-error', '');
     status.textContent = error.message || 'Încearcă din nou.';
@@ -68,7 +165,7 @@ try {
     const timestamp = document.createElement('span');
     timestamp.textContent = clock(time);
     button.append(timestamp, title);
-    button.addEventListener('click', () => { video.currentTime = time; });
+    button.addEventListener('click', () => jumpTo(time));
     document.querySelector('#chapters').append(button);
   }
   for (const { group, entries } of library) {

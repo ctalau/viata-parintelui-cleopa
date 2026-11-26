@@ -7,6 +7,7 @@ dist
 .env*
 blender
 experiments/cleopa-blender
+experiments/cleopa-painea/assets
 experiments/cleopa-painea/audio
 experiments/cleopa-painea/scenes
 experiments/cleopa-painea/renders/frames

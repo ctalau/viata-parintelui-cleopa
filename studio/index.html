@@ -22,7 +22,32 @@
     </section>
     <section class="atelier" aria-label="Redare și observații">
       <div class="watch">
-        <video id="episode" controls playsinline preload="metadata" poster="/media/episod.webp" src="/media/painea_care_poate_sa_astepte.mp4" aria-label="Pâinea care poate să aștepte"></video>
+        <div id="screen">
+          <video id="episode" controls playsinline preload="metadata" poster="/media/episod.webp" src="/media/painea_care_poate_sa_astepte.mp4" aria-label="Pâinea care poate să aștepte"></video>
+          <div id="player-controls" hidden>
+            <div class="transport">
+              <button class="play-control" id="play" type="button" aria-label="Redă filmul" title="Redă / pauză (Spațiu)"><span aria-hidden="true">▶</span></button>
+              <input id="seek" type="range" min="0" max="0" value="0" step="0.01" aria-label="Poziție în film">
+              <output id="play-time" for="seek">0:00.0 / 1:27.1</output>
+              <button class="flag-control" id="flag" type="button" aria-label="Marchează o observație" title="Marchează o observație (R)">
+                <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path d="M5 20V4m0 0h12l-3 4 3 4H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="sound" type="button" aria-label="Oprește sunetul" title="Sunet">
+                <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M4 9h4l4-4v14l-4-4H4zM16 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="full" type="button" aria-label="Ecran complet" title="Ecran complet (F)">
+                <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="jumps" role="group" aria-label="Salt în timp">
+              <button type="button" data-skip="-5" aria-label="Înapoi 5 secunde">−5 s</button>
+              <button type="button" data-skip="-0.5" aria-label="Înapoi 0,5 secunde">−0,5 s</button>
+              <button type="button" data-skip="0.5" aria-label="Înainte 0,5 secunde">+0,5 s</button>
+              <button type="button" data-skip="5" aria-label="Înainte 5 secunde">+5 s</button>
+            </div>
+            <p id="play-status" role="status" hidden></p>
+          </div>
+        </div>
         <div class="watch-meta"><span>Primele zece pagini · 1 min 27 s</span><a download href="/media/painea_care_poate_sa_astepte.mp4">Descarcă MP4 <span aria-hidden="true">↓</span></a></div>
         <details class="chapters"><summary>Momente din episod</summary><div class="chapter-list" id="chapters"></div></details>
       </div>
@@ -33,14 +58,14 @@
           <label for="note">Observația ta</label>
           <textarea id="note" name="message" required maxlength="1200" rows="5" placeholder="De exemplu, gestul din pragul casei…"></textarea>
           <div class="trap" aria-hidden="true"><label for="website">Site web</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
-          <button class="time" type="button" id="capture" title="Folosind poziția de acum din film">Folosește momentul <span id="timestamp">0:00</span></button>
+          <button class="time" type="button" id="capture" title="Folosind poziția de acum din film">Folosește momentul <span id="timestamp">0:00.0</span></button>
           <button class="submit" type="submit">Trimite observația</button>
           <p id="feedback-status" role="status"></p>
         </form>
       </aside>
     </section>
     <section class="library" id="biblioteca" aria-labelledby="library-heading">
-      <div class="library-head"><h2 id="library-heading">Biblioteca de producție</h2><a href="/001-demo-atelier/">Vezi demonstrația cu monahi <span aria-hidden="true">↗</span></a></div>
+      <div class="library-head"><h2 id="library-heading">Biblioteca de producție</h2><a href="/001-demo-atelier/">Vezi demonstrația cu monahi</a></div>
       <div class="library-grid" id="library-items"></div>
     </section>
   </main>

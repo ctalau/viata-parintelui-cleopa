@@ -22,6 +22,7 @@ function group(title, paths) {
 
 const library = [
   group('Personaje', [
+    ['Familia cu riguri revizuite', `${episodeDir}/assets/family_rigs.blend`],
     ['Costică', `${first}/assets/characters/cleopa/cleopa.blend`],
     ['Mama', `${first}/assets/characters/mother/mother.blend`],
     ['Tata', `${first}/assets/characters/father/father.blend`],

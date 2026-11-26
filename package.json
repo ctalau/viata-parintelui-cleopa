@@ -29,14 +29,15 @@
     "compare": "node tools/compare.mjs",
     "omni": "node tools/omni.mjs",
     "short-youtube": "node tools/short-youtube.mjs",
-    "assets": "python3 blender/characters/build_monk.py",
+    "assets": "blender -b --factory-startup --python-exit-code 1 --python blender/characters/build_monk.py --",
     "clipcheck": "node tools/clipcheck.mjs",
     "char": "node tools/char.mjs",
     "setup": "bash scripts/setup.sh",
     "build": "node tools/build-studio.mjs",
     "preview:engine": "node tools/serve.mjs",
     "check:cleopa": "bash scripts/check-cleopa.sh",
-    "feedback:export": "node tools/feedback-export.mjs"
+    "feedback:export": "node tools/feedback-export.mjs",
+    "check:preview": "node tools/check-preview.mjs"
   },
   "dependencies": {
     "@fontsource/fredoka": "^5.3.0",
@@ -46,5 +47,8 @@
   },
   "engines": {
     "node": "24.x"
+  },
+  "devDependencies": {
+    "playwright": "1.65.1"
   }
 }

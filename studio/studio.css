@@ -3,3 +3,28 @@
 @media(max-width:880px){.shell{width:min(100% - 40px,1140px)}.atelier{grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr)}.feedback{padding:16px}.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:660px){.atelier{grid-template-columns:1fr}.hero{padding:30px 0 24px}.top{height:68px}.desktop-break{display:none}.feedback{padding:20px}.library{margin-top:36px}.watch-meta,.chapters{padding-inline:13px}}
 @media(max-width:390px){.shell{width:calc(100% - 28px)}.top nav{gap:10px}.brand{gap:6px;font-size:1.05rem}.brand img{width:34px;height:34px}.chapter-list{grid-template-columns:1fr}}
+
+#screen { background: #241b15; color: #fff8e9; }
+#screen:fullscreen { display:flex; flex-direction:column; justify-content:center; background:#1b1511; }
+#screen:fullscreen video { min-height:0; max-height:calc(100vh - 112px); }
+#screen:fullscreen #player-controls { max-width:1100px; width:100%; margin-inline:auto; }
+#player-controls { padding:10px 14px 12px; }
+.transport { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.transport button { flex:none; display:grid; place-items:center; width:34px; height:34px; border:0; border-radius:8px; background:#3e3024; color:#fff8e9; }
+.transport button:hover,.jumps button:hover { background:#5a4330; }
+.transport .play-control { background:#f1d4a8; color:#332115; font-size:15px; }
+.transport .play-control:hover { background:#ffe4b7; }
+.transport .flag-control { color:#f6b1a1; }
+.transport button[aria-pressed="true"] { color:#eeb376; background:#453121; }
+.transport button:disabled,.jumps button:disabled { cursor:default; opacity:.45; }
+#seek { accent-color:#f1d4a8; flex:1; min-width:47px; margin:0 3px; cursor:pointer; }
+#play-time { font-variant-numeric:tabular-nums; font-size:.73rem; white-space:nowrap; }
+.jumps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin-top:8px; }
+.jumps button { color:#fff8e9; font-size:.81rem; background:#3e3024; border:1px solid #5a4633; border-radius:7px; padding:5px 2px; white-space:nowrap; }
+#play-status { margin:8px 0 0; font-size:.81rem; color:#f6b1a1; }
+@media(max-width:390px) {
+  #player-controls { padding-inline:8px; }
+  .transport { gap:5px; }
+  .transport button { width:31px; height:33px; }
+  #play-time { font-size:.68rem; }
+}

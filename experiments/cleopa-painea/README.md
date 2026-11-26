@@ -23,6 +23,7 @@ Mânecile au câte o singură suprafață, deformată de trunchi, braț, antebra
 
 - `renders/painea_care_poate_sa_astepte.mp4` este filmul cu voce și muzică. Copia de descărcat are sub 5 MB, 768 × 432 la 24 fps și sunet stereo. Scena se randează la 1280 × 720, cu un desen la fiecare două cadre.
 - `scenes/painea_care_poate_sa_astepte.blend` are decorurile, camerele, rigurile, textul și pistele audio editabile. Marcajele de pe Timeline selectează camerele. Titlul și efectul grafic se editează în colecția `Titlu și efecte grafice`, iar sunetul în Video Sequencer.
+- `assets/family_rigs.blend` conține cele șase riguri 2D cu proporțiile revizuite, marcate ca active de tip Collection. Folosește **File → Append → Collection** și repoziționează rigul, sau încarcă biblioteca în Asset Browser. Generează fișierul cu `blender -b --factory-startup --python-exit-code 1 --python scripts/build_family_library.py`.
 - `renders/foaie_contact.jpg` prezintă cele zece momente.
 
 ## Reproducere

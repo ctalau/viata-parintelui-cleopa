@@ -16,7 +16,10 @@ case "${1:-}" in
     done
     python3 -m venv .venv
     .venv/bin/python -m pip install -r scripts/requirements-animation.txt
-    blender --version | head -n 1
+    blender --version | sed -n '1p'
+    if [[ -z "${CHROMIUM_BIN:-}" ]]; then
+      npx playwright install chromium
+    fi
     ;;
   *) echo 'Utilizare: bash scripts/setup.sh [--animation]' >&2; exit 2 ;;
 esac

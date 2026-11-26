@@ -1,6 +1,7 @@
 """Build assets/characters/monk.glb (+ monk.json: parts, sockets, clips metadata) headlessly with bpy.
 
-    python3 blender/characters/build_monk.py            (or: npm run assets)
+    npm run assets                                      # build all clips
+    npm run assets -- cross walk                        # build selected clips
 
 Deterministic: same scripts -> same GLB. One skinned figure carries every look variant (hidden/shown at runtime) and
 every animation clip (authored with IK targets + constraints in clips.py, baked to FK keys).
@@ -43,7 +44,8 @@ def socket(name, rig, bone, pos, x=None, y=(0, 1, 0), z=(0, 0, 1)):
 
 def main():
     t0 = time.time()
-    only = [a for a in sys.argv[1:] if not a.startswith('-')]
+    args = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
+    only = [a for a in args if not a.startswith('-')]
     bl.reset()
     M = mm.make_materials()
     rig = bl.armature('monk', mm.bones())
