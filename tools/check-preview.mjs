@@ -23,8 +23,13 @@ try {
   await page.goto(address);
   await page.waitForFunction(() => document.querySelector('#episode')?.duration > 87);
   await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4);
+  await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
+  await page.waitForFunction(() => {
+    const video = document.querySelector('#episode');
+    return video.paused && !video.seeking && video.readyState >= 2 && !video.hasAttribute('poster') && video.currentTime === 5;
+  });
   await page.getByRole('button', { name: 'Redă filmul' }).click();
-  await page.waitForFunction(() => document.querySelector('#episode').currentTime > 0.25);
+  await page.waitForFunction(() => document.querySelector('#episode').currentTime > 5.25);
   await page.getByRole('button', { name: 'Pauză', exact: true }).click();
   await page.locator('.chapters summary').click();
   assert.equal(await page.locator('#chapters button').count(), 10);

@@ -19,9 +19,10 @@ const episodeDuration = 2090 / 24;
 let markedTime = null;
 
 function clock(time, decimal = false) {
-  const seconds = Math.floor(time);
+  const tenths = Math.round(time * 10);
+  const seconds = decimal ? Math.floor(tenths / 10) : Math.floor(time);
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
-  return decimal ? `${clock}.${Math.floor((time - seconds) * 10 + 1e-7) % 10}` : clock;
+  return decimal ? `${clock}.${tenths % 10}` : clock;
 }
 
 function currentTime() {
@@ -38,11 +39,13 @@ function updateTime() {
 
 function updatePlay() {
   play.setAttribute('aria-label', video.paused ? 'Redă filmul' : 'Pauză');
-  play.firstElementChild.textContent = video.paused ? '▶' : '❚❚';
+  play.dataset.playing = String(!video.paused);
 }
 
 function jumpTo(time) {
   if (video.readyState === 0) return;
+  // Show the decoded frame on the first paused seek, including before the first play.
+  video.removeAttribute('poster');
   video.currentTime = Math.max(0, Math.min(episodeDuration, time));
   updateTime();
 }
