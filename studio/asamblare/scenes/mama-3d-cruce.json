@@ -1,0 +1,26 @@
+{
+  "id": "mama-3d-cruce",
+  "title": "Își face semnul crucii · 3D",
+  "description": "Cu dreapta, Mama atinge fruntea, pieptul, umărul drept și umărul stâng, apoi se înclină.",
+  "category": "gesturi-mama-3d",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.24
+    ],
+    "width": 7.3
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-3d-cruce",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

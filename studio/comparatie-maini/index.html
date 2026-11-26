@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comparație mâini · Atelierul Cleopa</title>
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/asamblare/asamblare.css">
+  <link rel="stylesheet" href="/comparatie-maini/comparatie.css">
+  <script src="/comparatie-maini/comparatie.js" type="module"></script>
+</head>
+<body class="comparison-page">
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/articulatii/?set=gesturi">Gesturile Mamei</a></nav>
+  </header>
+  <main class="shell">
+    <section class="assembly-intro">
+      <p class="series">Atelierul de animație</p>
+      <h1>Două variante pentru mâini</h1>
+      <p class="description">Alege un gest. Aceeași cameră și același cadru se aplică ambelor variante.</p>
+    </section>
+    <section class="view comparison-toolbar" aria-label="Controale comune">
+      <label class="plan-picker">Gest <select id="gesture" disabled></select></label>
+      <div id="timeline" hidden>
+        <div class="play-row">
+          <button type="button" id="compare-play">Redă</button>
+          <button type="button" id="previous-frame" aria-label="Cadrul anterior">−1</button>
+          <button type="button" id="next-frame" aria-label="Cadrul următor">+1</button>
+          <input type="range" id="frame" min="1" max="145" step="1" value="1" aria-label="Cadru comun">
+          <output id="current-frame" for="frame">1 / 145</output>
+        </div>
+        <label class="angle-row" for="compare-angle"><span>Unghiul camerei</span><input type="range" id="compare-angle" min="-35" max="35" value="0"><output id="current-angle" for="compare-angle">0°</output></label>
+      </div>
+      <p id="compare-status" role="status">Se încarcă cele două variante…</p>
+    </section>
+    <div class="comparison-grid">
+      <section class="view comparison-panel">
+        <h2>Model volumetric 3D</h2>
+        <p class="variant-description">Umărul, cotul, încheietura și degetele se mișcă în spațiu. Rotește camera ca să vezi adâncimea.</p>
+        <canvas id="model-3d" role="img" aria-label="Gestul cu mâna volumetrică"></canvas>
+        <p class="assembly-links" id="links-3d" hidden>
+          <a id="projection-3d" download>Proiecții JSON</a>
+          <a id="blend-3d">Scena Blender</a>
+          <a id="glb-3d" download>GLB</a>
+          <a id="sheet-3d">Foaie de cadre</a>
+        </p>
+      </section>
+      <section class="view comparison-panel">
+        <h2>Desen articulat 2D</h2>
+        <p class="variant-description">Lungimile rămân fixe în plan, conturul cotului este rotunjit, iar palma păstrează proporțiile desenului.</p>
+        <canvas id="model-2d" role="img" aria-label="Gestul cu mâna desenată"></canvas>
+        <p class="assembly-links" id="links-2d" hidden>
+          <a id="projection-2d" download>Proiecții JSON</a>
+          <a id="blend-2d">Scena Blender</a>
+          <a id="glb-2d" download>GLB</a>
+          <a id="sheet-2d">Foaie de cadre</a>
+        </p>
+      </section>
+    </div>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span></footer>
+</body>
+</html>

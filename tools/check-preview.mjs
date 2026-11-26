@@ -226,6 +226,61 @@ try {
     });
     assert.ok(!(await stressCanvas.screenshot()).equals(initial), id);
   }
+  await page.getByRole('link', { name: 'Compară 3D și 2D' }).click();
+  await page.getByRole('heading', { name: 'Două variante pentru mâini' }).waitFor();
+  const compareFrame = page.getByRole('slider', { name: 'Cadru comun' });
+  const panels = page.locator('.comparison-panel canvas');
+  await compareFrame.waitFor();
+  assert.equal(await gestures.locator('option').count(), actions.length);
+  for (const id of actions) {
+    await gestures.selectOption(`mama-${id}`);
+    await compareFrame.waitFor();
+    assert.deepEqual(await panels.evaluateAll((items) => items.map((c) => c.dataset.frame)), ['1', '1']);
+    const projections = await page.evaluate(async () => Promise.all(['3d','2d'].map(async (mode) => {
+      const url = document.querySelector(`#projection-${mode}`).href;
+      const sheet = document.querySelector(`#sheet-${mode}`).href;
+      const [data, preview] = await Promise.all([fetch(url), fetch(sheet, { method: 'HEAD' })]);
+      return { data: await data.json(), preview: preview.status };
+    })));
+    for (const { data, preview } of projections) {
+      assert.equal(preview, 200);
+      assert.equal(data.frames.length, 73);
+      assert.equal(data.frames.at(-1).frame, 145);
+      const { width, aspect } = data.viewport;
+      const length = (a, b) => Math.hypot((a[0]-b[0])*width, (a[1]-b[1])*width/aspect, a[2]-b[2]);
+      for (const side of ['R','L']) {
+        const s = data.frames[0].arms[side];
+        for (const { arms } of data.frames) {
+          const p = arms[side];
+          assert.ok(Math.abs(length(p.umar, p.cot) - length(s.umar, s.cot)) < .001, `${id} ${data.mode} ${side} braț`);
+          assert.ok(Math.abs(length(p.cot, p.incheietura) - length(s.cot, s.incheietura)) < .001, `${id} ${data.mode} ${side} antebraț`);
+        }
+      }
+    }
+    assert.ok(projections[0].data.frames.some(({ arms }) => Object.values(arms)
+      .some(({ umar, incheietura }) => Math.abs(umar[2] - incheietura[2]) > .2)), id);
+    await compareFrame.press('End');
+    assert.deepEqual(await panels.evaluateAll((items) => items.map((c) => c.dataset.frame)), ['145', '145']);
+  }
+  await page.getByRole('button', { name: 'Cadrul anterior' }).click();
+  assert.deepEqual(await panels.evaluateAll((items) => items.map((c) => c.dataset.frame)), ['144', '144']);
+  const front = await panels.first().screenshot();
+  await page.getByRole('slider', { name: 'Unghiul camerei' }).press('End');
+  assert.ok(!(await panels.first().screenshot()).equals(front), 'Unghiul camerei trebuie să schimbe proiecția');
+  await page.getByRole('button', { name: 'Redă', exact: true }).click();
+  await page.waitForFunction(() => document.querySelector('#frame').value === '145');
+  await page.getByRole('button', { name: 'Redă', exact: true }).click();
+  await page.waitForFunction(() => Number(document.querySelector('#frame').value) < 30);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  const beforeCompare = await Promise.all([panels.first().screenshot(), panels.last().screenshot()]);
+  await compareFrame.evaluate((slider) => {
+    slider.value = '72';
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  for (const [index, initial] of beforeCompare.entries()) {
+    assert.ok(!(await panels.nth(index).screenshot()).equals(initial), 'Derularea trebuie să redeseneze ambele variante');
+  }
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
 } finally {

@@ -180,15 +180,15 @@ def keep_face_switches_discrete(path):
                      + struct.pack("<I4s", len(encoded), b"JSON") + encoded + tail)
 
 
-def export_character(id_, design, look, side, target, direction, hand, test=None, gesture=None):
+def export_character(id_, design, look, side, target, direction, hand, test=None, gesture=None, comparison=None):
     scene = setup("gest", fps=24, end=145 if gesture else LAST)
     character = actor(scene.collection, design, id_, (0, 0, 0), look=look, interior=True)
     rig, collection = character["rig"], character["collection"]
     if id_ == "tata":
         short_beard(character)
-    if gesture:
-        from mother_actions import create_mother_action
-        create_mother_action(scene,character,gesture,bake_shapes)
+    if comparison:
+        from mother_comparison import comparison_stage
+        samples = comparison_stage(scene,character,gesture,comparison=="3d",bake_shapes)
     elif test:
         create_stress_arm(scene, character, test, bake_shapes)
     else:
@@ -205,6 +205,14 @@ def export_character(id_, design, look, side, target, direction, hand, test=None
         scene.camera.location = (.18, 3.25, 20)
         scene.camera.data.ortho_scale = 6.4
         basename = f"mama-gest-{gesture}" if gesture else f"mama-test-{test}"
+        if comparison:
+            from mother_comparison import write_projection
+            width = 8.25 if gesture in {"cana","paine","traista"} else 7.3
+            scene.camera.location = (0,3.09 if width > 8 else 3.24,20)
+            scene.camera.data.ortho_scale = width
+            basename = f"mama-3d-{gesture}" if comparison=="3d" else basename
+            path = OUTPUT.parent / "proiectii" / f"{gesture}-{comparison}.json"
+            write_projection(path,samples,scene.camera,rig.location,comparison)
         filename = Path(__file__).resolve().parents[1] / "scenes" / f"{basename}.blend"
         bpy.ops.wm.save_as_mainfile(filepath=str(filename), compress=True)
     if not gesture:
@@ -234,10 +242,13 @@ if __name__ == "__main__":
     if options == ["--stress"]:
         for test in ("palma", "cot", "umar"):
             export_character("mama-"+test, "mother", 1, "L", None, None, None, test)
-    elif options[:1] == ["--gesturi"]:
+    elif options[:1] in (["--comparatie"], ["--gesturi"]):
         from mother_actions import ACTIONS
+        modes = ("2d", "3d") if options[0] == "--comparatie" else ("2d",)
         for gesture in options[1:] or ACTIONS:
-            export_character("mama-"+gesture, "mother", 1, "R", None, None, None, gesture=gesture)
+            for mode in modes:
+                id_ = f"mama-3d-{gesture}" if mode == "3d" else f"mama-{gesture}"
+                export_character(id_, "mother", 1, "R", None, None, None, gesture=gesture, comparison=mode)
     else:
         for args in CHARACTERS:
             export_character(*args)

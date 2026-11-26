@@ -38,6 +38,7 @@ const library = [
     ['Semnul crucii', `${first}/scenes/cleopa_cross_test.blend`],
     ['Palme și degete', `${episodeDir}/scripts/hands.py`],
     ['Teste de articulații cu Mama', '/articulatii/'],
+    ['Compară mâinile în 3D și 2D', '/comparatie-maini/'],
     ['Mâneci și articulații', `${episodeDir}/scripts/sleeves.py`],
   ]),
   group('Scene', [
@@ -102,5 +103,16 @@ buildSync({
   format: 'esm',
 });
 fs.cpSync(path.join(ROOT, 'studio/articulatii'), path.join(out, 'articulatii'), { recursive: true });
+const comparison = path.join(out, 'comparatie-maini');
+fs.mkdirSync(comparison, { recursive: true });
+fs.cpSync(path.join(ROOT, 'studio/comparatie-maini/foi'), path.join(comparison, 'foi'), { recursive: true });
+for (const name of ['index.html', 'comparatie.css']) {
+  fs.copyFileSync(path.join(ROOT, 'studio/comparatie-maini', name), path.join(comparison, name));
+}
+buildSync({
+  entryPoints: [path.join(ROOT, 'studio/comparatie-maini/comparatie.js')],
+  outfile: path.join(comparison, 'comparatie.js'),
+  bundle: true, minify: true, format: 'esm',
+});
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
 console.log('Atelier pregătit în dist/.');

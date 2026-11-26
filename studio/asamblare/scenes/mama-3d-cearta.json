@@ -1,0 +1,26 @@
+{
+  "id": "mama-3d-cearta",
+  "title": "Mustră din deget · 3D",
+  "description": "Ridică arătătorul, îl clatină de câteva ori și își domolește gestul la final.",
+  "category": "gesturi-mama-3d",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.24
+    ],
+    "width": 7.3
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-3d-cearta",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

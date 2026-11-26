@@ -1,0 +1,26 @@
+{
+  "id": "mama-3d-traista",
+  "title": "Arată spre traistă · 3D",
+  "description": "Arată spre traistă, face o pauză și repetă accentul în timp ce vorbește. Gest pentru «Drumul spre școală».",
+  "category": "gesturi-mama-3d",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.09
+    ],
+    "width": 8.25
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-3d-traista",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

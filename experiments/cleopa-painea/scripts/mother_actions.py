@@ -1,12 +1,10 @@
 """Choreography, contact landmarks and prop tracks for the Mother's gestures."""
-from math import atan2, cos, pi, radians, sin, sqrt, tau
+from math import radians
 
 import bpy
 from mathutils import Matrix, Vector
 
-from build_episode import breathing, finish_action, head, prop, stand
 from build_environment import meal
-from mother_stress import hand_model, hand_points, normal, sample_sleeve, sleeve_model, sleeve_rows
 from sleeves import ease
 from vector_art import Art
 
@@ -120,14 +118,6 @@ def position(keys, frame):
     return Vector(a[1]).lerp(Vector(b[1]),t)
 
 
-def direction(angle):
-    return Vector((sin(angle),-cos(angle)))
-
-
-def unwrap(reference, angle):
-    return reference+(angle-reference+pi)%tau-pi
-
-
 def scarf_corner(profile):
     return Vector((-.965*profile["head_w"],profile["head_y"]-.665*profile["head_h"]))
 
@@ -153,103 +143,6 @@ def landmarks(profile, rig, frame):
         "taler-L":position(TRAY,frame)+Vector((.63,.055)),
         "colt":on_head(*(scarf_corner(profile)+position(SCARF,frame))),
     }
-
-
-def contact_pose(origin, target, aimed, tip, lengths, side, outward, reference):
-    """Resolve a semantic hand contact to an FK orientation and projection."""
-    side_sign = (-1 if side == "R" else 1)*(-1 if outward else 1)
-    upper, fore = lengths
-    min_span = sqrt(upper**2+fore**2+2*upper*fore*cos(radians(107)))
-
-    def solve(angle):
-        requested = target-direction(angle)*tip
-        delta = requested-origin
-        distance = delta.length
-        along = delta.normalized()
-        projection = min(1,max(.36,distance/min_span))
-        a,b = upper*projection,fore*projection
-        span = max(abs(a-b)+.003,min(distance,a+b-.003))
-        height = (a*a-b*b+span*span)/(2*span)
-        offset = sqrt(max(0,a*a-height*height))
-        elbow = origin+along*height-normal(along)*offset*side_sign
-        wrist = origin+along*span
-        u = atan2(elbow.x-origin.x,origin.y-elbow.y)
-        f = atan2(wrist.x-elbow.x,elbow.y-wrist.y)
-        angles = (u,unwrap(u,f)-u,unwrap(f,angle)-f)
-        if reference is not None:
-            angles = tuple(unwrap(old,new) for old,new in zip(reference,angles))
-        return angles, projection, abs(distance-span)
-
-    def cost(delta):
-        angles, projection, residual = solve(aimed+delta)
-        wrist = abs(unwrap(0,angles[2]))
-        continuity = sum(abs(a-b) for a,b in zip(reference,angles)) if reference else 0
-        score = 65*residual + 18*max(0,wrist-radians(38)) + abs(delta)*.54 + continuity*.95
-        return score,(angles,projection)
-
-    # Nearby angles preserve continuity across samples of a held prop;
-    # free flights between these poses are interpolated in joint space.
-    return min((cost(radians(offset)) for offset in range(-180,181,2)),key=lambda entry:entry[0])[1]
-
-
-def arm_samples(scene, rig, profile, side, keys, tip, outward):
-    sign = -1 if side == "R" else 1
-    origin = Vector((sign*profile["shoulder_x"],profile["shoulder_y"]))
-    lengths = profile["upper"],profile["lower"]
-    neutral = tuple(radians(angle*sign) for angle in (7,11,2))
-    stops = {}
-    previous = neutral
-    for frame, target, aim, _, _ in keys:
-        scene.frame_set(frame)
-        if target == "rest":
-            pose = tuple(unwrap(old,rest) for old,rest in zip(previous,neutral)),1.
-        else:
-            point = landmarks(profile,rig,frame)[target] if isinstance(target,str) else Vector(target)
-            pose = contact_pose(origin,point,radians(aim),tip,lengths,side,outward,previous)
-        stops[frame] = pose
-        previous = pose[0]
-
-    previous = None
-    peak = 0.
-    gap = 0.
-    for frame in range(1,END+1):
-        scene.frame_set(frame)
-        a,b,t = interval(keys,frame)
-        aa,sa = stops[a[0]]
-        bb,sb = stops[b[0]]
-        angles = tuple(x+t*(y-x) for x,y in zip(aa,bb))
-        projection = sa+t*(sb-sa)
-        held = a[1] == b[1] and isinstance(a[1],str) and a[1] != "rest"
-        if held:
-            target = landmarks(profile,rig,frame)[a[1]]
-            aim = sum(angles)
-            angles,projection = contact_pose(origin,target,aim,tip,lengths,side,outward,angles)
-        elbow = origin+direction(angles[0])*(lengths[0]*projection)
-        wrist = elbow+direction(angles[0]+angles[1])*(lengths[1]*projection)
-        if held:
-            gap = max(gap,(wrist+direction(sum(angles))*tip-target).length)
-        if previous:
-            peak = max(peak,max(abs(unwrap(old,new)-old) for old,new in zip(previous,angles)))
-        previous = angles
-        for name,angle in zip(("upper_arm","forearm","hand"),angles):
-            bone = rig.pose.bones[f"{name}.{side}"]
-            bone.rotation_euler.z = angle
-            bone.keyframe_insert("rotation_euler",index=2,frame=frame,group=f"Braț {side}")
-            if name != "hand":
-                bone.scale.y = projection
-                bone.keyframe_insert("scale",index=1,frame=frame,group=f"Braț {side}")
-
-        def mirror(v):
-            return Vector((v.x*sign,v.y))
-
-        rows = sleeve_rows(mirror(origin),mirror(elbow),mirror(wrist),folded=True)
-        yield (frame, rows, mirror(wrist), mirror(direction(sum(angles))),
-               a[3]+(b[3]-a[3])*t, a[4]+(b[4]-a[4])*t)
-    print("GEST_CONTROL", rig.name, side, "contact local", round(gap,4),
-          "grade/cadru", round(peak*180/pi,1), flush=True)
-    if gap > .043 or peak > radians(17):
-        raise RuntimeError(f"Contact sau tranziție de revizuit: {rig.name} {side}")
-
 
 
 def specialised_hand(coll, profile, side, shape):
@@ -394,76 +287,3 @@ def prop_keys(scene, objects):
         for curve in obj.animation_data.action.fcurves:
             for key in curve.keyframe_points:
                 key.interpolation = "LINEAR"
-
-
-def create_mother_action(scene, character, kind, bake_shapes):
-    rig, coll = character["rig"],character["collection"]
-    p = character["p"]
-    for obj in list(coll.objects):
-        if obj.type == "MESH" and obj.name.endswith((" · L", " · R")) and (
-                obj.parent_bone.startswith("hand.") or any(m.type == "ARMATURE" for m in obj.modifiers)):
-            bpy.data.objects.remove(obj,do_unlink=True)
-
-    stand(character,1)
-    for frame,bow,tilt,mouth,eyes in FACE[kind]:
-        head(rig,frame,bow,tilt)
-        prop(rig,"mouth_pose",frame,mouth)
-        prop(rig,"eye_pose",frame,eyes)
-    breathing(character,1,END)
-
-    objects = []
-    if kind == "cana":
-        furniture(coll,0)
-        objects.append((cup_model(coll),CUP,.055))
-    if kind == "paine":
-        tray_coll = bpy.data.collections.new("Pâinea și talerul")
-        coll.children.link(tray_coll)
-        for obj in loaf_model(tray_coll):
-            objects.append((obj,TRAY,.75))
-        furniture(coll,-.22)
-    if kind == "traista":
-        bag_model(coll)
-    for obj,_,_ in objects:
-        obj.parent = rig
-    for obj in coll.objects:
-        if obj.type == "MESH" and obj.name in {"Masă de lemn", "Traistă pentru școală"}:
-            obj.parent = rig
-    if objects:
-        prop_keys(scene,objects)
-    tracks = TRACKS[kind]
-    for side in ("R","L"):
-        sign = -1 if side == "R" else 1
-        shape, tip, keys = tracks.get(side,("deschisa",.125,[
-            (1,"rest",20*sign,.87,.12),(END,"rest",20*sign,.87,.12)
-        ]))
-        values = list(arm_samples(scene,rig,p,side,keys,tip,kind in {"paine", "cana"}))
-        sleeve, coords = sleeve_model(coll,p,values[0][1],side=side,sign=sign)
-        palm = hand_model(coll,p,side) if shape == "deschisa" else specialised_hand(coll,p,side,shape)
-        mesh_coords = [tuple(v.co) for v in palm.data.vertices]
-        for obj in (sleeve,palm):
-            obj.parent = rig
-        front = .88 if side in tracks else .616
-        if kind == "ras":
-            front = .94 if side in tracks else front
-        if kind == "cana":
-            front = .89 if side in tracks else front
-        if kind == "paine":
-            front = .96
-        def cloth_points(rows):
-            for u,v,dz in coords:
-                xyz = sample_sleeve(rows,u,v,dz,sign)
-                yield (xyz[0],xyz[1],xyz[2]+(front-.616)*ease((v-5)/(len(rows)-6)))
-        bake_shapes(sleeve,[(frame,list(cloth_points(rows))) for frame,rows,*_ in values])
-        bake_shapes(palm,[(frame,list(hand_points(mesh_coords,w,d,flex,thumb,sign,front,
-                                                 flex_power=.26 if shape != "deschisa" else 1)))
-                          for frame,_,w,d,flex,thumb in values])
-
-    if kind == "batic":
-        scarf = next(obj for obj in coll.objects if obj.name.endswith("Hair silhouette"))
-        bend_scarf(scarf,p,bake_shapes)
-    if kind == "cearta":
-        furrow_brows(coll)
-
-    finish_action(rig,character["action"])
-    scene.frame_set(1)
-    print("MAMA_GEST",kind,END,flush=True)

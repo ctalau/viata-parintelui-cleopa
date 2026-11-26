@@ -57,15 +57,16 @@ npm run build
 
 ## Gesturile Mamei
 
-[Deschide cele șapte gesturi în atelier](https://viata-parintelui-cleopa-seven.vercel.app/articulatii/?set=gesturi).
 Primele patru sunt semnul crucii, ridicarea cănii, râsul cu mâna la gură și mustrarea cu arătătorul. Talerul cu pâine, ridicarea baticului și indicația spre traistă corespund acțiunilor din „Pâinea caldă”, „Porcul și omul” și „Drumul spre școală”.
+[Compară cele două variante în atelier](https://viata-parintelui-cleopa-seven.vercel.app/comparatie-maini/).
 
 ```bash
-blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py -- --gesturi
+blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py -- --comparatie
 npm run build
+npm run sheet -- mama-3d-cana 1 28 40 48 72 87 109 118 144 --out /tmp/mama-cana-3d.png
 ```
 
-Autorarea combină poziții de articulație interpolate cu rezolvarea cinematică a contactului. Opririle sunt descrise prin repere precum fruntea, gura, toarta sau marginile talerului. În timpul prinderii, poziția vasului și ținta mâinii se calculează din aceeași traiectorie. Între opriri se interpolează unghiurile, iar pentru contacte foarte apropiate se adaptează proiecția brațului. Mâneca și palma primesc deformări evaluate pe cadre, exportate în GLB ca morph targets. Ochii și gura folosesc desene discrete. Fișierele `mama-gest-*.blend` păstrează pozițiile, cheile și recuzita.
+Modelul 3D folosește cinematică inversă cu segmente fixe și o direcție continuă a cotului. Mâneca și mâna au volum, iar degetele se îndoaie individual. Desenul 2D folosește o balama într-un singur sens și interpolează unghiurile în plan. Ambele variante compun forma mânecii în jurul articulației și urmăresc aceleași repere ale feței și recuzitei. Blender salvează oasele cu chei și geometriile evaluate. Three.js redă GLB-urile la același timp și din aceeași cameră. Fișierele din `assets/proiectii/` conțin umărul, cotul, încheietura și axa palmei pentru fiecare al doilea cadru, cu coordonate XY normalizate în camera frontală și adâncime în unități Blender.
 
 - **Rigul** este transferabil între personajele 2.5D cu aceleași nume și ierarhii de oase. Se potrivesc lungimile, pivoții și adâncimile la silueta fiecărui personaj.
 - **Animația** își poate păstra ritmul și ordinea reperelor. Ajustează traiectoriile libere, contactele și dimensiunile obiectelor la mâna, umerii și capul noului personaj, apoi reevaluează deformarea.

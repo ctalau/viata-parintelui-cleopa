@@ -1,0 +1,26 @@
+{
+  "id": "mama-3d-ras",
+  "title": "Râde cu mâna la gură · 3D",
+  "description": "Zâmbetul precedă gestul. Mâna acoperă gura, iar capul urmărește cele trei tresăriri ale râsului.",
+  "category": "gesturi-mama-3d",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.24
+    ],
+    "width": 7.3
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-3d-ras",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}

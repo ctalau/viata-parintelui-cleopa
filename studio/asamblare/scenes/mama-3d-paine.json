@@ -1,0 +1,26 @@
+{
+  "id": "mama-3d-paine",
+  "title": "Mută pâinea pe taler · 3D",
+  "description": "Prinde talerul cu ambele mâini, îl ridică și îl depune pe masă. Gest pentru «Pâinea caldă».",
+  "category": "gesturi-mama-3d",
+  "duration": 6,
+  "camera": {
+    "center": [
+      0,
+      3.09
+    ],
+    "width": 8.25
+  },
+  "objects": [
+    {
+      "id": "mama",
+      "asset": "mama-3d-paine",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "action": "gest"
+    }
+  ]
+}
