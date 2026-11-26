@@ -1,5 +1,6 @@
 """Editable painted sets and articulated animals, using the Cleopa cut-out palette."""
 import random
+from pathlib import Path
 from math import cos, sin, tau
 
 import bpy
@@ -122,6 +123,32 @@ def grasses(art, seed, xlim, ylim, color):
 
 
 def village(coll):
+    """Approved painted village, with a clear foreground lane for Costică."""
+    image = bpy.data.images.load(str(Path(__file__).resolve().parents[1] /
+                                    'assets/backgrounds/sat-in-zori.png'), check_existing=True)
+    mesh = bpy.data.meshes.new('Sat în zori · plan UV')
+    mesh.from_pydata([(-8.2,-4.3825,-7),(8.2,-4.3825,-7),
+                      (8.2,4.8425,-7),(-8.2,4.8425,-7)], [], [(0,1,2,3)])
+    uv = mesh.uv_layers.new()
+    for loop, point in zip(uv.data, [(0,0),(1,0),(1,1),(0,1)]):
+        loop.uv = point
+    mat = bpy.data.materials.new('Sat în zori · ilustrație aprobată')
+    mat.use_nodes = True
+    nodes = mat.node_tree.nodes
+    nodes.clear()
+    texture = nodes.new('ShaderNodeTexImage')
+    texture.image = image
+    nodes.active = texture
+    emission = nodes.new('ShaderNodeEmission')
+    output = nodes.new('ShaderNodeOutputMaterial')
+    mat.node_tree.links.new(texture.outputs['Color'], emission.inputs[0])
+    mat.node_tree.links.new(emission.outputs[0], output.inputs['Surface'])
+    mesh.materials.append(mat)
+    obj = bpy.data.objects.new('Sat în zori · decor ilustrat', mesh)
+    coll.objects.link(obj)
+
+
+def village_legacy(coll):
     sky(coll, sunrise=(-4.7, 2.64))
     art = Art("Satul de pe deal", coll, z=-4.8)
     for x,y,s in ((-5.95,-.97,.83),(-3.79,-.59,.61),(-2.0,-.61,.58),

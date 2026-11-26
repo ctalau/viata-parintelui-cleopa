@@ -234,7 +234,8 @@ def relax_wrist(a,side):
 
 def animate_village(coll):
     village(coll)
-    child=actor(coll,"cleopa","Costică · sat",(3.63,-1.55,.19),1.29,hat=True)
+    # Feet sit on the wide foreground lane, clear of both fences.
+    child=actor(coll,"cleopa","Costică · sat",(.10,-1.97,.19),.96,hat=True)
     shadow(child)
     start,end=BEATS["sat"]["start"],BEATS["sat"]["end"]
     stand(child,start)
@@ -832,7 +833,7 @@ def titles(cuts):
     regular=font_load("DejaVuSans.ttf")
     bold=font_load("DejaVuSerif-Bold.ttf")
     shot=cuts[0]
-    plate=empty("Copertă · titlu",coll,(-3.52,1.32,-.9),shot["camera"])
+    plate=empty("Copertă · titlu",coll,(-3.52,2.65,-.9),shot["camera"])
     art=Art("Plachetă de început",coll)
     rounded(art,.07,-.075,7.30,2.20,.31,"a68964")
     rounded(art,0,0,7.30,2.18,.31,"f4d9a6","8a6047")
@@ -888,6 +889,7 @@ def main():
     scene.render.resolution_y=720
     scene.render.dither_intensity=0
     scene.display.render_aa="5"
+    scene.display.shading.color_type='TEXTURE'
     scene.render.image_settings.compression=22
     scene.frame_step=2
     scene.render.filepath="//../renders/frames/frame_"
@@ -913,9 +915,9 @@ def main():
     scene.camera=cuts[0]["camera"]
     path=ROOT/"scenes"/"painea_care_poate_sa_astepte.blend"
     path.parent.mkdir(parents=True,exist_ok=True)
-    bpy.ops.wm.save_as_mainfile(filepath=str(path))
+    bpy.ops.wm.save_as_mainfile(filepath=str(path), compress=True)
     bpy.ops.file.pack_all()
-    bpy.ops.wm.save_as_mainfile(filepath=str(path))
+    bpy.ops.wm.save_as_mainfile(filepath=str(path), compress=True)
     print("EPISODE_READY",TIMING["end"],flush=True)
 
 
