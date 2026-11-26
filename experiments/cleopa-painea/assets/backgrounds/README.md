@@ -4,12 +4,12 @@ Cadrul 2, „Ograda în zori”, este referința pentru decorurile ilustrate ale
 
 ## Stilul desenului
 
-- Păstrează aspectul 2D de carte ilustrată. În prim-plan, construiește formele cu contururi brune și tușe pictate vizibile în fibra lemnului, țigle, pământ și frunziș. În depărtare, simplifică formele și domolește contrastul pentru a lăsa lumina și dealurile să dea adâncime cadrului.
+- Păstrează aspectul 2D de carte ilustrată. În prim-plan, folosește contururi brune și tușe vizibile în fibra lemnului, în șindrila acoperișului, pe pământ și în frunziș. În depărtare, simplifică formele și domolește contrastul pentru a lăsa lumina și dealurile să dea adâncime cadrului.
 - Desenează personajele cu siluete clare, contururi brune mai fine, pete de culoare curate și umbre discrete. În cadrul 2, accentele luminoase de pe penele cocoșului și spinarea purcelușului urmează lumina răsăritului. Umbra scurtă de la sol leagă purcelușul și troaca de pământ. Detaliul mai bogat al decorului lasă ochii, ciocul și râtul ușor de citit în mișcare.
 
 ## Paleta cadrului 2
 
-Mostrele provin din imaginea randată la cadrul Blender 291, în jurul secundei 12,1 din episod. Folosește-le ca repere de lumină și contrast și adaptează nuanțele la ora zilei și la interiorul sau exteriorul scenei. [Vezi cadrul în atelier](https://viata-parintelui-cleopa-seven.vercel.app/#cadru-2).
+Mostrele provin din cadrul 291 al cronologiei Blender, în jurul secundei 12,1 din episod. Folosește-le ca repere de lumină și contrast și adaptează nuanțele la ora zilei și la interiorul sau exteriorul scenei. [Vezi cadrul în atelier](https://viata-parintelui-cleopa-seven.vercel.app/#cadru-2).
 
 | Element | Nuanțe orientative |
 | --- | --- |
