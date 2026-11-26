@@ -32,7 +32,7 @@ async function json(url) {
 
 function loadAsset(id) {
   if (!assets.has(id)) {
-    const request = loader.loadAsync(assetURL(id)).then(({ scene }) => scene).catch((error) => {
+    const request = loader.loadAsync(assetURL(id)).catch((error) => {
       assets.delete(id);
       throw error;
     });
@@ -94,7 +94,7 @@ function showObjects(catalog) {
 async function openClip({ id, png, mp4 }, catalog) {
   const latest = ++selection;
   stop();
-  status.textContent = 'Se încarcă recuzita…';
+  status.textContent = 'Se încarcă scena…';
   status.hidden = false;
   $('assembly-controls').hidden = true;
   list.disabled = true;
@@ -110,8 +110,10 @@ async function openClip({ id, png, mp4 }, catalog) {
     const ids = [...new Set(descriptor.objects.map(({ asset }) => asset))];
     const templates = await Promise.all(ids.map(async (key) => [key, await loadAsset(key)]));
     if (selection !== latest) return;
+    const assembled = assembleScene(descriptor, new Map(templates));
+    player?.dispose();
     clip = descriptor;
-    player = assembleScene(clip, new Map(templates));
+    player = assembled;
     player.setAngle(Number(angle.value));
     timeSlider.max = clip.duration;
     setTime(0);

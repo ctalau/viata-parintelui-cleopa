@@ -144,7 +144,7 @@ try {
   const assemblyTime = page.getByRole('slider', { name: 'Momentul din clip' });
   await assemblyTime.waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
-  const canvas = page.getByRole('img', { name: 'Scenă 2.5D recompusă din recuzita Cleopa' });
+  const canvas = page.getByRole('img', { name: 'Scenă 2.5D recompusă cu personajele și recuzita Cleopa' });
   await canvas.scrollIntoViewIfNeeded();
   const before = await canvas.screenshot();
   await assemblyTime.press('End');
@@ -157,10 +157,25 @@ try {
   assert.equal(await page.locator('#angle-readout').textContent(), '42°');
   await page.getByRole('button', { name: 'De plecare la școală' }).click();
   await page.getByRole('checkbox', { name: 'Cartea lui Mihai' }).waitFor();
-  assert.equal(loadedProps.filter((url) => url.endsWith('/paine.glb')).length, 1);
+  for (const asset of ['paine', 'costica']) {
+    assert.equal(loadedProps.filter((url) => url.endsWith(`/${asset}.glb`)).length, 1);
+  }
+  await page.getByRole('checkbox', { name: 'Tata', exact: true }).waitFor();
   const withBook = await canvas.screenshot();
   await page.getByRole('checkbox', { name: 'Cartea lui Mihai' }).uncheck();
   assert.ok(!(await canvas.screenshot()).equals(withBook), 'Cartea trebuie să poată fi ascunsă');
+  for (const checkbox of await page.locator('#instance-list input').all()) {
+    if ((await checkbox.locator('..').textContent()).trim() !== 'Mihai') await checkbox.uncheck();
+  }
+  await assemblyTime.press('Home');
+  const rest = await canvas.screenshot();
+  await assemblyTime.evaluate((slider) => {
+    slider.value = '2.5';
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.ok(!(await canvas.screenshot()).equals(rest), 'Rigul lui Mihai trebuie să se miște și în izolare');
+  await assemblyTime.press('Home');
+  assert.ok((await canvas.screenshot()).equals(rest), 'Un salt înapoi trebuie să refacă poza inițială');
   for (const label of ['Cadru PNG', 'Clip MP4', 'Scena JSON']) {
     const link = await page.getByRole('link', { name: label, exact: true }).getAttribute('href');
     const status = await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, link);

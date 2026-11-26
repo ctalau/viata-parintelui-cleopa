@@ -1,4 +1,5 @@
-import { Group, MathUtils, OrthographicCamera, Scene } from 'three';
+import { AnimationMixer, Group, MathUtils, OrthographicCamera, Scene } from 'three';
+import { clone as cloneRig } from 'three/addons/utils/SkeletonUtils.js';
 
 export function assembleScene(clip, assets) {
   const scene = new Scene();
@@ -7,6 +8,7 @@ export function assembleScene(clip, assets) {
   const camera = new OrthographicCamera(-width / 2, width / 2, height / 2, -height / 2, 0.1, 80);
   const objects = new Map();
   const motions = [];
+  const performances = [];
 
   for (const item of clip.objects) {
     const template = assets.get(item.asset);
@@ -17,7 +19,16 @@ export function assembleScene(clip, assets) {
     node.position.fromArray(item.position);
     node.scale.setScalar(item.scale ?? 1);
     node.rotation.z = MathUtils.degToRad(item.rotation ?? 0);
-    node.add(template.clone(true));
+    const model = template.animations.length ? cloneRig(template.scene) : template.scene.clone(true);
+    node.add(model);
+    if (item.action) {
+      const animation = template.animations.find(({ name }) => name === item.action);
+      if (!animation) throw new Error(`Animație necunoscută pentru ${item.asset}: ${item.action}`);
+      const mixer = new AnimationMixer(model);
+      const action = mixer.clipAction(animation).play();
+      // Evaluate an absolute pose so browser scrubbing and frame export agree.
+      performances.push({ mixer, action, duration: animation.duration, start: item.actionStart ?? 0 });
+    }
     // Parents precede their children in the descriptor so placement stays local.
     const parent = item.parent ? objects.get(item.parent) : scene;
     if (!parent) throw new Error(`Instanța părinte trebuie declarată prima: ${item.parent}`);
@@ -27,6 +38,10 @@ export function assembleScene(clip, assets) {
   }
 
   function setTime(time) {
+    for (const { mixer, action, duration, start } of performances) {
+      action.time = MathUtils.clamp(time - start, 0, duration);
+      mixer.update(0);
+    }
     for (const [node, keys] of motions) {
       const next = keys.findIndex(({ at }) => at > time);
       if (next === -1 || next === 0) {
@@ -48,5 +63,13 @@ export function assembleScene(clip, assets) {
 
   setAngle(0);
   setTime(0);
-  return { scene, camera, objects, setTime, setAngle };
+  function dispose() {
+    const skeletons = new Set();
+    scene.traverse((object) => {
+      if (object.isSkinnedMesh) skeletons.add(object.skeleton);
+    });
+    for (const skeleton of skeletons) skeleton.dispose();
+  }
+
+  return { scene, camera, objects, setTime, setAngle, dispose };
 }

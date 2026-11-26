@@ -46,9 +46,11 @@ npm run build
 
 ## Recuzită reutilizabilă și randare Three.js
 
-`assets/recuzita/` conține modele GLB cu geometria, culorile și texturile exportate din episod. Au pivotul la mijlocul bazei, X spre dreapta, Y în sus și Z către camera frontală. Ordinea după adâncime se păstrează în model. `studio/asamblare/scenes/` conține descriptorii declarați în JSON. Pentru un clip nou, adaugă aici un fișier cu același nume ca `id` și reconstruiește site-ul. Buildul îl adaugă automat în selector.
+`assets/recuzita/` conține modele GLB cu geometria, culorile și texturile din episod, inclusiv Costică, Mama, Mihai și Tata. Au pivotul la mijlocul bazei, X spre dreapta, Y în sus și Z către camera frontală. Ordinea după adâncime se păstrează în model. `studio/asamblare/scenes/` conține descriptorii declarați în JSON. Pentru un clip nou, adaugă aici un fișier cu același nume ca `id` și reconstruiește site-ul. Buildul îl adaugă automat în selector.
 
 Într-un clip, fiecare instanță are un `id` propriu, o cheie `asset` din catalog și o `position` în coordonate XYZ. `scale` schimbă scara uniform, iar `rotation` rotește piesa în plan, în grade. `parent` folosește ID-ul unei instanțe declarate mai sus și exprimă poziția copilului în coordonatele părintelui. În ambele clipuri, pâinea este copilul talerului. Un obiect poate avea și chei `keys` cu timp în secunde și poziție, în ordine crescătoare.
+
+La personaje, `"action": "gest"` pornește acțiunea exportată în GLB. `actionStart` o decalează pe cronologia scenei, în secunde. Three.js evaluează acțiunea la timpul selectat, inclusiv la exportul fiecărui cadru. Modelele păstrează oasele, schimburile de ochi și mâini și forma evaluată a mânecii pe parcursul gestului. Sunt incluse gesturi scurte refolosibile, fără dialog.
 
 ```bash
 # Același Three.js în Chromium fără interfață
@@ -63,6 +65,7 @@ Pentru a actualiza sursa bibliotecii după o schimbare în Blender, regenerează
 
 ```bash
 blender -b experiments/cleopa-painea/scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_props.py
+blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py
 npm run build
 ```
 

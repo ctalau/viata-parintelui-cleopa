@@ -5,15 +5,17 @@
   "camera": { "center": [0, 1.5], "width": 9.6 },
   "objects": [
     { "id": "decor", "asset": "bucatarie", "position": [0, -4.1, -5] },
+    { "id": "mama", "asset": "mama", "position": [-2.35, -1.61, -1.05], "scale": 1.05, "action": "gest" },
+    { "id": "costica", "asset": "costica", "position": [1.72, -1.37, -0.62], "action": "gest", "actionStart": 0.45 },
     { "id": "masa", "asset": "masa", "position": [0, -1.85, 0] },
     {
       "id": "taler",
       "asset": "taler",
       "position": [-2.55, 0.43, 0.8],
-      "scale": 1.16,
+      "scale": 0.93,
       "keys": [
         { "at": 0, "position": [-2.55, 0.43, 0.8] },
-        { "at": 2, "position": [0.65, 0.43, 0.8] }
+        { "at": 2, "position": [-0.74, 0.43, 0.8] }
       ]
     },
     {
@@ -22,6 +24,6 @@
       "parent": "taler",
       "position": [0, 0.23, 0.08]
     },
-    { "id": "ulcior", "asset": "ulcior", "position": [3.11, 0.5, 0.4], "scale": 1.1 }
+    { "id": "ulcior", "asset": "ulcior", "position": [3.55, 0.5, 0.4], "scale": 1.1 }
   ]
 }

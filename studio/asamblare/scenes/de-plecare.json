@@ -2,25 +2,17 @@
   "id": "de-plecare",
   "title": "De plecare la școală",
   "duration": 4,
-  "camera": { "center": [0, 1.25], "width": 9.1 },
+  "camera": { "center": [0.15, 1.48], "width": 9.1 },
   "objects": [
     { "id": "decor", "asset": "bucatarie", "position": [-2.3, -4.05, -5] },
+    { "id": "costica", "asset": "costica", "position": [-2.15, -1.33, -0.65], "action": "gest", "actionStart": 0.55 },
+    { "id": "mihai", "asset": "mihai", "position": [0.55, -1.58, -0.83], "action": "gest", "actionStart": 0.2 },
+    { "id": "tata", "asset": "tata", "position": [2.95, -1.56, -1.2], "action": "gest", "actionStart": 0.35 },
     { "id": "masa", "asset": "masa", "position": [0, -1.85, 0] },
     { "id": "ulcior", "asset": "ulcior", "position": [-2.9, 0.55, 0.55], "scale": 1.1 },
     { "id": "taler", "asset": "taler", "position": [-0.7, 0.45, 0.8] },
     { "id": "paine", "asset": "paine", "parent": "taler", "position": [0, 0.23, 0.08] },
     { "id": "traiste", "asset": "traiste", "position": [2.95, 0.48, 1.15], "scale": 1.27 },
-    {
-      "id": "carte",
-      "asset": "carte",
-      "position": [0.9, 0.5, 1.4],
-      "rotation": -13,
-      "keys": [
-        { "at": 0, "position": [0.9, 0.5, 1.4] },
-        { "at": 1.2, "position": [0.9, 0.5, 1.4] },
-        { "at": 1.9, "position": [1.45, 1.35, 1.4] },
-        { "at": 3.05, "position": [2.38, 0.52, 1.4] }
-      ]
-    }
+    { "id": "carte", "asset": "carte", "position": [1.8, 0.52, 1.4], "rotation": -13, "scale": 0.84 }
   ]
 }

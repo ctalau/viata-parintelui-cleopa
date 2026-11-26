@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Asamblare de scene · Viața Părintelui Cleopa</title>
-  <meta name="description" content="Două scene Three.js asamblate din aceeași bibliotecă de recuzită Blender.">
+  <meta name="description" content="Două scene Three.js cu personaje animate și recuzită reutilizabilă.">
   <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
   <link rel="stylesheet" href="/studio.css">
   <link rel="stylesheet" href="/asamblare/asamblare.css">
@@ -19,14 +19,14 @@
     <section class="assembly-intro">
       <p class="series">Atelierul de animație</p>
       <h1>Asamblare de scene</h1>
-      <p class="description">Aceeași recuzită apare în două clipuri. JSON-ul stabilește ce obiecte intră în cadru, unde stau și cum se mișcă. Three.js redă scena în browser.</p>
+      <p class="description">Costică, Mama, Mihai și Tata apar în scene construite din personaje și recuzită GLB. JSON-ul stabilește distribuția, pozițiile și acțiunile. Three.js redă scena în browser.</p>
     </section>
     <div class="assembly">
       <section class="view" aria-label="Scenă interactivă">
         <div class="clip-picker" id="clip-picker" role="group" aria-label="Clip"></div>
         <div class="assembly-stage" id="assembly-stage">
-          <canvas id="assembly-canvas" role="img" aria-label="Scenă 2.5D recompusă din recuzita Cleopa"></canvas>
-          <p id="assembly-status" role="status">Se încarcă recuzita…</p>
+          <canvas id="assembly-canvas" role="img" aria-label="Scenă 2.5D recompusă cu personajele și recuzita Cleopa"></canvas>
+          <p id="assembly-status" role="status">Se încarcă scena…</p>
         </div>
         <div id="assembly-controls" hidden>
           <div class="play-row">
@@ -38,8 +38,8 @@
         </div>
       </section>
       <aside class="assembly-panel">
-        <h2>Obiecte în scenă</h2>
-        <p>Comută vizibilitatea unei instanțe. Obiectele din ambele clipuri încarcă aceleași fișiere GLB.</p>
+        <h2>Personaje și recuzită</h2>
+        <p>Comută vizibilitatea unui personaj sau obiect. Scenele încarcă aceleași fișiere GLB când refolosesc o piesă.</p>
         <fieldset id="instance-list" disabled>
           <legend class="sr-only">Vizibilitate obiecte</legend>
         </fieldset>
@@ -54,7 +54,7 @@
     </div>
     <section class="assembly-notes">
       <h2>De ce 2.5D?</h2>
-      <p>În Blender, cărțile, pâinea și masa sunt desenate din suprafețe aproape plate. Ele au poziții în trei dimensiuni, iar adâncimea le permite să se acopere unele pe altele. Camera ortografică le privește frontal. Schimbă unghiul camerei ca să vezi distanța dintre planuri și profilul subțire al obiectelor.</p>
+      <p>Personajele și obiectele sunt desenate în Blender din suprafețe aproape plate. Oasele mișcă membrele, iar mânecile se deformează odată cu articulațiile. Ele au poziții în trei dimensiuni, iar adâncimea le permite să se acopere unele pe altele. Camera ortografică le privește frontal. Schimbă unghiul camerei ca să vezi distanța dintre planuri și profilul subțire al obiectelor.</p>
     </section>
   </main>
   <footer class="shell footer"><span>Școala Evlaviei</span><a href="/#biblioteca">Biblioteca de producție</a></footer>
