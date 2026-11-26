@@ -11,15 +11,18 @@
     "build": "node tools/build-studio.mjs",
     "check:cleopa": "bash scripts/check-cleopa.sh",
     "feedback:export": "node tools/feedback-export.mjs",
-    "check:preview": "node tools/check-preview.mjs"
+    "check:preview": "node tools/check-preview.mjs",
+    "render:scene": "node tools/render-assembly.mjs"
   },
   "dependencies": {
-    "@vercel/blob": "^2.9.0"
+    "@vercel/blob": "^2.9.0",
+    "three": "0.187.0"
   },
   "engines": {
     "node": "24.x"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "playwright": "1.65.1"
   }
 }

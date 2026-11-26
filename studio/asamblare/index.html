@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Asamblare de scene · Viața Părintelui Cleopa</title>
+  <meta name="description" content="Două scene Three.js asamblate din aceeași bibliotecă de recuzită Blender.">
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/asamblare/asamblare.css">
+  <script src="/asamblare/asamblare.js" type="module"></script>
+</head>
+<body>
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/inspectie/">Inspector de scenă</a></nav>
+  </header>
+  <main class="shell">
+    <section class="assembly-intro">
+      <p class="series">Atelierul de animație</p>
+      <h1>Asamblare de scene</h1>
+      <p class="description">Aceeași recuzită apare în două clipuri. JSON-ul stabilește ce obiecte intră în cadru, unde stau și cum se mișcă. Three.js redă scena în browser.</p>
+    </section>
+    <div class="assembly">
+      <section class="view" aria-label="Scenă interactivă">
+        <div class="clip-picker" id="clip-picker" role="group" aria-label="Clip"></div>
+        <div class="assembly-stage" id="assembly-stage">
+          <canvas id="assembly-canvas" role="img" aria-label="Scenă 2.5D recompusă din recuzita Cleopa"></canvas>
+          <p id="assembly-status" role="status">Se încarcă recuzita…</p>
+        </div>
+        <div id="assembly-controls" hidden>
+          <div class="play-row">
+            <button type="button" id="assembly-play">Redă clipul</button>
+            <input type="range" id="assembly-time" min="0" max="4" value="0" step="0.01" aria-label="Momentul din clip">
+            <output for="assembly-time" id="assembly-readout">0,0 s</output>
+          </div>
+          <label class="angle-row" for="assembly-angle"><span>Unghiul camerei</span><input type="range" id="assembly-angle" min="-42" max="42" value="0"><output for="assembly-angle" id="angle-readout">0°</output></label>
+        </div>
+      </section>
+      <aside class="assembly-panel">
+        <h2>Obiecte în scenă</h2>
+        <p>Comută vizibilitatea unei instanțe. Obiectele din ambele clipuri încarcă aceleași fișiere GLB.</p>
+        <fieldset id="instance-list" disabled>
+          <legend class="sr-only">Vizibilitate obiecte</legend>
+        </fieldset>
+        <div class="assembly-links">
+          <a id="clip-png" hidden download>Cadru PNG</a>
+          <a id="clip-mp4" hidden>Clip MP4</a>
+          <a id="clip-source" href="/asamblare/scenes/painea-pe-masa.json">Scena JSON</a>
+          <a href="/assets/recuzita/catalog.json">Catalogul de obiecte</a>
+          <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/studio/asamblare/scene.js">Asamblarea în JavaScript</a>
+        </div>
+      </aside>
+    </div>
+    <section class="assembly-notes">
+      <h2>De ce 2.5D?</h2>
+      <p>În Blender, cărțile, pâinea și masa sunt desenate din suprafețe aproape plate. Ele au poziții în trei dimensiuni, iar adâncimea le permite să se acopere unele pe altele. Camera ortografică le privește frontal. Schimbă unghiul camerei ca să vezi distanța dintre planuri și profilul subțire al obiectelor.</p>
+    </section>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span><a href="/#biblioteca">Biblioteca de producție</a></footer>
+</body>
+</html>

@@ -7,6 +7,7 @@ const address = args.find((arg) => !arg.startsWith('--')) || 'http://127.0.0.1:4
 const writeFeedback = args.includes('--write-feedback');
 const browser = await chromium.launch({
   ...(process.env.CHROMIUM_BIN && { executablePath: process.env.CHROMIUM_BIN }),
+  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
 });
 
 try {
@@ -133,6 +134,37 @@ try {
   assert.equal(await page.locator('#shot').isVisible(), false);
   await page.getByRole('button', { name: 'Cadrul întreg', exact: true }).click();
   assert.equal(await page.locator('#shot').isVisible(), true);
+  const loadedProps = [];
+  page.on('request', (request) => {
+    if (request.url().endsWith('.glb')) loadedProps.push(new URL(request.url()).pathname);
+  });
+  await page.getByText('Ce rol au .blend, Python, SVG și Three.js', { exact: true }).click();
+  await page.getByRole('link', { name: 'Asamblează scene în Three.js' }).click();
+  await page.getByRole('heading', { name: 'Asamblare de scene' }).waitFor();
+  const assemblyTime = page.getByRole('slider', { name: 'Momentul din clip' });
+  await assemblyTime.waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  const canvas = page.getByRole('img', { name: 'Scenă 2.5D recompusă din recuzita Cleopa' });
+  await canvas.scrollIntoViewIfNeeded();
+  const before = await canvas.screenshot();
+  await assemblyTime.press('End');
+  assert.equal(await assemblyTime.inputValue(), '4');
+  assert.ok(!(await canvas.screenshot()).equals(before), 'Talerul și pâinea trebuie să se miște în cadru');
+  await page.getByRole('button', { name: 'Redă clipul' }).click();
+  await page.waitForFunction(() => Number(document.querySelector('#assembly-time').value) < 3.5);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  await page.getByRole('slider', { name: 'Unghiul camerei' }).press('End');
+  assert.equal(await page.locator('#angle-readout').textContent(), '42°');
+  await page.getByRole('button', { name: 'De plecare la școală' }).click();
+  await page.getByRole('checkbox', { name: 'Cartea lui Mihai' }).waitFor();
+  assert.equal(loadedProps.filter((url) => url.endsWith('/paine.glb')).length, 1);
+  const withBook = await canvas.screenshot();
+  await page.getByRole('checkbox', { name: 'Cartea lui Mihai' }).uncheck();
+  assert.ok(!(await canvas.screenshot()).equals(withBook), 'Cartea trebuie să poată fi ascunsă');
+  for (const label of ['Cadru PNG', 'Clip MP4', 'Scena JSON']) {
+    const link = await page.getByRole('link', { name: label, exact: true }).getAttribute('href');
+    assert.equal((await page.request.head(new URL(link, address).href)).status(), 200);
+  }
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
 } finally {

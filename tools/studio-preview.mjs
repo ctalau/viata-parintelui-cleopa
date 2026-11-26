@@ -65,15 +65,26 @@ async function respond(req, res) {
   stream.pipe(res);
 }
 
-await stat(path.join(dist, 'index.html')).catch(() => {
-  console.error('Rulează întâi npm run build.');
-  process.exit(1);
-});
-const port = Number(process.env.PORT || '4173');
-createServer((req, res) => respond(req, res).catch((error) => {
-  if (res.headersSent) return res.destroy();
-  if (error instanceof URIError) return res.writeHead(400).end();
-  if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return res.writeHead(404).end();
-  console.error(error);
-  res.writeHead(500).end();
-})).listen(port, '127.0.0.1', () => console.log(`Preview: http://127.0.0.1:${port}`));
+export async function startPreview(port = 4173) {
+  await stat(path.join(dist, 'index.html'));
+  const server = createServer((req, res) => respond(req, res).catch((error) => {
+    if (res.headersSent) return res.destroy();
+    if (error instanceof URIError) return res.writeHead(400).end();
+    if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return res.writeHead(404).end();
+    console.error(error);
+    res.writeHead(500).end();
+  }));
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(port, '127.0.0.1', resolve);
+  });
+  return server;
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const server = await startPreview(Number(process.env.PORT || '4173')).catch((error) => {
+    console.error(error.code === 'ENOENT' ? 'Rulează întâi npm run build.' : error.message);
+    process.exit(1);
+  });
+  console.log(`Preview: http://127.0.0.1:${server.address().port}`);
+}
