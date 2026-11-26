@@ -1,9 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT } from './lib/common.mjs';
-import { build } from './site.mjs';
+import { fileURLToPath } from 'node:url';
 import { chaptersFrom, episode } from '../studio/episode.mjs';
 
+const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const episodeDir = 'experiments/cleopa-painea';
 const first = 'experiments/cleopa-blender';
 const mp4 = path.join(ROOT, episodeDir, 'renders', episode.file);
@@ -27,29 +27,26 @@ const library = [
     ['Mama', `${first}/assets/characters/mother/mother.blend`],
     ['Tata', `${first}/assets/characters/father/father.blend`],
     ['Preot', `${first}/assets/characters/priest/priest.blend`],
-    ['Călugăr 3D', 'assets/characters/monk.glb'],
   ]),
   group('Obiecte', [
     ['Veselă și masă', `${first}/assets/props/tableware.blend`],
-    ['Coș de pâine', 'assets/props/bread-basket.glb'],
-    ['Candelă', 'assets/props/scetis-candela.glb'],
-    ['Ulcior', 'assets/props/jug.glb'],
+    ['Decorurile și recuzita episodului', `${episodeDir}/scripts/decor.py`],
   ]),
   group('Gesturi', [
     ['Semnul crucii', `${first}/scenes/cleopa_cross_test.blend`],
     ['Palme și degete', `${episodeDir}/scripts/hands.py`],
-    ['Gesturi 2D', 'lib/components/minifig.js#L299'],
-    ['Clipuri pentru călugări', 'blender/characters/monk_clips.py'],
+    ['Mâneci și articulații', `${episodeDir}/scripts/sleeves.py`],
   ]),
   group('Scene', [
     ['Casa familiei', `${first}/assets/backgrounds/farmhouse.blend`],
     ['Rugăciunea la masă', `${first}/scenes/prayer_at_table.blend`],
-    ['Chilie 3D', 'assets/sets/cell-room.glb'],
-    ['Dimineață la schit', '/001-demo-atelier/'],
+    ['Episodul editabil', `${episodeDir}/scenes/painea_care_poate_sa_astepte.blend`],
+    ['Inspectorul scenei', '/inspectie/'],
   ]),
 ];
 
-const { out } = build();
+const out = path.join(ROOT, 'dist');
+fs.rmSync(out, { recursive: true, force: true });
 const media = path.join(out, 'media');
 fs.mkdirSync(media, { recursive: true });
 fs.copyFileSync(mp4, path.join(media, episode.file));
@@ -59,5 +56,7 @@ fs.cpSync(path.join(ROOT, episodeDir, 'renders', yardLayers), path.join(media, y
 for (const name of ['index.html', 'studio.css', 'studio.js', 'yard-editor.js']) {
   fs.copyFileSync(path.join(ROOT, 'studio', name), path.join(out, name));
 }
+fs.cpSync(path.join(ROOT, 'studio/inspectie'), path.join(out, 'inspectie'), { recursive: true });
+fs.cpSync(path.join(ROOT, 'assets/branding'), path.join(out, 'assets/branding'), { recursive: true });
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
 console.log('Atelier pregătit în dist/.');

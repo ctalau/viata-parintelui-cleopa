@@ -5,7 +5,6 @@ dist
 .venv
 .feedback
 .env*
-blender
 experiments/cleopa-blender
 experiments/cleopa-painea/assets
 experiments/cleopa-painea/audio

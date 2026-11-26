@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inspector de scenă · Viața Părintelui Cleopa</title>
+  <meta name="description" content="Explorează straturile, rigurile și articulațiile unei scene din Pâinea care poate să aștepte.">
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/inspectie/inspectie.css">
+  <script src="/inspectie/inspectie.js" type="module"></script>
+</head>
+<body>
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/#film">Înapoi la episod</a></nav>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <p class="series">Pâinea care poate să aștepte</p>
+      <h1>Inspector de scenă</h1>
+      <p class="description">În „Încă puțin”, Costică întinde mâna spre pâine. Explorează piesele decorului, urmărește oasele peste film și vezi cum se îndoaie mâneca la cot.</p>
+    </section>
+
+    <p id="loading" role="status">Se încarcă datele din Blender…</p>
+    <section class="workbench" id="workbench" aria-label="Inspecția scenei" hidden>
+      <div class="preview">
+        <div class="mode-picker" role="group" aria-label="Ce vrei să inspectezi">
+          <button type="button" data-mode="layers" aria-pressed="false">Straturi</button>
+          <button type="button" data-mode="rig" aria-pressed="false">Rig</button>
+          <button type="button" data-mode="joint" aria-pressed="true">Articulații</button>
+        </div>
+        <div class="stage">
+          <video id="shot" playsinline muted preload="metadata" src="/media/painea_care_poate_sa_astepte.mp4" aria-label="Scena din episod"></video>
+          <img id="layer-preview" alt="" hidden>
+          <svg id="overlay" viewBox="0 0 768 432" aria-hidden="true"></svg>
+        </div>
+        <div id="transport">
+          <div class="transport-row">
+            <button id="play-shot" type="button">Redă scena</button>
+            <button id="previous" type="button" aria-label="Desenul anterior">−1</button>
+            <button id="next" type="button" aria-label="Desenul următor">+1</button>
+            <output id="frame-readout" for="frame"></output>
+          </div>
+          <input type="range" id="frame" aria-label="Cadru Blender">
+          <label id="zoom-option"><input type="checkbox" id="zoom"> Mărește zona brațului</label>
+        </div>
+        <p id="snapshot-note" hidden></p>
+        <p id="video-status" role="status" hidden></p>
+      </div>
+      <div class="panel">
+        <section id="layers-panel" hidden>
+          <h2>Straturile scenei</h2>
+          <p>Alege un strat ca să-l izolezi. Imaginea și lista de obiecte corespund aceluiași cadru.</p>
+          <div id="layers" class="choices" role="group" aria-label="Straturi"></div>
+          <details id="object-details">
+            <summary id="object-summary">Obiecte în cadru</summary>
+            <ul id="objects" class="inventory"></ul>
+          </details>
+        </section>
+        <section id="rig-panel" hidden>
+          <h2>Rigul personajului</h2>
+          <p>Alege personajul și un os. Linia colorată indică osul selectat în poziția evaluată de Blender.</p>
+          <div id="characters" class="choices" role="group" aria-label="Personaj"></div>
+          <label class="bone-label" for="bone">Os</label>
+          <select id="bone"></select>
+          <p id="bone-parent"></p>
+        </section>
+        <section id="joint-panel">
+          <h2>Mâneca dreaptă</h2>
+          <p>Grila urmează suprafața deformată în fiecare desen. Punctele marchează umărul, cotul și încheietura.</p>
+          <p>Vertecii de lângă umăr urmează pieptul. În jurul cotului, influența trece gradat de la braț la antebraț. La manșetă intră în joc osul mâinii.</p>
+          <figure class="weights">
+            <figcaption>Influențele oaselor de-a lungul mânecii</figcaption>
+            <svg id="weights" viewBox="0 0 300 65" role="img" aria-label="Diagrama ponderilor de deformare, de la umăr la manșetă"></svg>
+            <div class="weight-axis"><span>Umăr</span><span>Manșetă</span></div>
+            <ul id="weight-legend"></ul>
+          </figure>
+        </section>
+      </div>
+    </section>
+
+    <section class="source-notes" aria-labelledby="source-heading">
+      <h2 id="source-heading">Cum e construită scena</h2>
+      <details open>
+        <summary>De la poziția mâinii la mișcare</summary>
+        <p>Scriptul definește poziții-țintă pentru încheietură și direcția palmei. Între ținte aplică o curbă de accelerare și frânare. Un solver plan cu două oase calculează unghiurile brațului și antebrațului, apoi le scrie ca chei de rotație. Mâna, ochii și gura folosesc desene alternative, schimbate la cadre precise. Filmul se redă la 24 fps, cu un desen la două cadre.</p>
+        <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scripts/build_episode.py">Scena și mișcarea în Python</a>
+      </details>
+      <details>
+        <summary>Cum se așază straturile</summary>
+        <p>Camera ortografică privește planul desenului. Adâncimea pe axa Z decide ce piesă trece în fața alteia. O colecție Blender grupează obiecte după rol, iar piesele unei colecții pot avea adâncimi diferite. În inspector, fiecare grup izolat arată piesele sale complete, inclusiv zonele acoperite în film.</p>
+      </details>
+      <details>
+        <summary>Ce rol au .blend, Python, SVG și Three.js</summary>
+        <p><strong>Python și <code>bpy</code></strong> descriu construcția decorurilor, rigurile, gesturile și sincronizarea. Cu scripturile și resursele din repo, poți regenera proiectul Blender. <strong>Fișierul <code>.blend</code></strong> salvează rezultatul editabil cu geometrie, riguri, camere, chei și piste audio. Îl poți deschide direct pentru a regla o poziție sau o tăietură.</p>
+        <p><strong>SVG</strong> poate descrie siluetele și traseele 2D. Inspectorul folosește SVG pentru a afișa oasele și grila mânecii din datele evaluate în Blender. <strong>Three.js</strong> ar putea reda scena în timp real din geometrii, materiale și animații exportate. Ar trebui reproduse și ordinea straturilor, schimburile de desene, tăieturile de cameră și sunetul, ca să obții același film.</p>
+        <div class="source-links">
+          <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/painea_care_poate_sa_astepte.blend">Scena .blend</a>
+          <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scripts/sleeves.py">Ponderile în Python</a>
+          <a href="/inspectie/scene.json">Datele inspectorului în JSON</a>
+        </div>
+      </details>
+    </section>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span><a href="/#biblioteca">Biblioteca de producție</a></footer>
+</body>
+</html>

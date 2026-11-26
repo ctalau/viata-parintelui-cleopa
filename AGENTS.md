@@ -2,7 +2,7 @@
 
 Pentru un episod, folosește [skill-ul `facut-episod`](.agents/skills/facut-episod/SKILL.md). Pentru scenele Blender ale familiei, citește și [instrucțiunile proiectului original](experiments/cleopa-blender/AGENTS.md).
 
-- Pune experimentul și sursele reproductibile în `experiments/<episod>/`. Pentru scenele jucate în browser, folosește `videos/<număr-slug>/video.json`. Dă nume stabile personajelor, gesturilor, obiectelor și cadrelor. Refolosește biblioteca înainte să modelezi o variantă nouă.
+- Pune experimentul și sursele reproductibile în `experiments/<episod>/`. Dă nume stabile personajelor, gesturilor, obiectelor și cadrelor. Refolosește biblioteca înainte să modelezi o variantă nouă.
 - Spune povestea cu replici scurte și română firească. Populează fiecare plan cu acțiunea cerută de replică. Verifică orientarea personajelor, traiectoria obiectelor și continuitatea dintre cadre. Folosește culorile calde și siluetele clare ale seriei.
 - Pentru decorurile ilustrate din `Micuțul Cleopa`, folosește cadrul 2, „Ograda în zori”, ca referință pentru stil, compoziție și separarea planurilor. Urmează [ghidul de ilustrație](experiments/cleopa-painea/assets/backgrounds/README.md).
 - În Blender, pornește cu `bpy` și `--python-exit-code 1`. Verifică umărul, cotul și manșeta în gest și în repaus. Brațul relaxat se oprește clar deasupra genunchiului. Fixează punctele de sprijin și ajustează adâncimea întregului personaj înainte să schimbi adâncimea unei mâini. Motivează în fișier orice suprapunere intenționată.

@@ -7,7 +7,6 @@ const address = args.find((arg) => !arg.startsWith('--')) || 'http://127.0.0.1:4
 const writeFeedback = args.includes('--write-feedback');
 const browser = await chromium.launch({
   ...(process.env.CHROMIUM_BIN && { executablePath: process.env.CHROMIUM_BIN }),
-  args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
 });
 
 try {
@@ -96,10 +95,44 @@ try {
   assert.equal(await yard.locator('[name="fence-y"]').inputValue(), '0');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
-  await page.getByRole('link', { name: /demonstrația cu monahi/ }).click();
-  await page.waitForFunction(() => Number(document.querySelector('#seek')?.max) > 1);
-  await page.locator('#play').click();
-  await page.waitForFunction(() => Number(document.querySelector('#seek').value) > 0.25);
+  await page.getByRole('link', { name: 'Inspector de scenă', exact: true }).click();
+  await page.getByRole('heading', { name: 'Inspector de scenă' }).waitFor();
+  await page.waitForFunction(() => {
+    const video = document.querySelector('#shot');
+    return video?.readyState >= 2 && !video.seeking && video.currentTime > 50;
+  });
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), width);
+  }
+  const frame = page.locator('#frame');
+  const mesh = page.locator('#overlay path');
+  const shape = await mesh.getAttribute('d');
+  const start = Number(await frame.getAttribute('min'));
+  await frame.press('Home');
+  await page.waitForFunction((value) => Number(document.querySelector('#frame').value) === value, start);
+  assert.notEqual(await mesh.getAttribute('d'), shape);
+  await page.getByLabel('Mărește zona brațului').check();
+  assert.equal(await page.locator('.stage.zoomed').count(), 1);
+  await page.getByRole('button', { name: 'Redă scena' }).click();
+  await page.waitForFunction((value) => Number(document.querySelector('#frame').value) > value, start + 4);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  await page.getByRole('button', { name: 'Rig', exact: true }).click();
+  await page.getByRole('button', { name: 'Mihai', exact: true }).click();
+  await page.getByLabel('Os', { exact: true }).selectOption({ label: 'hand.L' });
+  assert.match(await page.locator('#bone-parent').textContent(), /forearm\.L/);
+  assert.equal(await page.locator('#overlay line').count(), 18);
+  await page.getByRole('button', { name: 'Straturi', exact: true }).click();
+  await page.getByRole('button', { name: 'Pâine și vase', exact: true }).click();
+  await page.waitForFunction(() => {
+    const image = document.querySelector('#layer-preview');
+    return image?.complete && image.naturalWidth === 768 && !image.hidden;
+  });
+  await page.getByText(/Obiecte în cadru/).click();
+  await page.getByText(/Round scored bread/).waitFor();
+  assert.equal(await page.locator('#shot').isVisible(), false);
+  await page.getByRole('button', { name: 'Cadrul întreg', exact: true }).click();
+  assert.equal(await page.locator('#shot').isVisible(), true);
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
 } finally {

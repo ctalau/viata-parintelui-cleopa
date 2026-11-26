@@ -2,9 +2,10 @@ import { createReadStream } from 'node:fs';
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import path from 'node:path';
-import { ROOT } from './lib/common.mjs';
+import { fileURLToPath } from 'node:url';
 import { receiveFeedback } from '../studio/feedback.mjs';
 
+const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(ROOT, 'dist');
 const feedbackDir = path.resolve(process.env.CLEOPA_FEEDBACK_DIR || path.join(ROOT, '.feedback'));
 const types = {
