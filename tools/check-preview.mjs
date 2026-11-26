@@ -76,6 +76,24 @@ try {
     assert.ok(Math.abs(feedback[0].time - markedTime) < 0.055);
   }
   assert.equal(await page.locator('#episode').evaluate((video) => video.textTracks.length), 0);
+  await page.getByRole('link', { name: 'Editează straturile cadrului 2' }).click();
+  const yard = page.locator('#cadru-2');
+  await yard.locator('.yard-stage img').first().waitFor({ state: 'visible' });
+  await page.waitForFunction(() => [...document.querySelectorAll('.yard-stage img')]
+    .every((image) => image.naturalWidth === 1280));
+  await yard.locator('[name="landscape-x"]').press('ArrowRight');
+  await yard.locator('[name="fence-y"]').press('ArrowDown');
+  await yard.locator('[name="fence-visible"]').uncheck();
+  await yard.locator('#yard-fence').waitFor({ state: 'hidden' });
+  await page.reload();
+  await yard.locator('[name="landscape-x"]').waitFor({ state: 'visible' });
+  assert.equal(await yard.locator('[name="landscape-x"]').inputValue(), '1');
+  assert.equal(await yard.locator('[name="fence-y"]').inputValue(), '-1');
+  assert.equal(await yard.locator('[name="fence-visible"]').isChecked(), false);
+  await yard.getByRole('button', { name: 'Resetează straturile' }).click();
+  await yard.locator('#yard-fence').waitFor({ state: 'visible' });
+  assert.equal(await yard.locator('[name="landscape-x"]').inputValue(), '0');
+  assert.equal(await yard.locator('[name="fence-y"]').inputValue(), '0');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   await page.getByRole('link', { name: /demonstrația cu monahi/ }).click();

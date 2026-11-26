@@ -48,7 +48,11 @@
             <p id="play-status" role="status" hidden></p>
           </div>
         </div>
-        <div class="watch-meta"><span id="episode-length"></span><a download href="/media/painea_care_poate_sa_astepte.mp4">Descarcă MP4 <span aria-hidden="true">↓</span></a></div>
+        <div class="watch-meta">
+          <span id="episode-length"></span>
+          <a href="#cadru-2">Editează straturile cadrului 2</a>
+          <a download href="/media/painea_care_poate_sa_astepte.mp4">Descarcă MP4 <span aria-hidden="true">↓</span></a>
+        </div>
         <details class="chapters"><summary>Momente din episod</summary><div class="chapter-list" id="chapters"></div></details>
       </div>
       <aside class="feedback" aria-labelledby="feedback-heading">
@@ -64,6 +68,38 @@
         </form>
       </aside>
     </section>
+    <details class="yard-editor" id="cadru-2">
+      <summary>Cadrul 2 · Ograda în zori</summary>
+      <div class="yard-layout">
+        <div class="yard-stage" role="img" aria-label="Cocoșul și Grăsuțu în ogradă">
+          <img id="yard-landscape" src="/media/ograda-straturi/peisaj.png" alt="" width="1280" height="720" loading="lazy">
+          <img id="yard-fence" src="/media/ograda-straturi/gard-magazie.png" alt="" width="1280" height="720" loading="lazy">
+          <img src="/media/ograda-straturi/animale.png" alt="" width="1280" height="720" loading="lazy">
+        </div>
+        <form id="yard-controls" aria-label="Straturile ograzii">
+          <fieldset data-yard-image="yard-landscape">
+            <legend>Peisaj și vegetație</legend>
+            <label><input type="checkbox" name="landscape-visible" checked> Vizibil</label>
+            <label>Orizontal <input type="range" name="landscape-x" min="-25" max="25" value="0"><output>0%</output></label>
+            <label>Vertical <input type="range" name="landscape-y" min="-25" max="25" value="0"><output>0%</output></label>
+            <a href="/media/ograda-straturi/peisaj.png" download="ograda-peisaj.png">Descarcă peisajul</a>
+          </fieldset>
+          <fieldset data-yard-image="yard-fence">
+            <legend>Gard și magazie</legend>
+            <label><input type="checkbox" name="fence-visible" checked> Vizibil</label>
+            <label>Orizontal <input type="range" name="fence-x" min="-25" max="25" value="0"><output>0%</output></label>
+            <label>Vertical <input type="range" name="fence-y" min="-25" max="25" value="0"><output>0%</output></label>
+            <a href="/media/ograda-straturi/gard-magazie.png" download="ograda-gard-magazie.png">Descarcă gardul și magazia</a>
+          </fieldset>
+          <div class="yard-actions">
+            <button type="reset">Resetează straturile</button>
+            <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/painea_care_poate_sa_astepte.blend">Scena Blender</a>
+            <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/assets/backgrounds/README.md">Ghid de ilustrație</a>
+          </div>
+          <p>Ajustările se păstrează în acest browser.</p>
+        </form>
+      </div>
+    </details>
     <section class="library" id="biblioteca" aria-labelledby="library-heading">
       <div class="library-head"><h2 id="library-heading">Biblioteca de producție</h2><a href="/001-demo-atelier/">Vezi demonstrația cu monahi</a></div>
       <div class="library-grid" id="library-items"></div>

@@ -1,3 +1,5 @@
+import './yard-editor.js';
+
 const video = document.querySelector('#episode');
 const form = document.querySelector('#feedback-form');
 const timeLabel = document.querySelector('#timestamp');

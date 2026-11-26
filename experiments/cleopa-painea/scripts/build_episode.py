@@ -16,7 +16,7 @@ from animate_prayer import arm_key, blink, channels, finish_action, head, prop, 
 from build_characters import create_character, profile as character_profile
 from build_rigs import bind
 from build_scene import setup
-from decor import bedroom, empty, farmyard, kitchen, pig, rooster, steam_art, trough, village
+from decor import bedroom, empty, farmyard, kitchen, painted_backdrop, pig, rooster, steam_art, trough, village
 from hands import HAND_POSES
 from sleeves import continuous_sleeves
 from vector_art import Art, collection, material
@@ -28,7 +28,7 @@ FPS = TIMING["fps"]
 GOLD = "d99b51"
 COCOA = "593a2e"
 GROUND = "a48962"
-ZONE = {"village": 0, "yard": 33, "bed": 66, "kitchen": 99}
+ZONE = {"village": 0, "yard": 33, "bed": 66, "kitchen": 99, "yard_dawn": 132}
 
 
 def beat_frame(id_, fraction):
@@ -292,22 +292,27 @@ def animate_bed(coll):
     return [child]
 
 
-def animate_yard(coll):
-    farmyard(coll)
-    rooster_=rooster(coll)
-    rooster_["root"].location=(1.26,-.99,-2.73)
-    rooster_["root"].scale=(1.38,1.38,1)
-    pig_=pig(coll)
-    trough(coll)
-    pig_["root"].location=(-2.81,-3.17,-.05)
+def animate_yard_animals(coll, perch, ground, illustrated=False):
+    rooster_=rooster(coll, dawn=illustrated)
+    rooster_["root"].location=perch
+    rooster_["root"].scale=(-1.30,1.30,1) if illustrated else (1.38,1.38,1)
+    pig_=pig(coll, dawn=illustrated)
+    pig_["root"].location=ground
     pig_["root"].scale=(1.17,1.17,1)
+    trough_offset = 1.24 if illustrated else 1.08
+    trough(coll, (ground[0] + trough_offset, ground[1] + .37), dawn=illustrated)
+    if illustrated:
+        shadow = Art("Grăsuțu · umbră de contact", coll, ground[:2], z=-.23)
+        shadow.oval(-.11, -.035, 1.24, .115, "c08758")
+        shadow.finish()
     wake=BEATS["trezire"]["start"]
     end=BEATS["mihai"]["end"]-1
     gate(rooster_["beak"],wake+3,wake+23)
     for f,x in ((wake,0),(wake+8,-.25),(wake+15,-.34),(wake+26,.03),(wake+36,-.05)):
         key(rooster_["head"],f,turn=(0,0,x))
-    key(rooster_["root"],BEATS["trezire"]["cues"][1]["start"],position=(1.26,-.99,-2.73),scale=(1.38,1.38,1))
-    key(rooster_["root"],BEATS["troaca"]["start"]-3,position=(4.80,-.99,-2.73),scale=(.94,.94,1))
+    if not illustrated:
+        key(rooster_["root"],BEATS["trezire"]["cues"][1]["start"],position=perch,scale=(1.38,1.38,1))
+        key(rooster_["root"],BEATS["troaca"]["start"]-3,position=(4.80,perch[1],perch[2]),scale=(.94,.94,1))
     grunt=BEATS["troaca"]["cues"][-1]["end"]+2
     first=BEATS["trezire"]["cues"][1]["start"]-6
     for obj,positions in (
@@ -335,6 +340,26 @@ def animate_yard(coll):
     key(pig_["head"],grunt,position=(.56,.887,.185))
     for f in range(wake,end+1,7):
         key(pig_["tail"],f,turn=(0,0,.22*sin((f-wake)*.15)))
+
+
+def animate_yard_dawn(coll):
+    landscape = collection("Ograda · 01 Peisaj și vegetație", coll)
+    painted_backdrop(landscape, "Ograda · peisaj", "ograda-peisaj.png", 12.4)
+    fence_and_shed = collection("Ograda · 02 Gard și magazie", coll)
+    painted_backdrop(fence_and_shed, "Ograda · gard și magazie", "ograda-gard-magazie.png", 12.4,
+                      depth=-3.2, silhouette="ograda-gard-magazie.svg")
+    # The feet track the top edge of the painted rail. The pig and trough
+    # share a ground plane in the open foreground beside the shed.
+    animate_yard_animals(coll, perch=(2.76,.637,-2.73), ground=(-1.81,-2.42,-.05),
+                         illustrated=True)
+    return []
+
+
+def animate_yard(coll):
+    farmyard(coll)
+    animate_yard_animals(coll, perch=(1.26,-.99,-2.73), ground=(-2.81,-3.17,-.05))
+    end=BEATS["mihai"]["end"]-1
+    grunt=BEATS["troaca"]["cues"][-1]["end"]+2
     start=BEATS["troaca"]["start"]
     child=actor(coll,"cleopa","Costică · ogradă",(2.63,-1.49,.21),1.16,hat=True)
     shadow(child)
@@ -772,7 +797,7 @@ def cameras(scene):
     next_bed=BEATS["trezire"]["cues"][1]["start"]-4
     specs=[
         ("Satul în zori", BEATS["sat"]["start"], "village", (0,.23),16.0,(.15,-.05,-.27)),
-        ("Cocoșul și purcelușul",BEATS["trezire"]["start"],"yard",(-.5,-.32),11.7,(.10,0,-.32)),
+        ("Cocoșul și purcelușul",BEATS["trezire"]["start"],"yard_dawn",(0,0),11.9,(.10,0,-.24)),
         ("Trezirea lui Costică",next_bed,"bed",(.27,-.70),12.0,(.14,.17,-.27)),
         ("Ghiorrr!",BEATS["burtica"]["start"],"bed",(1.47,-.24),7.25,(.04,0,-.12)),
         ("La troacă",BEATS["troaca"]["start"],"yard",(.27,-.51),11.0,(.10,0,-.18)),
@@ -890,6 +915,10 @@ def main():
     scene.render.dither_intensity=0
     scene.display.render_aa="5"
     scene.display.shading.color_type='TEXTURE'
+    for screen in bpy.data.screens:
+        for area in screen.areas:
+            if area.type == "VIEW_3D":
+                area.spaces.active.shading.color_type = "TEXTURE"
     scene.render.image_settings.compression=22
     scene.frame_step=2
     scene.render.filepath="//../renders/frames/frame_"
@@ -897,6 +926,7 @@ def main():
     for zone,name,animate in (
         ("village","01 · Satul de pe deal",animate_village),("yard","02 · Ograda",animate_yard),
         ("bed","03 · Dormitor",animate_bed),("kitchen","04 · Bucătărie",animate_kitchen),
+        ("yard_dawn","Ograda în zori · cocoșul și Grăsuțu",animate_yard_dawn),
     ):
         coll=collection(name)
         actors=animate(coll)

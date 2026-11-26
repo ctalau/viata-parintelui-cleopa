@@ -2,11 +2,14 @@
 import random
 from pathlib import Path
 from math import cos, sin, tau
+from xml.etree import ElementTree
 
 import bpy
+from mathutils import Vector
+from mathutils.geometry import tessellate_polygon
 
 from build_environment import icon_corner, meal, plank, table, textile, walls, window
-from vector_art import Art, collection
+from vector_art import Art, collection, path
 
 INK = "553226"
 LIT = "fff0ca"
@@ -124,15 +127,38 @@ def grasses(art, seed, xlim, ylim, color):
 
 def village(coll):
     """Approved painted village, with a clear foreground lane for Costică."""
-    image = bpy.data.images.load(str(Path(__file__).resolve().parents[1] /
-                                    'assets/backgrounds/sat-in-zori.png'), check_existing=True)
-    mesh = bpy.data.meshes.new('Sat în zori · plan UV')
-    mesh.from_pydata([(-8.2,-4.3825,-7),(8.2,-4.3825,-7),
-                      (8.2,4.8425,-7),(-8.2,4.8425,-7)], [], [(0,1,2,3)])
+    painted_backdrop(coll, "Sat în zori", "sat-in-zori.png", 16.4, .23)
+
+
+def painted_backdrop(coll, name, filename, width, center_y=0, depth=-7, silhouette=None):
+    assets = Path(__file__).resolve().parents[1] / "assets" / "backgrounds"
+    image_path = assets / filename
+    image = bpy.data.images.load(str(image_path), check_existing=True)
+    height = width * 9 / 16
+    vertices, faces, coordinates = [], [], []
+    if silhouette is None:
+        coordinates = [(0, 0), (1, 0), (1, 1), (0, 1)]
+        faces = [(0, 1, 2, 3)]
+        vertices = [((u - .5) * width, center_y + (v - .5) * height, depth) for u, v in coordinates]
+    else:
+        # Workbench draws textures on mesh faces. Cut out the gaps in the mesh
+        # so a rig can stand behind the boards in the viewport and render.
+        svg = ElementTree.parse(assets / silhouette).getroot()
+        _, _, source_width, source_height = map(float, svg.get("viewBox").split())
+        for element in svg.findall("{*}path"):
+            uv_points = [(x / source_width, 1 - y / source_height) for x, y in path(element.get("d"))]
+            contour = [Vector(((u - .5) * width, center_y + (v - .5) * height, depth)) for u, v in uv_points]
+            offset = len(vertices)
+            for triangle in tessellate_polygon([contour]):
+                faces.append(tuple(offset + index for index in triangle))
+            coordinates.extend(uv_points)
+            vertices.extend(contour)
+    mesh = bpy.data.meshes.new(f"{name} · plan UV")
+    mesh.from_pydata(vertices, [], faces)
     uv = mesh.uv_layers.new()
-    for loop, point in zip(uv.data, [(0,0),(1,0),(1,1),(0,1)]):
-        loop.uv = point
-    mat = bpy.data.materials.new('Sat în zori · ilustrație aprobată')
+    for loop in mesh.loops:
+        uv.data[loop.index].uv = coordinates[loop.vertex_index]
+    mat = bpy.data.materials.new(f"{name} · ilustrație")
     mat.use_nodes = True
     nodes = mat.node_tree.nodes
     nodes.clear()
@@ -144,7 +170,7 @@ def village(coll):
     mat.node_tree.links.new(texture.outputs['Color'], emission.inputs[0])
     mat.node_tree.links.new(emission.outputs[0], output.inputs['Surface'])
     mesh.materials.append(mat)
-    obj = bpy.data.objects.new('Sat în zori · decor ilustrat', mesh)
+    obj = bpy.data.objects.new(f"{name} · decor ilustrat", mesh)
     coll.objects.link(obj)
 
 
@@ -202,17 +228,17 @@ def farmyard(coll):
     art.finish()
 
 
-def trough(coll):
-    origin = (-1.73,-2.80)
+def trough(coll, origin=(-1.73,-2.80), dawn=False):
     shadow = Art("Umbră sub troacă",coll,origin,z=-.29)
-    shadow.oval(.08,-.52,1.35,.19,"ac926e")
+    shadow.oval(.08,-.52,1.28 if dawn else 1.35,.15 if dawn else .19,
+                "c08758" if dawn else "ac926e")
     shadow.finish()
 
     # The back and the feed are behind the muzzle. Only the near rim
     # and planks cover the lower edge of the muzzle when it dips.
-    back = Art("Troacă · interior și tărâțe",coll,origin,z=.046)
+    back = Art("Troacă · interior și tărâțe",coll,origin,z=.075 if dawn else .046)
     back.shape("M -1.24 .01 L -.94 .28 L 1.01 .30 L 1.25 .06 Q -.07 -.08 -1.24 .01 Z",
-               "b28757",INK,.045)
+               "b28757",INK,.032 if dawn else .045)
     back.shape("M -.98 .052 L -.82 .225 L .84 .23 L 1.01 .065 Q .12 -.022 -.98 .052 Z",
                "79553b")
     back.shape("M -.83 .052 L -.67 .151 Q .02 .196 .77 .155 L .96 .065 Q .17 -.008 -.83 .052 Z",
@@ -224,30 +250,39 @@ def trough(coll):
 
     front = Art("Troacă · muchie și perete din față",coll,origin,z=.326)
     front.shape("M -1.24 .01 Q -.08 -.068 1.25 .06 L .97 -.47 Q .16 -.59 -.99 -.48 Z",
-                "916344",INK,.050)
+                "916344",INK,.033 if dawn else .050)
     front.line("M -1.23 -.006 Q -.05 -.097 1.223 .038","c59b64",.074)
     front.line("M -1.12 -.151 Q .15 -.256 1.108 -.103","c09560",.033)
     front.line("M -.96 -.364 Q .12 -.433 .995 -.349","6c4834",.033)
+    if dawn:
+        front.line("M -.89 -.282 Q -.58 -.225 -.23 -.307 Q .21 -.376 .68 -.263","b68155",.025)
+        front.line("M -.74 -.411 Q -.45 -.355 -.17 -.422","b68155",.019)
+        front.oval(.52,-.305,.063,.025,"6c4834",angle=.12)
     front.finish()
 
 
-def pig(coll):
+def pig(coll, dawn=False):
     root=empty("Grăsuțu · corp",coll)
+    contour = .64 if dawn else 1
     legs=[]
     for i,x in enumerate((-.80,.41,-.49,.68)):
         joint=empty(f"Grăsuțu · picior {i+1}",coll,(x,.59,.002*i),root)
         art=Art("Picior și copită",coll,z=-.12 if i<2 else .094)
         art.shape("M -.15 .08 Q -.22 -.13 -.182 -.30 L -.15 -.57 Q .01 -.63 .185 -.558 L .193 -.36 Q .11 -.21 .16 .07 Z",
-                  "cd8a7b" if i<2 else "e5a18e","67443a",.040)
+                  "cd8a7b" if i<2 else "e5a18e","67443a",.040*contour)
         art.shape("M -.145 -.454 Q .019 -.49 .171 -.450 L .173 -.585 Q -.016 -.626 -.153 -.551 Z",
-                  "875f55","69463f",.030)
+                  "875f55","69463f",.030*contour)
         art.line([(0,-.492),(.01,-.57)],"6b4842",.026)
         place(art,joint)
         legs.append(joint)
     art=Art("Grăsuțu · trunchi",coll,z=.03)
-    art.oval(-.23,.803,1.08,.60,"e9a995","714b41",.057)
+    art.oval(-.23,.803,1.08,.60,"e9a995","714b41",.057*contour)
     art.shape("M -1.263 .712 Q -.935 .329 -.311 .419 Q .10 .359 .713 .732 Q .686 .281 -.092 .245 Q -.949 .233 -1.263 .712 Z","d89080")
     art.shape("M -.963 1.101 Q -.64 1.425 -.055 1.322 Q -.298 1.20 -.615 1.14 Q -.752 1.105 -.963 1.101 Z","f4bb9f")
+    if dawn:
+        art.line("M -1.24 .86 Q -1.067 1.219 -.56 1.336 Q -.33 1.382 -.16 1.356","ffdab4",.025)
+        art.line("M -1.015 .891 Q -.93 .953 -.841 .97","f7c6a7",.020)
+        art.line("M -.79 1.043 Q -.71 1.074 -.631 1.081","f7c6a7",.020)
     place(art,root)
     tail=empty("Grăsuțu · coadă",coll,(-1.18,.88,-.02),root)
     art=Art("Codiță",coll)
@@ -257,7 +292,7 @@ def pig(coll):
     head=empty("Grăsuțu · cap",coll,(.56,.887,.185),root)
     art=Art("Chipul lui Grăsuțu",coll)
     art.shape("M -.28 -.235 Q -.617 .023 -.476 .452 Q -.456 .619 -.626 .82 Q -.459 .866 -.217 .653 Q -.059 .683 .113 .626 Q .377 .761 .592 .665 Q .656 .523 .472 .363 Q .625 .305 .748 .219 Q .96 .200 .979 .019 Q .972 -.186 .697 -.275 Q .379 -.512 -.006 -.386 Q -.178 -.356 -.28 -.235 Z",
-              "f3b39c","754b42",.055)
+              "f3b39c","754b42",.055*contour)
     art.shape("M -.589 .797 Q -.398 .770 -.258 .618 Q -.414 .645 -.475 .591 Z","d89487")
     art.shape("M .183 .597 Q .353 .699 .54 .655 Q .497 .519 .374 .456 Z","d99085")
     art.oval(.707,-.018,.263,.165,"e79988","a36458",.028,angle=.12)
@@ -265,6 +300,10 @@ def pig(coll):
     art.oval(.627,-.027,.037,.051,"985e51",angle=.31)
     art.oval(.329,-.162,.114,.058,"e99889",angle=-.12)
     art.line("M .27 -.278 Q .46 -.310 .57 -.227","92594d",.032)
+    if dawn:
+        art.shape("M -.397 -.056 Q -.149 -.231 .320 -.268 Q .495 -.279 .729 -.209 Q .404 -.419 .055 -.348 Q -.245 -.331 -.397 -.056 Z","e7a18b")
+        art.line("M -.412 .542 Q -.318 .645 -.129 .644 Q -.019 .643 .071 .615","ffdbb5",.025)
+        art.line("M .521 .062 Q .617 .129 .728 .122","f7b89e",.025)
     place(art,head)
     art=Art("Grăsuțu · ochi deschis",coll,z=.026)
     art.oval(.364,.225,.125,.133,"fff1d7","7f554a",.032)
@@ -275,7 +314,8 @@ def pig(coll):
     art.line("M .245 .214 Q .363 .132 .477 .218","72483e",.033)
     shut_eye=place(art,head)
     art=Art("Grăsuțu · gură căscată",coll,z=.039)
-    art.oval(.498,-.284,.128,.097,"8a5148","a36a58",.022,angle=.10)
+    art.oval(.498,-.284,.156 if dawn else .128,.116 if dawn else .097,
+             "8a5148","a36a58",.022,angle=.10)
     art.oval(.521,-.325,.070,.035,"ce7f74")
     jaw=place(art,head)
     chew=empty("Grăsuțu · mestecat",coll,(.49,-.284,.044),head)
@@ -286,16 +326,26 @@ def pig(coll):
             "jaw":jaw,"chew":chew,"bite":bite,"legs":legs}
 
 
-def rooster(coll):
+def rooster(coll, dawn=False):
     root=empty("Cocoș · corp",coll)
+    contour = .65 if dawn else 1
     art=Art("Cocoș · coadă și aripi",coll,z=.04)
     for y in (.18,.33,.50):
         art.shape(f"M -.18 .43 Q -.68 {y+.75} -1.12 {y+.53} Q -.98 {y+.94} -.59 {y+.78} Q -.28 {y+.69} -.12 .57 Z",
-                  "56736d","405954",.042)
-    art.oval(-.129,.514,.535,.392,"c98948","6c4935",.047)
+                  "56736d","405954",.042*contour)
+    art.oval(-.129,.514,.535,.392,"c98948","6c4935",.047*contour)
+    if dawn:
+        art.shape("M -.596 .416 Q -.301 .255 -.042 .331 Q .262 .393 .379 .535 Q .316 .267 .032 .170 Q -.396 .116 -.596 .416 Z","ac6e41")
     art.shape("M -.583 .684 Q -.279 .908 -.072 .747 Q .076 .650 -.119 .489 Q -.338 .376 -.523 .508 Z",
-              "e0a85f","a16a41",.031)
+              "e0a85f","a16a41",.031*contour)
     art.line("M -.47 .693 Q -.27 .642 -.165 .538","b47543",.035)
+    if dawn:
+        art.line("M -1.018 1.071 Q -.746 1.205 -.393 .895","7f9a82",.033)
+        art.line("M -.976 .913 Q -.71 1.006 -.43 .763","7f9a82",.033)
+        art.line("M -.57 .716 Q -.35 .867 -.135 .768","f9cb79",.028)
+        art.line("M -.48 .575 Q -.394 .544 -.336 .47","b47543",.021)
+        art.line("M -.316 .637 Q -.229 .597 -.172 .538","b47543",.021)
+        art.line("M -.087 .221 Q .169 .238 .306 .375","ae703f",.026)
     for x in (-.24,.014):
         art.line([(x,.255),(x-.025,-.048),(x+.145,-.08)],"986337",.052)
         art.line([(x-.025,-.048),(x-.151,-.101)],"996337",.029)
@@ -303,15 +353,19 @@ def rooster(coll):
     head=empty("Cocoș · gât și cap",coll,(.16,.60,.068),root)
     art=Art("Cocoș · creastă și cioc",coll)
     art.shape("M -.151 -.216 Q -.177 .054 -.094 .315 Q -.078 .507 .123 .530 Q .415 .489 .363 .235 Q .278 .145 .233 .024 Q .263 -.074 .205 -.259 Q -.009 -.318 -.151 -.216 Z",
-              "edb35d","73503b",.048)
+              "edb35d","73503b",.048*contour)
     art.shape("M -.032 .465 Q -.126 .655 .005 .673 Q .047 .687 .093 .578 Q .112 .764 .196 .717 Q .254 .699 .244 .566 Q .307 .675 .363 .620 Q .384 .572 .287 .479 Z",
-              "ba5141","834235",.034)
+              "ba5141","834235",.034*contour)
     art.shape("M .189 .226 Q .371 .248 .388 .097 Q .401 -.018 .325 -.028 Q .232 .006 .291 .151 Z",
               "ba5141","97473c",.026)
     art.shape("M .315 .391 L .604 .305 L .326 .251 Z","f3be68","9c6737",.033)
     art.oval(.242,.388,.060,.067,"fbefcf","905e39",.019)
     art.oval(.259,.393,.026,.039,"49392d")
     art.line("M -.021 .267 Q .123 .226 .193 .163","d28e4a",.029)
+    if dawn:
+        art.line("M -.106 .112 Q -.099 .292 -.024 .412","ffde91",.024)
+        art.line("M .015 .571 Q -.023 .622 .011 .643","e88160",.024)
+        art.line("M .16 .637 Q .172 .691 .197 .675","e88160",.024)
     place(art,head)
     beak=Art("Cocoș · cioc deschis",coll,z=.08)
     beak.shape("M .322 .292 L .587 .196 L .317 .208 Z","e6a150","925833",.029)

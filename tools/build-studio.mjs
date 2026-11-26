@@ -54,7 +54,9 @@ const media = path.join(out, 'media');
 fs.mkdirSync(media, { recursive: true });
 fs.copyFileSync(mp4, path.join(media, episode.file));
 fs.copyFileSync(path.join(ROOT, 'studio/episod.webp'), path.join(media, 'episod.webp'));
-for (const name of ['index.html', 'studio.css', 'studio.js']) {
+const yardLayers = 'ograda-straturi';
+fs.cpSync(path.join(ROOT, episodeDir, 'renders', yardLayers), path.join(media, yardLayers), { recursive: true });
+for (const name of ['index.html', 'studio.css', 'studio.js', 'yard-editor.js']) {
   fs.copyFileSync(path.join(ROOT, 'studio', name), path.join(out, name));
 }
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
