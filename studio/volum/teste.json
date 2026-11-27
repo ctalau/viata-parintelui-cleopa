@@ -154,12 +154,12 @@
    "report": {
     "frames": 164,
     "duration": 6.7917,
-    "slip": 0.0,
+    "slip": 0.00175,
     "contacts": [
      {
       "contact": "frunte",
       "frame": 37,
-      "distance": 0.0
+      "distance": 0.0018
      },
      {
       "contact": "piept",
@@ -186,7 +186,7 @@
       "frames": [
        [
         23,
-        25
+        23
        ],
        [
         59,
@@ -212,7 +212,7 @@
       "frames": [
        [
         27,
-        47
+        49
        ]
       ],
       "allowed": true,
@@ -231,6 +231,20 @@
       ],
       "allowed": true,
       "reason": "Antebrațul drept rămâne lipit de piept când palma trece la umărul stâng."
+     },
+     {
+      "parts": [
+       "Mânecă · braț · R",
+       "Cap"
+      ],
+      "frames": [
+       [
+        31,
+        43
+       ]
+      ],
+      "allowed": false,
+      "reason": "Neprevăzut: de corectat în coregrafie sau în volum."
      }
     ]
    }
@@ -301,8 +315,8 @@
       ],
       "frames": [
        [
-        153,
-        153
+        155,
+        155
        ],
        [
         159,
@@ -383,7 +397,7 @@
       ],
       "frames": [
        [
-        65,
+        67,
         121
        ],
        [
@@ -402,10 +416,10 @@
       "frames": [
        [
         67,
-        113
+        111
        ],
        [
-        153,
+        155,
         161
        ]
       ],

@@ -1,6 +1,6 @@
 # Mama volumetrică · Drumul la troiță
 
-Un experiment cu tot corpul în 3D. Mama are cap, batic, păr, ochi, trunchi, brâu, fustă, mâneci, palme, obiele și opinci. Toate piesele sunt legate de un singur schelet și sunt exportate ca GLB cu skinning obișnuit. Episodul de probă pune modelul la încercare, plan după plan, pe un drum de sat cu o troiță.
+Un experiment cu tot corpul în 3D. Mama are cap, trunchi, fustă, mâneci, palme, picioare și opinci, toate cu volum. Capul și hainele poartă desenele din episod, cu același nivel de detaliu. Toate piesele sunt legate de un singur schelet și sunt exportate ca GLB cu skinning obișnuit. Episodul de probă pune modelul la încercare, plan după plan, pe un drum de sat cu o troiță.
 
 [Deschide atelierul](https://viata-parintelui-cleopa-seven.vercel.app/volum/) · [Episodul de probă](https://viata-parintelui-cleopa-seven.vercel.app/volum/?test=episod)
 
@@ -19,6 +19,8 @@ Un experiment cu tot corpul în 3D. Mama are cap, batic, păr, ochi, trunchi, br
 
 ## Construcție
 
+- **Capul și hainele sunt desenele din episod.** `scripts/desen.py` construiește în aceeași sesiune Mama 2D a episodului, cu aceleași proporții. Apoi îi lipește desenele pe volume. Capul este o sferă în culoarea baticului. Desenul capului, cu față, ochi, nas, gură, sprâncene, păr, batic cu broderie și cercel, se proiectează ortografic pe partea din față. Din față, capul arată exact ca în desenul 2D. Dincolo de față, baticul și părul continuă pe laterale și peste creștet. Cămașa cu guler și coloanele de broderie, brâul, poala, fusta cu pliuri și tivul brodat, benzile mânecilor și obielele încrucișate se înfășoară pe trunchi, fustă, brațe și gambe. Pe fiecare rând, conturul desenului ajunge pe conturul volumului, iar motivele își păstrează locul. Tivul, brâul, benzile și obielele continuă, în oglindă, și la spate. Ordinea pieselor și a trăsăturilor din desen devine o distanță mică față de suprafață. Fiecare desen are ponderile volumului pe care stă, așa că se mișcă odată cu el.
+
 - `scripts/corp.py` creează scheletul și piesele. Fiecare piesă este o suprafață închisă din inele, cu ponderi care se amestecă scurt la articulații. Conturul este o coajă a aceleiași piese, umflată pe normale și întoarsă pe dos, cu back-face culling. Se vede doar pe margine, din orice unghi, și în Blender, și în Three.js.
 - `scripts/miscare.py` calculează fiecare cadru în Python. Trunchiul folosește cinematică directă. Brațele și picioarele sunt lanțuri de două oase cu lungime fixă: genunchiul merge înainte, iar cotul înapoi, în afară și în jos. Talpa de sprijin rămâne exact pe urma ei. Când pasul e lung, coboară șoldurile, nu ridică tălpile. Contactele sunt puncte pe suprafețele deja poziționate, așa că mâna rămâne pe țintă și când corpul se mișcă.
 - `scripts/build_volum.py` cheie fiecare test ca acțiune separată. Verifică alunecarea, contactele și intersecțiile și salvează `scenes/mama_volumetrica.blend`. Apoi exportă `assets/recuzita/mama-volum.glb`, drumul și găleata și scrie `studio/volum/teste.json`.
@@ -28,7 +30,7 @@ Un experiment cu tot corpul în 3D. Mama are cap, batic, păr, ochi, trunchi, br
 
 La fiecare al doilea cadru, Blender construiește câte un BVH pentru piesele evaluate, fără coaja de contur. Apoi caută suprapuneri între palme, antebrațe, trunchi, cap, fustă, picioare și opinci. Fiecare contact intenționat are motivul scris în `ALLOWED`, în `build_volum.py`. Restul intervalelor sunt publicate ca observații în raportul de pe pagină. Build-ul se oprește dacă un membru nu ajunge la țintă cu mai mult de 2 mm sau dacă un contact al semnului crucii depășește 2 cm.
 
-Ultima rulare a raportat două atingeri scurte, încă nerezolvate, în testul `intersectii`. Palma dreaptă atinge fusta în cadrele 161 și 197, iar antebrațul drept o atinge în cadrele 69–71, la trecerea de la palmele lipite la brațele încrucișate. La aplecare, fusta rigidă urmează bazinul și se ridică puțin la spate. O fustă cu oase proprii sau cu simulare de pânză este următorul pas.
+Capul mai mare, ca în desen, aduce o observație nouă. În semnul crucii, mâneca dreaptă atinge capul în cadrele 31–43, când palma urcă la frunte. Ultima rulare a mai raportat două atingeri scurte, încă nerezolvate, în testul `intersectii`. Palma dreaptă atinge fusta în cadrele 161 și 197, iar antebrațul drept o atinge în cadrele 69–71, la trecerea de la palmele lipite la brațele încrucișate. La aplecare, fusta rigidă urmează bazinul și se ridică puțin la spate. O fustă cu oase proprii sau cu simulare de pânză este următorul pas.
 
 ## Comenzi
 

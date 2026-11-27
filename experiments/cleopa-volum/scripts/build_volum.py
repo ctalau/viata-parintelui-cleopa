@@ -22,7 +22,7 @@ from mathutils.bvhtree import BVHTree
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from corp import INK, PALETTE, Part, build_character, build_mesh, material  # noqa: E402
-from miscare import FPS, TESTS, Solver, perform  # noqa: E402
+from miscare import FOREHEAD, FPS, TESTS, Solver, perform  # noqa: E402
 
 ROOT = HERE.parents[2]
 EXPERIMENT = HERE.parent
@@ -212,7 +212,7 @@ def contact_check(solver, poses, controls, duration):
         tip = pose["tail"]["hand.R"]+(pose["tail"]["hand.R"]-pose["head"]["hand.R"]).normalized()*.016
         c = controls(t)
         from miscare import chest_point, head_point, shoulder_point
-        target = {"frunte": lambda: head_point(solver, solver.trunk(c), 0, 1.685, .006)[0],
+        target = {"frunte": lambda: head_point(solver, solver.trunk(c), 0, FOREHEAD, .006)[0],
                   "piept": lambda: chest_point(solver, solver.trunk(c), 0, 1.2, .006)[0],
                   "umărul drept": lambda: shoulder_point(solver, solver.trunk(c), "R", .006)[0],
                   "umărul stâng": lambda: shoulder_point(solver, solver.trunk(c), "L", .006)[0]}[label]()
@@ -271,7 +271,7 @@ def main():
     scene = reset()
     character = bpy.data.collections.new("Mama volumetrică")
     scene.collection.children.link(character)
-    rig, parts = build_character(character)
+    rig, parts, decals = build_character(character)
     decor = bpy.data.collections.new("Drumul satului")
     scene.collection.children.link(decor)
     set_objects, pail = road_set(decor)
@@ -348,7 +348,7 @@ def main():
     rig.animation_data.action = None
     bpy.ops.object.select_all(action="DESELECT")
     rig.select_set(True)
-    for obj in parts:
+    for obj in parts+decals:
         obj.select_set(True)
     bpy.context.view_layer.objects.active = rig
     bpy.ops.export_scene.gltf(

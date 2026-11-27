@@ -22,6 +22,8 @@ from mathutils import Euler, Matrix, Quaternion, Vector
 from corp import BONES, HEAD_CENTER, HEAD_RADII, torso_radius
 
 FPS = 24
+FOREHEAD = HEAD_CENTER.z+.11   # between the drawn brows and the scarf's edge
+CHEEK = (-.15, HEAD_CENTER.z-.07)
 ORDER = ["root", "pelvis", "spine", "chest", "neck", "head"]
 for _side in ("L", "R"):
     ORDER += [f"shoulder.{_side}", f"upper_arm.{_side}", f"forearm.{_side}", f"hand.{_side}",
@@ -455,7 +457,7 @@ def semnul_crucii(solver):
         side = "R"
         L = hand_length(solver, side)
         # Contact targets: fingertips touch the surface, the palm turned to the body.
-        forehead, nf = head_point(solver, pose, 0, 1.685, .006)
+        forehead, nf = head_point(solver, pose, 0, FOREHEAD, .006)
         chest, nc = chest_point(solver, pose, 0, 1.2, .006)
         right, nr = shoulder_point(solver, pose, "R", .006)
         left, nl = shoulder_point(solver, pose, "L", .006)
@@ -508,7 +510,7 @@ def intersectii(solver):
             d = D@Vector((-SIGN[s], -.1, .45)).normalized()
             cross[s] = (target-d*L*.55, d, D@Vector((0, -1, 0)))
         # 3. Right hand on the cheek, left hand on the hip, elbow out.
-        cheek, nch = head_point(solver, pose, -.13, 1.55, .008)
+        cheek, nch = head_point(solver, pose, *CHEEK, .008)
         cheek_dir = (-nch+D@Vector((0, 0, 1.2))).normalized()
         face = {"R": (cheek-cheek_dir*L*.7, cheek_dir, nch),
                 "L": (chest((.205, -.02, 1.0)), D@Vector((-.2, -.3, -1)).normalized(), D@Vector((1, 0, 0)))}

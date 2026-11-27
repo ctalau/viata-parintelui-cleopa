@@ -43,8 +43,10 @@ for side, s in (("L", 1), ("R", -1)):
         f"shin.{side}": ((s*.092, -.008, .49), (s*.092, .0, .085), f"thigh.{side}"),
         f"foot.{side}": ((s*.092, .0, .085), (s*.096, -.165, .03), f"shin.{side}"),
     })
-HEAD_CENTER = Vector((0, 0, 1.63))
-HEAD_RADII = Vector((.19, .17, .2))
+# The head is large, as in the drawings of the series.
+HEAD_CENTER = Vector((0, 0, 1.70))
+HEAD_RADII = Vector((.235, .215, .25))
+SKIRT = [(1.0, .176, .132), (.95, .186, .146), (.82, .2, .17), (.62, .245, .218), (.42, .292, .258), (.36, .296, .262)]
 
 
 def color(hex_):
@@ -253,20 +255,15 @@ def parts():
     for z, rx, ry in TORSO:
         rings.append((Vector((0, 0, z)), Vector((1, 0, 0)), Vector((0, 1, 0)), rx, ry))
     rings.insert(1, (Vector((0, 0, .975)), Vector((1, 0, 0)), Vector((0, 1, 0)), .172, .128))
-    torso.loft(rings, lambda r: "brau" if r in (0, 1) else ("broderie" if r == 4 else "camasa"))
-    for x in (-.065, .065):
-        for z in (1.12, 1.18, 1.24):
-            point = Vector((x, -torso_radius(z)[1]+.004, z))
-            torso.ellipsoid(point, (.016, .006, .02), lambda r: "broderie", rings=5)
+    torso.loft(rings, lambda r: "camasa")
     result.append((torso, torso_weights))
 
     # A wide skirt over the legs. Its lower half follows the thighs a little.
     skirt = Part("Fustă")
     rings = []
-    profile = [(1.0, .176, .132), (.95, .186, .146), (.82, .2, .17), (.62, .245, .218), (.42, .292, .258), (.36, .296, .262)]
-    for z, rx, ry in profile:
+    for z, rx, ry in SKIRT:
         rings.append((Vector((0, .0, z)), Vector((1, 0, 0)), Vector((0, 1, 0)), rx, ry))
-    skirt.loft(rings, lambda r: "fusta_deschis" if r == 3 else ("fusta_inchis" if r == 4 else "fusta"))
+    skirt.loft(rings, lambda r: "fusta_inchis")
 
     def skirt_weights(p):
         follow = max(0, min(1, (.95-p.z)/.55))*.55
@@ -281,67 +278,10 @@ def parts():
               [.05, .046, .05], lambda r: "piele_umbra")
     result.append((neck, lambda p: height_weights(p, [(1.37, "chest"), (1.43, "neck"), (1.49, "head")])))
 
+    # A plain head under the scarf's colour; the 2D head drawing is wrapped onto it (desen.py).
     head = Part("Cap")
-    head.ellipsoid(HEAD_CENTER, HEAD_RADII, lambda r: "piele", rings=14)
-    for s in (-1, 1):
-        ear = HEAD_CENTER+Vector((s*.185, .02, -.02))
-        head.ellipsoid(ear, (.022, .035, .045), lambda r: "piele_umbra", rings=6)
+    head.ellipsoid(HEAD_CENTER, HEAD_RADII, lambda r: "batic", rings=16)
     result.append((head, lambda p: {"head": 1.}))
-
-    face = Part("Față")
-    for s in (-1, 1):
-        eye, n = head_surface(s*.068, 1.615, .004)
-        face.ellipsoid(eye, (.03, .012, .043), lambda r: "ochi", rings=7)
-        shine, _ = head_surface(s*.058, 1.638, .015)
-        face.ellipsoid(shine, (.011, .006, .012), lambda r: "alb", rings=5)
-        brow, _ = head_surface(s*.074, 1.69, .006)
-        face.ellipsoid(brow, (.04, .009, .011), lambda r: "par", rings=5,
-                       axes=Matrix.Rotation(s*.18, 3, "Y"))
-        cheek, _ = head_surface(s*.112, 1.55, .002)
-        face.ellipsoid(cheek, (.036, .01, .024), lambda r: "obraz", rings=5)
-    nose, _ = head_surface(0, 1.585, .01)
-    face.ellipsoid(nose, (.022, .02, .022), lambda r: "piele_umbra", rings=6)
-    mouth, _ = head_surface(0, 1.525, .003)
-    face.ellipsoid(mouth, (.036, .008, .01), lambda r: "gura", rings=5)
-    result.append((face, lambda p: {"head": 1.}))
-
-    hair = Part("Păr")
-    hair.ellipsoid(HEAD_CENTER+Vector((0, .03, .012)), (.196, .175, .203), lambda r: "par", rings=12)
-    result.append((hair, lambda p: {"head": 1.}))
-
-    # The scarf is a hood around the face: a ring grid whose front edge follows the
-    # forehead and the jaw. A tail of cloth falls on the back of the neck.
-    scarf = Part("Batic")
-    c, r = HEAD_CENTER+Vector((0, .025, .02)), Vector((.214, .2, .214))
-    loops = []
-    for k in range(9):
-        v = k/8
-        loop = []
-        for i in range(RING):
-            lon = i*tau/RING  # 0 = back (+Y), pi = front (-Y)
-            front = max(0, min(1, (.3-cos(lon))/.9))
-            low = -1.25+front*1.8   # the opening reaches from the forehead to the jaw
-            lat = low+(pi/2-low)*v
-            loop.append(c+Vector((r.x*cos(lat)*sin(lon), r.y*cos(lat)*cos(lon), r.z*sin(lat))))
-        loops.append(loop)
-    start = len(scarf.points)
-    for loop in loops:
-        scarf.points.extend(loop)
-    for k in range(len(loops)-1):
-        for i in range(RING):
-            j = (i+1) % RING
-            a, b = start+k*RING+i, start+k*RING+j
-            scarf.faces.append((a, a+RING, b+RING, b))
-            scarf.colors.append("broderie" if k == 0 else "batic")
-    tip = len(scarf.points)
-    scarf.points.append(c+Vector((0, 0, r.z)))
-    base = start+(len(loops)-1)*RING
-    for i in range(RING):
-        scarf.faces.append((base+i, tip, base+(i+1) % RING))
-        scarf.colors.append("batic")
-    scarf.tube([c+Vector((0, .17, -.17)), c+Vector((0, .2, -.27)), c+Vector((0, .2, -.36))],
-               [(.09, .03), (.07, .025), (.012, .01)], lambda r: "batic_umbra")
-    result.append((scarf, lambda p: {"head": 1.} if p.z > 1.42 else {"head": .6, "neck": .4}))
 
     for side, s in (("L", 1), ("R", -1)):
         chain = arm_chain(side)
@@ -357,11 +297,11 @@ def parts():
             return w
         upper = Part(f"Mânecă · braț · {side}")
         path = [sh+Vector((-s*.012, 0, .035)), sh, sh.lerp(el, .3), sh.lerp(el, .7), el+(el-sh).normalized()*.01]
-        upper.tube(path, [.06, .088, .082, .072, .068], lambda r: "broderie" if r == 1 else "camasa")
+        upper.tube(path, [.06, .088, .082, .072, .068], lambda r: "camasa")
         result.append((upper, arm_weights))
         lower = Part(f"Mânecă · antebraț · {side}")
         path = [el-(el-sh).normalized()*.03, el, el.lerp(wr, .5), wr.lerp(el, .1), wr+(wr-el).normalized()*.008]
-        lower.tube(path, [.066, .068, .064, .06, .056], lambda r: "broderie" if r == 3 else "camasa")
+        lower.tube(path, [.066, .068, .064, .06, .056], lambda r: "camasa")
         result.append((lower, arm_weights))
 
         hand = Part(f"Palmă · {side}")
@@ -438,7 +378,134 @@ def build_mesh(part, weights, rig, collection, ink=.011):
     return obj
 
 
-def build_character(collection):
+def skirt_radius(z):
+    rows = sorted(SKIRT)
+    if z <= rows[0][0]:
+        return rows[0][1:]
+    for (za, xa, ya), (zb, xb, yb) in zip(rows, rows[1:]):
+        if za <= z <= zb:
+            k = (z-za)/(zb-za)
+            return xa+(xb-xa)*k, ya+(yb-ya)*k
+    return rows[-1][1:]
+
+
+def build_decal(name, wrapped, faces, colors, weights, rig, collection):
+    """A wrapped 2D drawing, skinned like the surface under it, every face turned outwards."""
+    points, outward = wrapped
+    bm = bmesh.new()
+    deform = bm.verts.layers.deform.verify()
+    names = [bone.name for bone in rig.data.bones]
+    verts = [bm.verts.new(point) for point in points]
+    for point, vert in zip(points, verts):
+        w = weights(Vector(point))
+        total = sum(w.values())
+        for bone, value in w.items():
+            if value > 1e-4:
+                vert[deform][names.index(bone)] = value/total
+    keys = sorted(set(colors))
+    for face, colour in zip(faces, colors):
+        try:
+            f = bm.faces.new([verts[i] for i in face])
+        except ValueError:
+            continue
+        f.material_index = keys.index(colour)
+        # Pieces drawn mirrored in 2D (the three-quarter head) arrive with reversed winding.
+        f.normal_update()
+        if f.normal.dot(sum((outward[v.index] for v in f.verts), Vector())) < 0:
+            f.normal_flip()
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    for key in keys:
+        mesh.materials.append(material("2D "+key, key, cull=False))
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    for bone in names:
+        obj.vertex_groups.new(name=bone)
+    obj.parent = rig
+    obj.modifiers.new("Schelet", "ARMATURE").object = rig
+    obj["volum_ink"] = -1
+    obj["volum_desen"] = True
+    return obj
+
+
+def drawn_parts(rig, collection, weights):
+    """The episode's 2D head and clothes, wrapped onto the volumes (see desen.py)."""
+    import desen
+    _, drawings, _ = desen.episode_mother()
+
+    def gather(names):
+        """Pieces stacked as in the 2D drawing: the lowest drawing depth first."""
+        points, faces, colors, offsets = [], [], [], []
+        stack = sorted(names, key=lambda name: drawings[name]["depth"])
+        for name in names:
+            p, f, c, o = desen.refined(drawings[name], stack.index(name))
+            base = len(points)
+            points += p
+            faces += [tuple(base+i for i in face) for face in f]
+            colors += c
+            offsets += o
+        return points, faces, colors, offsets
+
+    objects = []
+    head = ["Hair silhouette", "Face", "Ears", "Nose", "Brow · R", "Brow · L", "Front hair",
+            "Eye open · R", "Eye open · L", "Mouth rest"]
+    points, faces, colors, offsets = gather(head)
+    # The whole drawing, scarf included, fits on the front of the head: seen from the
+    # front it is the 2D head; the scarf's tail and the hair continue round the sides.
+    wrapped = desen.on_head(points, offsets, Vector((-.02, 2.53)), Vector((1.0, 1.0)), HEAD_CENTER, HEAD_RADII)
+    objects.append(build_decal("Desen · cap", wrapped, faces, colors, weights["Cap"], rig, collection))
+
+    # Shirt panels and the waist with the sash; below the sash the tunic lies on the skirt.
+    points, faces, colors, offsets = gather(["Lower tunic and waist", "Shirt and clothing panels"])
+
+    def body_radius(z):
+        if z >= .985:
+            return torso_radius(z)
+        rx, ry = skirt_radius(z)
+        return rx+.006, ry+.006
+    height = lambda y: .985+(y-.42)*.341
+    widths = desen.half_widths(points, centre=0.)
+    wrapped = desen.on_body(points, offsets, height, body_radius, widths)
+    shirt = lambda p: weights["Cămașă și brâu"](p) if p.z >= .98 else weights["Fustă"](p)
+    objects.append(build_decal("Desen · cămașă și brâu", wrapped, faces, colors, shirt, rig, collection))
+    # The tunic and the sash go round the back; the collar and chest embroidery do not.
+    points, faces, colors, offsets = gather(["Lower tunic and waist"])
+    wrapped = desen.on_body(points, offsets, height, body_radius, widths, back=True)
+    objects.append(build_decal("Desen · brâu la spate", wrapped, faces, colors, shirt, rig, collection))
+
+    points, faces, colors, offsets = gather(["Skirt"])
+    wrapped, faces, colors = desen.all_round(desen.on_body, points, offsets, faces, colors,
+                                             lambda y: .36+(y+1.657)*.308, skirt_radius,
+                                             desen.half_widths(points, centre=0.))
+    objects.append(build_decal("Desen · fustă", wrapped, faces, colors, weights["Fustă"], rig, collection))
+
+    for side in ("L", "R"):
+        sh, el, wr = (bone_vec(f"upper_arm.{side}"), bone_vec(f"forearm.{side}"), bone_vec(f"hand.{side}"))
+        tube = desen.polyline([sh, sh.lerp(el, .3), sh.lerp(el, .7), el, el.lerp(wr, .5), wr],
+                              [.088, .082, .072, .068, .064, .058])
+        names = [f"Mânecă continuă · {side}", f"Cusătură la manșetă · {side}", f"Broderie pe braț · {side}"]
+        points, faces, colors, offsets = gather(names)
+        outline = desen.refined(drawings[names[0]])[0]
+        wrapped, faces, colors = desen.all_round(desen.on_tube, points, offsets, faces, colors,
+                                                 lambda y: (1.455-y)/1.552, tube, desen.half_widths(outline))
+        objects.append(build_decal(f"Desen · mânecă · {side}", wrapped, faces, colors,
+                                   weights[f"Mânecă · braț · {side}"], rig, collection))
+
+        knee, ankle = bone_vec(f"shin.{side}"), bone_vec(f"foot.{side}")
+        tube = desen.polyline([knee, ankle+Vector((0, 0, .015))], [.056, .043])
+        points, faces, colors, offsets = gather([f"Linen wraps · {side}"])
+        wrapped, faces, colors = desen.all_round(desen.on_tube, points, offsets, faces, colors,
+                                                 lambda y: (-.844-y)/.85, tube, desen.half_widths(points))
+        objects.append(build_decal(f"Desen · obiele · {side}", wrapped, faces, colors,
+                                   weights[f"Picior · {side}"], rig, collection))
+    return objects
+
+
+def build_character(collection, drawn=True):
     rig = build_armature(collection)
-    objects = [build_mesh(part, weights, rig, collection) for part, weights in parts()]
-    return rig, objects
+    pieces = parts()
+    weights = {part.name: w for part, w in pieces}
+    objects = [build_mesh(part, w, rig, collection) for part, w in pieces]
+    decals = drawn_parts(rig, collection, weights) if drawn else []
+    return rig, objects, decals

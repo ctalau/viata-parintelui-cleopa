@@ -49,7 +49,7 @@ blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --pyth
 
 ## Corp volumetric
 
-`/volum/` arată Mama cu tot corpul în 3D, pe un drum de sat, în șapte teste de stres. Testele cuprind mersul spre cameră, mersul din profil, întoarcerea pe loc, semnul crucii, atingerile și brațele încrucișate, aplecarea după găleată și brațele deasupra capului. Ultima probă are două personaje care se întâlnesc. „Drumul la troiță” le montează ca episod de probă. Blender verifică alunecarea tălpilor, distanța degetelor la fiecare contact și intersecțiile dintre piese. Raportul apare lângă fiecare test. Vezi [fișa experimentului](experiments/cleopa-volum/README.md).
+`/volum/` arată Mama cu tot corpul în 3D, pe un drum de sat. Capul este o sferă pe care este lipit desenul 2D al capului din episod. Hainele poartă aceleași desene ca în 2D, înfășurate pe volume, în șapte teste de stres. Testele cuprind mersul spre cameră, mersul din profil, întoarcerea pe loc, semnul crucii, atingerile și brațele încrucișate, aplecarea după găleată și brațele deasupra capului. Ultima probă are două personaje care se întâlnesc. „Drumul la troiță” le montează ca episod de probă. Blender verifică alunecarea tălpilor, distanța degetelor la fiecare contact și intersecțiile dintre piese. Raportul apare lângă fiecare test. Vezi [fișa experimentului](experiments/cleopa-volum/README.md).
 
 ## Filmul în Three.js și foi de cadre
 
