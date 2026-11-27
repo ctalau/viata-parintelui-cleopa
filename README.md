@@ -44,18 +44,31 @@ Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese 
 
 ## Brațe și palme 2.5D în film
 
-În episod, Mama are brațele și palmele 2.5D din [specificație](experiments/cleopa-palme/SPECIFICATIE.md). Coregrafia rămâne cea regizată, iar oasele 2D primesc unghiul și scurtarea segmentelor proiectate ale unui IK 3D cu lungimi fixe. Palma este desenată plat din volumele proxy-ului (C), cu contur, umbre, unghii și liniile palmei. În pozele ținute, desenul de autor (A) se ancorează la punctul de contact. Tava, obrazul și colțul baticului sunt contacte: încheietura se calculează din vârful degetelor. Mâneca rămâne plasa episodului, în două piese suprapuse la cot, ca să nu se plieze. Palmele sunt coapte în shape keys, deci filmul MP4 și playerul Three.js arată aceeași geometrie. `verify_episode.py` verifică lungimile, contactele, ordinea pieselor, pliurile, repausul, lateralitatea și trecerile C ↔ A.
+În episod, Mama are brațele și palmele 2.5D din [specificație](experiments/cleopa-palme/SPECIFICATIE.md). Coregrafia rămâne cea regizată, iar oasele 2D primesc unghiul și scurtarea segmentelor proiectate ale unui IK 3D cu lungimi fixe. Palma este desenată plat din volumele proxy-ului (C), cu contur, umbre, unghii și liniile palmei. În pozele ținute, desenul de autor (A) se ancorează la punctul de contact. Tava, obrazul și colțul baticului sunt contacte: încheietura se calculează din vârful degetelor. Mâneca e o singură bucată de la umăr la manșetă, rigidă pe braț și pe antebraț; `maneci_bake.py` rotunjește cotul pe fiecare desen (arc în exterior, pliu în interior, antebrațul pliat peste braț la îndoiri strânse). Între pozele regizate brațul se mișcă în unghiurile articulațiilor (umăr, cot, încheietură), nu în linie dreaptă: mâna merge pe arc, segmentele își păstrează lungimea și cotul nu sare dintr-o parte în alta. Palmele sunt coapte în shape keys, deci filmul MP4 și playerul Three.js arată aceeași geometrie. `verify_episode.py` verifică lungimile, contactele, ordinea pieselor, pliurile, repausul, lateralitatea și trecerile C ↔ A.
 
 ```bash
 cd experiments/cleopa-painea
 blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/palme25d_bake.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/maneci_bake.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/export_web_episode.py
 ```
 
 ## Corp volumetric
 
 `/volum/` arată Mama cu tot corpul în 3D, pe un drum de sat. Capul este o sferă pe care este lipit desenul 2D al capului din episod. Hainele poartă aceleași desene ca în 2D, înfășurate pe volume, în șapte teste de stres. Testele cuprind mersul spre cameră, mersul din profil, întoarcerea pe loc, semnul crucii, atingerile și brațele încrucișate, aplecarea după găleată și brațele deasupra capului. Ultima probă are două personaje care se întâlnesc. „Drumul la troiță” le montează ca episod de probă. Blender verifică alunecarea tălpilor, distanța degetelor la fiecare contact și intersecțiile dintre piese. Raportul apare lângă fiecare test. Vezi [fișa experimentului](experiments/cleopa-volum/README.md).
+
+## Cadre rapide (three.js + GLB)
+
+`npm run cadru` arată orice cadru al episodului în câteva secunde, fără randarea Blender. Blender doar evaluează cadrele cerute și le exportă ca GLB-uri (`cadru_export.py`: desenele vizibile ale planului în coordonatele lumii, materiale neluminate, decorurile ca texturi externe). Three.js le asamblează și le randează în Chromium fără ecran, ca `npm run still` din lego-shorts. Rezultatul este `experiments/cleopa-painea/renders/cadre/foaie.jpg`: fiecare cadru etichetat (număr · plan · timp), apoi zoom pe brațele fiecărui personaj sau, cu `--maini`, pe fiecare mână cu manșeta. Cadrele întregi sunt în `cadru-NNNN.png`.
+
+```bash
+npm run cadru -- 1263 3301                     # scena salvată, ~5 s
+npm run cadru -- 2590-2610:5 --build --maini   # după o schimbare în coregrafie, ~30 s
+npm run cadru -- 3301 --coace --zoom Tata      # coacere parțială fără build; zoom doar pe Tata
+```
+
+`--build` reface scena (`build_episode.py`). Apoi palmele și mânecile se coc doar în jurul cadrelor cerute (±24 de cadre), într-o copie din `.cadru/`. Lanțul complet durează ~16 minute, iar ciclul acesta ~30 de secunde. Copia e marcată `coacere_partiala`, iar `verify_episode.py` și exportul playerului o refuză. Înainte de commit, rulează lanțul complet din README-ul episodului.
 
 ## Filmul în Three.js și foi de cadre
 

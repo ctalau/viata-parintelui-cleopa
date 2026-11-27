@@ -12,3 +12,5 @@ __pycache__/
 .runpod/
 costs/
 experiments/cleopa-painea/renders/frames/
+.cadru/
+experiments/cleopa-painea/renders/cadre/

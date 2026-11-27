@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Cadre</title>
+<style>html,body{margin:0;background:#222}</style>
+<script type="importmap">
+{"imports": {"three": "/three/build/three.module.js", "three/addons/": "/three/examples/jsm/"}}
+</script>
+<script type="module">
+// Asamblează în three.js cadrele exportate de `cadru_export.py` (un GLB pe cadru) și compune
+// foaia de cadre: fiecare cadru etichetat (număr · plan · timp), apoi zoom pe brațele
+// personajelor. Folosit de `tools/cadru.mjs`; window.foaie(…) întoarce PNG-uri în base64.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const loader = new GLTFLoader();
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setClearColor('#292929');
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+async function frame(id, width) {
+  const meta = await (await fetch(`/cadru/${id}.json`)).json();
+  const gltf = await loader.loadAsync(`/cadru/${id}.glb`);
+  const [x, y, z, w] = meta.camera;
+  const camera = new THREE.OrthographicCamera(-w/2, w/2, w*9/32, -w*9/32, .1, 100);
+  camera.position.set(x, y, z);
+  const height = Math.round(width*9/16);
+  renderer.setSize(width, height, false);
+  renderer.render(gltf.scene, camera);
+  const image = document.createElement('canvas');
+  image.width = width; image.height = height;
+  image.getContext('2d').drawImage(renderer.domElement, 0, 0);
+  gltf.scene.traverse((node) => { node.geometry?.dispose(); });
+  return { meta, image };
+}
+
+function label(ctx, text, x, y) {
+  ctx.font = 'bold 20px sans-serif';
+  const w = ctx.measureText(text).width;
+  ctx.fillStyle = 'rgba(0,0,0,.72)';
+  ctx.fillRect(x, y, w+16, 30);
+  ctx.fillStyle = '#fff';
+  ctx.fillText(text, x+8, y+22);
+}
+
+const time = (t) => `${Math.floor(t/60)}:${(t%60).toFixed(1).padStart(4, '0')}`;
+
+window.foaie = async ({ ids, width, zoom, only }) => {
+  const frames = [];
+  // Randat la dublu: foaia îl micșorează, zoom-ul pe brațe decupează din imaginea mare.
+  for (const id of ids) frames.push(await frame(id, width*2));
+  const singles = frames.map(({ image }) => image.toDataURL('image/png').split(',')[1]);
+  // Zoom: brațele fiecărui personaj (sau doar cele cerute), mărite cât încape în 360 px.
+  const zooms = [];
+  if (zoom) for (const { meta, image } of frames) for (const actor of meta.actors) {
+    if (only.length && !only.some((name) => actor.name.includes(name))) continue;
+    // `maini`: câte un zoom pe fiecare mână cu manșeta; altfel pe ambele brațe.
+    const boxes = zoom === 'maini' ? Object.entries(actor.hands).map(([side, box]) => [box, ` ${side}`, .025])
+      : [[actor.arms, '', .04]];
+    for (const [[u0, v0, u1, v1], suffix, pad] of boxes) {
+    const sx = Math.max(0, (u0-pad)*image.width), sy = Math.max(0, (v0-pad*1.6)*image.height);
+    const sw = Math.min(image.width, (u1+pad)*image.width)-sx, sh = Math.min(image.height, (v1+pad*1.6)*image.height)-sy;
+    if (sw < 8 || sh < 8) continue;
+    zooms.push({ image, sx, sy, sw, sh, text: `${meta.frame} · ${actor.name}${suffix}` });
+    }
+  }
+  const columns = Math.min(2, frames.length);
+  const rows = Math.ceil(frames.length/columns);
+  const tile = 380, perRow = Math.max(1, Math.floor(columns*width/tile));
+  const zoomRows = Math.ceil(zooms.length/perRow);
+  const sheet = document.createElement('canvas');
+  sheet.width = columns*width;
+  sheet.height = rows*Math.round(width*9/16)+zoomRows*tile;
+  const ctx = sheet.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, sheet.width, sheet.height);
+  const frameHeight = Math.round(width*9/16);
+  frames.forEach(({ meta, image }, i) => {
+    const x = (i%columns)*width, y = Math.floor(i/columns)*frameHeight;
+    ctx.drawImage(image, x, y, width, frameHeight);
+    label(ctx, `${meta.frame} · ${meta.shot} · ${time(meta.time)}${meta.partial ? ' · coacere parțială' : ''}`, x+6, y+6);
+  });
+  zooms.forEach((z, i) => {
+    const x = (i%perRow)*tile, y = rows*Math.round(width*9/16)+Math.floor(i/perRow)*tile;
+    const k = Math.min(tile/z.sw, (tile-4)/z.sh);
+    ctx.drawImage(z.image, z.sx, z.sy, z.sw, z.sh, x+(tile-z.sw*k)/2, y+(tile-z.sh*k)/2, z.sw*k, z.sh*k);
+    ctx.strokeStyle = '#ddd'; ctx.strokeRect(x+.5, y+.5, tile-1, tile-1);
+    label(ctx, z.text, x+4, y+4);
+  });
+  return { singles, sheet: sheet.toDataURL('image/jpeg', .9).split(',')[1] };
+};
+window.gata = true;
+</script>

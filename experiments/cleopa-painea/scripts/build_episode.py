@@ -1,6 +1,6 @@
 """Build the illustrated episode as one editable Blender timeline."""
 from array import array
-from math import cos, pi, radians, sin, tau
+from math import asin, atan2, cos, pi, radians, sin, tau
 from pathlib import Path
 import json
 import sys
@@ -149,20 +149,154 @@ def smooth(t):
     return t*t*t*(t*(6*t-15)+10)
 
 
-def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_first=False, palm=None):
-    p,rig=a["p"],a["rig"]
-    prev=None
-    for index,(first,second) in enumerate(zip(waypoints,waypoints[1:])):
-        fa,pa,da=first
-        fb,pb,db=second
-        for frame in range(fa+(index>0 or skip_first),fb+1):
-            t=smooth((frame-fa)/max(1,fb-fa))
-            point=Vector(pa).lerp(Vector(pb),t)
-            direction=Vector(da).lerp(Vector(db),t)
+def _curve_value(rig, path, index, frame, default=0.):
+    curve = next((c for c in channels(rig, rig.animation_data.action)
+                  if c.data_path == path and c.array_index == index), None)
+    return curve.evaluate(frame) if curve else default
+
+
+def arm_pose(a, side, frame):
+    """The keyed arm at `frame` as joint values: the angles of the three bones, and with
+    2.5D arms the elevation (toward the camera) of the upper arm and forearm."""
+    p, rig = a["p"], a["rig"]
+    get = lambda bone, attr, i: _curve_value(rig, f'pose.bones["{bone}.{side}"].{attr}', i, frame)
+    pose = {"a": get("upper_arm", "rotation_euler", 2), "b": get("forearm", "rotation_euler", 2),
+            "c": get("hand", "rotation_euler", 2),
+            "su": get("upper_arm", "scale", 1), "sf": get("forearm", "scale", 1)}
+    if p.get("palme25d"):
+        hand = f'pose.bones["hand.{side}"]'
+        depth = _curve_value(rig, hand+'["p25_depth"]', 0, frame)
+        elbow = tuple(_curve_value(rig, hand+'["p25_elbow"]', i, frame) for i in range(3))
+        sign = palme25d.side_sign(side)
+        S = Vector((sign*p["shoulder_x"], p["shoulder_y"]))
+        E = S+p["upper"]*pose["su"]*Vector((sin(pose["a"]), -cos(pose["a"])))
+        fore = pose["a"]+pose["b"]
+        W = E+p["lower"]*pose["sf"]*Vector((sin(fore), -cos(fore)))
+        pts = palme25d.arm_points(p, side, (W.x, W.y), depth, exact=elbow if any(elbow) else None)
+        clamp = lambda v: max(-1., min(1., v))
+        pose["eu"] = asin(clamp(pts["E"][2]/p["upper"]))
+        pose["ef"] = asin(clamp((pts["W"][2]-pts["E"][2])/p["lower"]))
+    return pose
+
+
+def _monotone(frames, values):
+    """Tangents of a monotone cubic through the waypoints: zero at the ends, at holds and at
+    turning points (no overshoot), so a gesture passes through its middle poses without stopping."""
+    n = len(values)
+    slopes = [(values[i+1]-values[i])/max(1, frames[i+1]-frames[i]) for i in range(n-1)]
+    tangents = [0.]*n
+    for i in range(1, n-1):
+        s0, s1 = slopes[i-1], slopes[i]
+        if s0*s1 > 0:
+            tangents[i] = 2/(1/s0+1/s1)
+    return tangents
+
+
+def _hermite(f0, f1, v0, v1, m0, m1, frame):
+    h = f1-f0
+    t = (frame-f0)/h
+    t2, t3 = t*t, t*t*t
+    return (2*t3-3*t2+1)*v0+(t3-2*t2+t)*h*m0+(-2*t3+3*t2)*v1+(t3-t2)*h*m1
+
+
+def key_arm_pose(a, side, frame, pose, palm=None, wrist_limit=None):
+    """Key an arm from joint values (forward kinematics). 2.5D arms go through the same
+    projected IK as `arm_key` (`palme25d.arm_points` with the keyed elbow), so the bones, the
+    keyed depth and the baked 2.5D hand agree exactly."""
+    import animate_prayer
+    p, rig = a["p"], a["rig"]
+    rotations = [pose["a"], pose["b"], pose["c"]]
+    scales = [pose["su"], pose["sf"]]
+    if p.get("palme25d"):
+        sign = palme25d.side_sign(side)
+        S = Vector((sign*p["shoulder_x"], p["shoulder_y"], 0))
+        fore = pose["a"]+pose["b"]
+        E = S+p["upper"]*Vector((sin(pose["a"])*cos(pose["eu"]), -cos(pose["a"])*cos(pose["eu"]), sin(pose["eu"])))
+        W = E+p["lower"]*Vector((sin(fore)*cos(pose["ef"]), -cos(fore)*cos(pose["ef"]), sin(pose["ef"])))
+        mirror = Vector((-sign, 1, 1))     # right-hand space of palme25d
+        elbow = tuple((E-S)*mirror)
+        pts = palme25d.arm_points(p, side, (W.x, W.y), W.z, exact=elbow)
+        upper = Vector(pts["E"][:2])-Vector(pts["S"][:2])
+        lower = Vector(pts["W"][:2])-Vector(pts["E"][:2])
+        a0 = palme25d.lift_angle(pose["a"], atan2(upper.x, -upper.y))
+        b0 = palme25d.lift_angle(pose["a"]+pose["b"], atan2(lower.x, -lower.y))
+        rotations = [a0, b0-a0, pose["a"]+pose["b"]+pose["c"]-b0]
+        scales = [upper.length/p["upper"], lower.length/p["lower"]]
+        hand = rig.pose.bones["hand."+side]
+        hand["p25_depth"] = pts["W"][2]
+        hand["p25_elbow"] = tuple(pts["elbow"])
+        hand["p25_palm"] = tuple(palm) if palm is not None else (0., 0., 0.)
+        hand["p25_held"] = 0
+        for name in ("p25_depth", "p25_elbow", "p25_palm", "p25_held"):
+            hand.keyframe_insert(f'["{name}"]', frame=frame, group="Arm "+side)
+        animate_prayer._DEPTHS[rig.name, side] = (frame, pts["W"][2])
+        animate_prayer._ELBOWS.setdefault((rig.name, side), {})[frame] = pts["elbow"]
+    limit = p.get("wrist_limit") if wrist_limit is None else wrist_limit
+    if limit is not None:
+        bend = palme25d.lift_angle(0, rotations[2])
+        rotations[2] += max(-limit, min(limit, bend))-bend
+    for i, name in enumerate(("upper_arm", "forearm", "hand")):
+        bone = rig.pose.bones[name+"."+side]
+        bone.rotation_euler.z = rotations[i]
+        bone.keyframe_insert("rotation_euler", index=2, frame=frame, group="Arm "+side)
+        if i < 2:
+            bone.scale.y = scales[i]
+            bone.keyframe_insert("scale", index=1, frame=frame, group="Arm "+side)
+
+
+def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_first=False, palm=None,
+         keep_last=False):
+    """An arm gesture through waypoints (frame, wrist, hand direction).
+
+    Each waypoint is solved once with IK. Between them the arm moves like a jointed arm,
+    not like a point dragged in a straight line: the shoulder, elbow and wrist angles (and
+    with 2.5D arms how much each segment comes toward the camera) are interpolated with a
+    monotone cubic. So the hand travels on an arc, the segments keep their length, the elbow
+    never flips to the other side, and a gesture flows through its middle waypoints instead
+    of stopping at each one (the joint-space blending of the lego-shorts clips).
+    `skip_first` / `keep_last`: that end is already keyed (a contact) and is only read."""
+    p, rig = a["p"], a["rig"]
+    frames, poses = [], []
+    previous = None
+    for index, (frame, point, direction) in enumerate(waypoints):
+        if frames and frame <= frames[-1]:
+            continue
+        if not (index == 0 and skip_first) and not (index == len(waypoints)-1 and keep_last):
+            point = Vector(point)
             if world:
                 bpy.context.scene.frame_set(frame)
-                point=(point-Vector((rig.location.x,rig.location.y)))/a["size"]
-            prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit,palm=palm)
+                point = (point-Vector((rig.location.x, rig.location.y)))/a["size"]
+            previous = arm_key(rig, p, side, frame, point, direction, previous,
+                               seated=seated, wrist_limit=wrist_limit, palm=palm, continuity=False)
+        pose = arm_pose(a, side, frame)
+        if poses:
+            # The shorter way round for every angle, from the previous waypoint; the waypoint
+            # is re-keyed with these turns, so no angle jumps by a full turn at a waypoint
+            # (`stabilize_wrists` would spread such a jump into a visible spin of the hand).
+            # The wrist blends relative to the forearm (as the joints of a clip do): it stays
+            # within its limit, so it never spins; blending the palm's direction on screen
+            # turned it the long way round when the forearm unfolded from the cheek.
+            for name in ("a", "b", "c"):
+                pose[name] = palme25d.lift_angle(poses[-1][name], pose[name])
+            if not (index == len(waypoints)-1 and keep_last):
+                for bone, value in (("upper_arm", pose["a"]), ("forearm", pose["b"]),
+                                    ("hand", pose["c"])):
+                    pose_bone = rig.pose.bones[bone+"."+side]
+                    pose_bone.rotation_euler.z = value
+                    pose_bone.keyframe_insert("rotation_euler", index=2, frame=frame, group="Arm "+side)
+        frames.append(frame)
+        poses.append(pose)
+        previous = (pose["a"], pose["b"], pose["c"])
+    if len(poses) < 2:
+        return
+    names = list(poses[0])
+    tangents = {name: _monotone(frames, [pose[name] for pose in poses]) for name in names}
+    for i in range(len(frames)-1):
+        f0, f1 = frames[i], frames[i+1]
+        for frame in range(f0+1, f1):
+            pose = {name: _hermite(f0, f1, poses[i][name], poses[i+1][name],
+                                   tangents[name][i], tangents[name][i+1], frame) for name in names}
+            key_arm_pose(a, side, frame, pose, palm, wrist_limit)
 
 
 def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wrist_limit=None, held=0):
@@ -490,10 +624,12 @@ def animate_yard(coll):
                        (line["start"]+12,(-.12,1.00),(.83,.55)),
                        (line["end"]-8,(-.12,1.00),(.83,.55)),
                        (end+15,r,(.03,-1))])
-    arms(brother,"L",[(m0,(.64,.61),(-.96,.24)),(end,(.64,.61),(-.96,.24))],True)
+    # The book rests on the cupped hand under its lower edge (a fist clenched on the cover
+    # read as a punch).
+    arms(brother,"L",[(m0,(.62,.42),(-.96,.24)),(end,(.62,.42),(-.96,.24))],True)
     prop_book(brother)
     blink(brother["rig"],beat_frame("mihai",.57))
-    hand_pose(brother,"L",m0,"grip")
+    hand_pose(brother,"L",m0,"cup")
     hand_pose(brother,"R",line["start"]-4,"open")
     hand_pose(brother,"R",line["end"]+6,"rest")
     voice(brother,cues("mihai","mihai"))
@@ -616,8 +752,8 @@ def animate_kitchen(coll):
     prop(child["rig"],"mouth_pose",BEATS["intai"]["cues"][-1]["start"]+18,4)
     prop(child["rig"],"mouth_pose",end-24,0)
 
-    arms(brother,"L",[(begin,(.47,.61),(-.96,.21)),(end,(.47,.61),(-.96,.21))],True)
-    hand_pose(brother,"L",begin,"grip")
+    arms(brother,"L",[(begin,(.45,.36),(-.96,.21)),(end,(.45,.36),(-.96,.21))],True)
+    hand_pose(brother,"L",begin,"cup")
     blink(brother["rig"],invite["end"]-17)
     for f,tilt in ((begin,.014),(invite["end"],.08),(stop,-.095),(end,.06)):
         head(brother["rig"],f,.02,tilt)
@@ -635,7 +771,9 @@ def animate_kitchen(coll):
                       (warns["end"]+5,(-.71,.541),(.944,-.329)),
                       (BEATS["intai"]["start"]+14,ra,(.03,-1)),(end,ra,(.03,-1))])
     hand_pose(father,"R",warns["start"]+9,"stop")
-    hand_pose(father,"R",warns["end"]+8,"rest")
+    # The palm turns back to rest while the hand is still level: the joint-space path lowers it
+    # sooner, and a palm still facing the camera with the fingers down shows the thumb inside.
+    hand_pose(father,"R",warns["end"]+3,"rest")
     for f,bow,tilt in ((door,0,-.04),(arrival,.06,.10),(warns["start"],0,.07),(end,.04,.08)):
         head(father["rig"],f,bow,tilt)
     voice(father,cues("prag","tata")+cues("intai","tata"))
@@ -803,16 +941,17 @@ def kitchen_replies(mother, child, brother, father, start):
 
     first = range(lesson_reaction+10,ask["start"]-2)
     second = range(laugh+12,prayer_start)
+    # The contacts are keyed first; each approach then ends exactly in the contact pose.
+    left = contact_hold(mother,"R",first,cheek_at,toward,"cheek",palm,wrist_limit)
+    contact_hold(mother,"R",second,cheek_at,toward,"cheek",palm,wrist_limit)
     arms(mother,"R",[
         (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
         (first[0],touch(first[0]),toward),
-    ],wrist_limit=wrist_limit,palm=palm)
-    left = contact_hold(mother,"R",first,cheek_at,toward,"cheek",palm,wrist_limit)
+    ],wrist_limit=wrist_limit,palm=palm,keep_last=True)
     arms(mother,"R",[
-        (first[-1],tuple(left),toward),(ask["start"]+29,rest,(0,-1)),
+        (first[-1],tuple(left),toward),(ask["start"]+34,rest,(0,-1)),
         (laugh-26,rest,(0,-1)),(second[0],touch(second[0]),toward),
-    ],wrist_limit=wrist_limit,skip_first=True,palm=palm)
-    contact_hold(mother,"R",second,cheek_at,toward,"cheek",palm,wrist_limit)
+    ],wrist_limit=wrist_limit,skip_first=True,palm=palm,keep_last=True)
     for f, pose_ in ((lesson_reaction+5,"cheek"),(ask["start"]+12,"rest"),(laugh+8,"cheek")):
         hand_pose(mother,"R",f,pose_)
     scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
@@ -882,12 +1021,16 @@ def second_icon(coll,start,end):
 
 def prayer_tableau(coll,start,end):
     second_icon(coll,start,end+1)
-    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1,interior=True)
+    # 2.5D arms: the forearms come toward the camera, so the elbows stay down by the body.
+    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1,interior=True,palme=True)
     mother = actor(coll,"mother","Mama · rugăciune",(-1.24,-2.43,1.49),1.13,look=-1,interior=True)
     brother = actor(coll,"brother_01","Mihai · rugăciune",(1.00,-2.48,1.35),1.10,look=-1,interior=True)
     child = actor(coll,"cleopa","Costică · rugăciune",(3.23,-2.49,1.56),1.09,look=-1,interior=True)
     short_beard(father)
-    book = Art("Carte de rugăciuni deschisă",father["collection"],(-.21,.93),(1,1),z=.62)
+    # The book is held in front of the chest, in front of the hands: the palms support it from
+    # below at its lower corners and the elbows stay down by the body (with the hands above it,
+    # clenched over the pages, the forearms crossed the chest).
+    book = Art("Carte de rugăciuni deschisă",father["collection"],(-.06,.90),(1,1),z=.72)
     book.shape("M -.78 .22 Q -.40 .35 0 .14 Q .40 .35 .78 .22 L .70 -.30 Q .35 -.22 0 -.38 Q -.35 -.22 -.70 -.30 Z",
                "784e40","54372c",.050)
     book.shape("M -.72 .25 Q -.35 .35 0 .16 Q .35 .35 .72 .25 L .65 -.24 Q .29 -.17 0 -.34 Q -.29 -.17 -.65 -.24 Z",
@@ -897,9 +1040,11 @@ def prayer_tableau(coll,start,end):
         for y in (-.14,-.045,.05,.14):
             book.line([(x*.13,y),(x*.36,y+.07),(x*.55,y+.073)],"b38d66",.013)
     bind(book.finish(),father["rig"],"chest")
-    for side,wrist,direction in (("L",(.44,.68),(-.69,.72)),("R",(-.84,.86),(.85,.52))):
-        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180)
-        hand_pose(father,side,start,"cup")
+    # Palms up under the lower edge, fingers pointing inward along it (with the fingers up and
+    # the palms toward the chest, the hands looked like they pushed the book, not held it).
+    for side,wrist,direction in (("L",(.68,.50),(-.97,.24)),("R",(-.82,.50),(.97,.24))):
+        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,1,0))
+        hand_pose(father,side,start,"open")
     choir = BEATS["la-icoane"]["cues"][-1]
     for index, a in enumerate((father,mother,brother,child)):
         rig = a["rig"]

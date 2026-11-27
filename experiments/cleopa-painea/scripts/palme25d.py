@@ -150,18 +150,32 @@ def hand_quat(direction, palm):
 
 
 # --- IK cu două oase de lungime fixă ----------------------------------------
-def two_bone(root, target, l1, l2, pole):
+def two_bone(root, target, l1, l2, pole, prefer=None, exact=None):
+    """IK cu două oase. Cotul stă pe cercul posibil, spre `pole`.
+
+    `prefer`: direcția cotului la cadrul precedent; trage cotul spre ea (`CONTINUITY`),
+    ca să nu sară pe partea cealaltă când încheietura trece pe lângă umăr.
+    `exact`: direcția cheiată, pentru a reface exact aceeași soluție la verificare."""
     d = sub(target, root)
     reach = length(d)
     dist = min(max(reach, abs(l1-l2)+1e-3), l1+l2-1e-4)
     dn = norm(d)
     x = (l1*l1-l2*l2+dist*dist)/(2*dist)
     h = sqrt(max(0, l1*l1-x*x))
-    side = sub(pole, mul(dn, dot(pole, dn)))
+
+    def across(v):
+        return sub(v, mul(dn, dot(v, dn)))
+    side = across(pole)
+    if exact is not None and length(across(exact)) > 1e-6:
+        side = across(exact)
+    elif prefer is not None and length(across(prefer)) > 1e-6:
+        base = norm(side) if length(side) > 1e-6 else (0., 0., 0.)
+        side = add(base, mul(norm(across(prefer)), CONTINUITY))
     if length(side) < 1e-6:
         side = cross(dn, (0, 0, 1))
     joint = add(add(root, mul(dn, x)), mul(norm(side), h))
-    return {"joint": joint, "end": add(root, mul(dn, dist)), "miss": max(0, reach-dist)}
+    return {"joint": joint, "end": add(root, mul(dn, dist)), "miss": max(0, reach-dist),
+            "side": norm(side)}
 
 
 # --- Proporțiile mâinii ------------------------------------------------------
@@ -912,12 +926,17 @@ def flip(v):
 # pentru semnul crucii. În gesturile episodului (tava ținută aproape de piept,
 # mâna la obraz, invitația la nivelul taliei) acel pol ridică cotul la nivelul
 # umărului și brațul se desface în lateral. Polul relaxat lasă cotul să cadă pe
-# lângă corp; rămâne în afară și înapoi.
+# lângă corp; rămâne în afară și înapoi. (Cu −0,08 în loc de −0,4 brațul stătea în planul
+# desenului, dar o mână ținută aproape de corp ridica cotul în lateral, „aripă de pui”; scurtările
+# extreme, de 7–15 %, veneau din trecerile în linie dreaptă dintre poze, rezolvate acum în
+# `build_episode.arms`, care interpolează unghiurile articulațiilor.)
 POLE = (-.45, -.8, -.4)
 REACH = .997        # brațul aproape întins: talerul purtat ajunge până la 99,6 % din braț
 READABLE = .45      # proiecția fiecărui segment rămâne ≥ 45 % din lungime
 DEPTH_MAX = 1.0     # în unități de (umăr + cot)
 DEPTH_RATE = .035   # schimbarea maximă a adâncimii între două cadre, în aceeași unitate
+CONTINUITY = 4.     # cât trage cotul spre partea lui de la cadrul precedent, față de pol (1):
+                    # cotul nu mai sare dintr-o parte în alta, apoi revine lin spre pol
 
 
 def smooth(t):
@@ -930,7 +949,7 @@ def rest_wrist(profile, side):
             profile["shoulder_y"]-profile["upper"]-profile["lower"]+.085)
 
 
-def default_depth(profile, side, wrist, previous=None):
+def default_depth(profile, side, wrist, previous=None, prefer=None):
     """Adâncimea încheieturii: cea care lasă cotul cel mai jos (brațul cel mai relaxat),
     cu ambele segmente proiectate lizibile.
 
@@ -940,7 +959,7 @@ def default_depth(profile, side, wrist, previous=None):
     span = profile["upper"]+profile["lower"]
 
     def cost(depth):
-        pts = arm_points(profile, side, wrist, depth)
+        pts = arm_points(profile, side, wrist, depth, prefer)
         S, E, W = pts["S"], pts["E"], pts["W"]
         su = hypot(E[0]-S[0], E[1]-S[1])/profile["upper"]
         sf = hypot(W[0]-E[0], W[1]-E[1])/profile["lower"]
@@ -961,14 +980,15 @@ def default_depth(profile, side, wrist, previous=None):
     return depth
 
 
-def arm_points(profile, side, wrist, depth=None):
+def arm_points(profile, side, wrist, depth=None, prefer=None, exact=None):
     """Umărul, cotul și încheietura în 3D (spațiul rigului), cu lungimi fixe.
 
-    Mâna stângă se rezolvă în oglindă, ca dreapta, apoi se reflectă."""
+    Mâna stângă se rezolvă în oglindă, ca dreapta, apoi se reflectă. `prefer` / `exact`:
+    direcția cotului (spațiul mâinii drepte), vezi `two_bone`; `elbow` o întoarce."""
     s = side_sign(side)
     upper, lower = profile["upper"], profile["lower"]
     if depth is None:
-        depth = default_depth(profile, side, wrist)
+        depth = default_depth(profile, side, wrist, prefer=prefer)
     shoulder = (-profile["shoulder_x"], profile["shoulder_y"], 0.)
     w = (wrist[0]*-s, wrist[1], depth)            # în spațiul mâinii drepte
     planar = hypot(w[0]-shoulder[0], w[1]-shoulder[1])
@@ -979,11 +999,12 @@ def arm_points(profile, side, wrist, depth=None):
         w = (shoulder[0]+(w[0]-shoulder[0])*k, shoulder[1]+(w[1]-shoulder[1])*k, 0.)
     elif hypot(planar, w[2]) > reach:
         w = (w[0], w[1], sqrt(reach*reach-planar*planar))
-    arm = two_bone(shoulder, w, upper, lower, POLE)
+    arm = two_bone(shoulder, w, upper, lower, POLE, prefer, exact)
     S, E, W = shoulder, arm["joint"], arm["end"]
     if s > 0:
         S, E, W = flip(S), flip(E), flip(W)
-    return {"S": S, "E": E, "W": W, "depth": W[2], "miss": hypot(W[0]-wrist[0], W[1]-wrist[1])}
+    return {"S": S, "E": E, "W": W, "depth": W[2], "miss": hypot(W[0]-wrist[0], W[1]-wrist[1]),
+            "elbow": arm["side"]}
 
 
 def lift_angle(previous, angle):
@@ -991,10 +1012,10 @@ def lift_angle(previous, angle):
     return previous+(angle-previous+tau/2) % tau-tau/2
 
 
-def solve_arm(profile, side, wrist, hand_angle, depth=None):
+def solve_arm(profile, side, wrist, hand_angle, depth=None, prefer=None):
     """Înlocuiește partea pseudo-3D din `build_rigs.solve_arm`: oasele 2D primesc
     unghiul și scara segmentelor proiectate ale IK-ului 3D. Interfața e aceeași."""
-    pts = arm_points(profile, side, wrist, depth)
+    pts = arm_points(profile, side, wrist, depth, prefer)
     S, E, W = pts["S"], pts["E"], pts["W"]
     elbow = (E[0]-S[0], E[1]-S[1])
     fore = (W[0]-E[0], W[1]-E[1])
