@@ -84,8 +84,45 @@ def local_wrist(frame):
     return wrist-child.pose.bones["root"].matrix.translation
 
 assert (local_wrist(hold["start"])-local_wrist(hold["end"]-1)).length<.004
+VOLUMETRIC = ("Mama · bucătărie", "Mama · rugăciune")
+
+
+def verify_volumetric(beats):
+    """The Mother wears the volumetric arm: fixed segments, ink shell, wrist on the rig."""
+    for actor in VOLUMETRIC:
+        coll = bpy.data.collections[actor]
+        rig = bpy.data.objects["RIG_"+actor]
+        drawn = [obj for obj in coll.objects if obj.type == "MESH" and (
+            "Mânecă continuă" in obj.name or obj.parent_bone.startswith("hand."))]
+        assert not drawn, [obj.name for obj in drawn]
+        for side in ("R","L"):
+            parts = {kind: next(obj for obj in coll.objects if obj.name.split(".")[0] == f"{kind} · {side}")
+                     for kind in ("Mânecă volumetrică", "Palmă volumetrică")}
+            for obj in parts.values():
+                assert obj.parent == rig, obj.name
+                # In the prayer the Mother stands still, so one evaluated shape suffices.
+                if actor.endswith("bucătărie"):
+                    assert obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) > 100, obj.name
+                assert obj.get("cleopa_volumetric"), obj.name
+            hand = parts["Palmă volumetrică"]
+            for frame in (beats[5]["start"]+40, beats[6]["cues"][0]["start"]+45, beats[-1]["start"]+30):
+                if actor.endswith("rugăciune") != (frame >= beats[-1]["start"]):
+                    continue
+                scene.frame_set(frame)
+                graph = bpy.context.evaluated_depsgraph_get()
+                points = [v.co for v in hand.evaluated_get(graph).data.vertices]
+                wrist = rig.pose.bones["hand."+side].head
+                # The palm's first ring surrounds the rig's wrist in the picture.
+                ring = sum(points[:10], Vector())/10
+                assert (ring.xy-wrist.xy).length < .06, (actor, side, frame, (ring.xy-wrist.xy).length)
+                assert not hand.hide_render, (actor, side, frame)
+    print("VOLUMETRIC_OK", len(VOLUMETRIC)*2, "brațe 3D ale Mamei cu degete și contur")
+
+
 def verify_sleeves(rigs):
     for rig in rigs:
+        if rig.name[4:] in VOLUMETRIC:
+            continue
         coll = bpy.data.collections[rig.name[4:]]
         bodice = next(obj for obj in coll.objects
                       if "Shirt and clothing panels" in obj.name)
@@ -113,7 +150,7 @@ def verify_sleeves(rigs):
             assert any(any(group.group == cuff and group.weight > .95 for group in v.groups)
                        for v in sleeve.data.vertices)
             assert min(v.co.z for v in sleeve.data.vertices) < min(v.co.z for v in bodice.data.vertices)
-    print("SLEEVES_OK", len(rigs)*2, "mâneci continue de la umăr la manșetă")
+    print("SLEEVES_OK", (len(rigs)-len(VOLUMETRIC))*2, "mâneci continue de la umăr la manșetă")
 
 
 def verify_arm_length(beats):
@@ -134,7 +171,6 @@ def verify_arm_length(beats):
 
 def verify_hands(beats):
     poses = (
-        ("Mama · bucătărie","L", beats[6]["cues"][0]["start"]+45,"open"),
         ("Costică · bucătărie","R", beats[9]["start"]+30,"reach"),
         ("Tata · prag","R", beats[8]["cues"][1]["start"]+30,"stop"),
         ("Mihai · bucătărie","L", beats[8]["start"]+70,"grip"),
@@ -253,6 +289,7 @@ rigs = [obj for obj in scene.objects if obj.type=="ARMATURE"]
 verify_sleeves(rigs)
 verify_arm_length(data["beats"])
 verify_hands(data["beats"])
+verify_volumetric(data["beats"])
 verify_idle(data["beats"])
 verify_trough_and_father(data["beats"])
 verify_arms(rigs)

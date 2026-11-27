@@ -28,6 +28,21 @@ function stop() {
   play.textContent = 'Redă';
 }
 
+// The chosen gesture plays at once in both panels and starts over at the end.
+function loop() {
+  stop();
+  const first = Number(slider.value);
+  const start = performance.now();
+  const count = Number(slider.max);
+  play.textContent = 'Pauză';
+  function step(now) {
+    const frame = 1+(first-1+Math.floor((now-start)*.024)) % count;
+    if (Number(slider.value) !== frame) draw(frame);
+    tick = requestAnimationFrame(step);
+  }
+  tick = requestAnimationFrame(step);
+}
+
 function draw(frame = Number(slider.value)) {
   slider.value = frame;
   $('current-frame').textContent = `${frame} / ${slider.max}`;
@@ -86,6 +101,7 @@ async function selectGesture(id) {
     draw(1);
     $('timeline').hidden = false;
     status.hidden = true;
+    loop();
   } catch (error) {
     if (request === revision) status.textContent = 'Variantele nu s-au încărcat. Alege din nou gestul.';
     console.error(error);
@@ -123,19 +139,7 @@ async function start() {
       draw(Math.max(1, Math.min(Number(slider.max),Number(slider.value)+delta)));
     });
   }
-  play.addEventListener('click',() => {
-    if (tick !== undefined) return stop();
-    const first = Number(slider.value) === Number(slider.max) ? 1 : Number(slider.value);
-    const start = performance.now();
-    play.textContent = 'Pauză';
-    function step(now) {
-      const frame = Math.min(Number(slider.max),first+Math.floor((now-start)*.024));
-      if (Number(slider.value) !== frame) draw(frame);
-      if (frame < Number(slider.max)) tick = requestAnimationFrame(step);
-      else stop();
-    }
-    tick = requestAnimationFrame(step);
-  });
+  play.addEventListener('click',() => (tick !== undefined ? stop() : loop()));
   await selectGesture(select.value);
 }
 

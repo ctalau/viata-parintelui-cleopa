@@ -114,7 +114,9 @@ def export_shot(scene, index, marker, next_frame):
     objects = sorted((obj for obj in objects if obj.type in {"MESH", "FONT"}), key=lambda obj: obj.name)
     frames = range(marker.frame, next_frame, scene.frame_step)
     transforms = {obj: [None]*len(frames) for obj in objects}
-    deform = {obj: [None]*len(frames) for obj in objects if obj.modifiers}
+    # Armature-skinned drawings and the shape-keyed volumetric arm both deform.
+    deform = {obj: [None]*len(frames) for obj in objects
+              if obj.modifiers or (obj.type == "MESH" and obj.data.shape_keys)}
     definitions, cameras = {}, []
     pack = Packed()
     for i, frame in enumerate(frames):

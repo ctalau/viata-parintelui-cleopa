@@ -13,7 +13,9 @@
     "feedback:export": "node tools/feedback-export.mjs",
     "check:preview": "node tools/check-preview.mjs",
     "render:scene": "node tools/render-assembly.mjs",
-    "sheet": "node tools/sheet.mjs"
+    "sheet": "node tools/sheet.mjs",
+    "render:volum": "node tools/render-volum.mjs",
+    "build:volum": "blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-volum/scripts/build_volum.py && python3 experiments/cleopa-volum/scripts/foi.py"
   },
   "dependencies": {
     "@vercel/blob": "^2.9.0",

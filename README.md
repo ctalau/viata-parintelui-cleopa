@@ -29,10 +29,27 @@ Pentru producția de animație, instalează Blender 4.3.2 sau 4.5 LTS, Python 3 
 | Riguri ale familiei, veselă, casă, scenele de rugăciune și testul semnului crucii | [`experiments/cleopa-blender/`](experiments/cleopa-blender/) |
 | Teste de articulații cu Mama | [Palmă, cot și umăr](https://viata-parintelui-cleopa-seven.vercel.app/articulatii/) |
 | Asamblare de scene Three.js | [Atelierul Three.js](https://viata-parintelui-cleopa-seven.vercel.app/asamblare/) |
+| Corp complet volumetric și episodul de probă | [Corp volumetric](https://viata-parintelui-cleopa-seven.vercel.app/volum/) · [`experiments/cleopa-volum/`](experiments/cleopa-volum/) |
 | Inspector de scenă pentru mobil | [Inspectorul public](https://viata-parintelui-cleopa-seven.vercel.app/inspectie/) |
 | Instrucțiuni și skill pentru un episod | [`AGENTS.md`](AGENTS.md) · [facut-episod](.agents/skills/facut-episod/SKILL.md) |
 
 `npm run check:cleopa` rulează smoke testul Blender, verifică rigurile și filmul, inclusiv suprapunerile la fiecare cadru. `npm test` testează validarea feedbackului. Cu preview-ul pornit, `npm run check:preview` verifică în Chromium redarea, capitolele, formularul, biblioteca, afișarea pe mobil, inspectorul și asamblarea Three.js. Poți da o adresă Vercel ca argument. Adaugă `--write-feedback` pentru a testa și salvarea, cu o observație etichetată ca test. Consultă README-ul episodului pentru refacerea vocii și a muzicii prin OpenRouter și exportul cadrelor.
+
+Prima pagină are secțiunea **Ateliere**, cu legături către toate atelierele. Când alegi un test, un gest, un clip sau un plan, acesta pornește imediat și se reia în buclă. Butonul de pauză și cursorul opresc bucla.
+
+## Mama cu brațe volumetrice în film
+
+În episod, Mama poartă brațul volumetric din comparația 3D/2D, cu mâneca tubulară, palma și cele cinci degete. Rigul 2.5D păstrează coregrafia. Încheietura rămâne în același loc în imagine, așa că pâinea, baticul și traista se ating ca înainte. Mâna ridicată vine spre cameră, segmentele au lungime fixă, iar cotul atârnă relaxat. Forma se salvează ca shape keys în scenă. Un contur întunecat, ca o coajă puțin mai lată, așezată în spate, păstrează linia desenului. Filmul MP4 și playerul Three.js arată aceeași geometrie.
+
+```bash
+cd experiments/cleopa-painea
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/mama_volumetrica.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/export_web_episode.py
+```
+
+## Corp volumetric
+
+`/volum/` arată Mama cu tot corpul în 3D, pe un drum de sat, în șapte teste de stres. Testele cuprind mersul spre cameră, mersul din profil, întoarcerea pe loc, semnul crucii, atingerile și brațele încrucișate, aplecarea după găleată și brațele deasupra capului. Ultima probă are două personaje care se întâlnesc. „Drumul la troiță” le montează ca episod de probă. Blender verifică alunecarea tălpilor, distanța degetelor la fiecare contact și intersecțiile dintre piese. Raportul apare lângă fiecare test. Vezi [fișa experimentului](experiments/cleopa-volum/README.md).
 
 ## Filmul în Three.js și foi de cadre
 
