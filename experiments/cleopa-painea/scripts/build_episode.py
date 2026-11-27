@@ -35,7 +35,8 @@ FPS = TIMING["fps"]
 GOLD = "d99b51"
 COCOA = "593a2e"
 GROUND = "a48962"
-# Personajele cu brațe și palme 2.5D. Faza 1: Mama.
+# Personajele cu brațe și palme 2.5D. Faza 1: Mama (toate planurile).
+# Faza 2: Costică, Mihai și Tata în bucătărie, unde sunt momentele lor (HANDOFF §3).
 PALME25D = {"mother"}
 ZONE = {"village": 0, "yard": 33, "bed": 66, "kitchen": 99, "yard_dawn": 132}
 
@@ -508,9 +509,9 @@ def animate_kitchen(coll):
     end=BEATS["intai"]["end"]-1
     prayer_start=BEATS["la-icoane"]["start"]
     mother=actor(coll,"mother","Mama · bucătărie",(-1.72,-2.37,.08),1.22,look=1,interior=True)
-    child=actor(coll,"cleopa","Costică · bucătărie",(2.22,-2.47,1.14),1.15,interior=True)
-    brother=actor(coll,"brother_01","Mihai · bucătărie",(4.23,-2.40,.61),1.13,look=-1,interior=True)
-    father=actor(coll,"father","Tata · prag",(6.62,-2.62,1.67),1.30,look=-1,interior=True)
+    child=actor(coll,"cleopa","Costică · bucătărie",(2.22,-2.47,1.14),1.15,interior=True,palme=True)
+    brother=actor(coll,"brother_01","Mihai · bucătărie",(4.23,-2.40,.61),1.13,look=-1,interior=True,palme=True)
+    father=actor(coll,"father","Tata · prag",(6.62,-2.62,1.67),1.30,look=-1,interior=True,palme=True)
     prop_book(brother,center=.32)
     short_beard(father)
     for a in (mother, child, brother, father):

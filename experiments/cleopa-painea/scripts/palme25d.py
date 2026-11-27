@@ -603,15 +603,19 @@ def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
             "order": " ".join(g["id"] for g in groups)}
 
 
-def stable_order(groups, memory, hysteresis):
-    """Ordinea pieselor cu histerezis pe perechi (episodul).
+def stable_order(groups, memory, hysteresis, hold=3):
+    """Ordinea pieselor, fără pâlpâiri (episodul).
 
     Memoria din `hands.js` adaugă rang/n × 0,5 cm; când o articulație trece de 40°,
-    numărul de piese n se schimbă și toate decalajele se mută, iar două degete
-    aproape la aceeași adâncime se pot inversa de două ori în câteva cadre. Aici se
-    pornește de la ordinea desenului anterior, piesele noi se inserează după
-    adâncime, iar doi vecini își schimbă locul doar dacă adâncimile lor diferă cu
-    mai mult decât `hysteresis`."""
+    numărul de piese n se schimbă, toate decalajele se mută, iar două degete
+    aproape la aceeași adâncime se pot inversa de două ori în câteva cadre.
+    Aici se pornește de la ordinea desenului anterior. Doi vecini care tocmai
+    s-au inversat rămân blocați `hold` desene (o pereche nu se poate inversa de
+    două ori în 4 cadre), apoi încă `hold` desene cer o diferență peste
+    `hysteresis`. După aceea contează din nou doar adâncimea, ca o ordine veche să
+    nu rămână greșită (degetul mare în spatele palmei)."""
+    count = memory["__count__"] = memory.get("__count__", 0)+1
+    swapped = memory.setdefault("__swapped__", {})
     by_id = {g["id"]: g for g in groups}
     order = [by_id[i] for i in memory.get("__order__", []) if i in by_id]
     for g in sorted((g for g in groups if g not in order), key=lambda g: g["z"]):
@@ -619,12 +623,19 @@ def stable_order(groups, memory, hysteresis):
         while k < len(order) and order[k]["z"] <= g["z"]:
             k += 1
         order.insert(k, g)
+
+    def locked(a, b):
+        return count-swapped.get(frozenset((a["id"], b["id"])), -hold-1) <= hold
     changed = True
     while changed:
         changed = False
         for k in range(len(order)-1):
-            if order[k]["z"] > order[k+1]["z"]+hysteresis:
-                order[k], order[k+1] = order[k+1], order[k]
+            a, b = order[k], order[k+1]
+            if locked(a, b):
+                continue
+            if a["z"] > b["z"]+(hysteresis if count-swapped.get(frozenset((a["id"], b["id"])), -99) <= 2*hold else 0.):
+                order[k], order[k+1] = b, a
+                swapped[frozenset((a["id"], b["id"]))] = count
                 changed = True
     memory["__order__"] = [g["id"] for g in order]
     return order
@@ -1001,7 +1012,8 @@ def solve_arm(profile, side, wrist, hand_angle, depth=None):
 #   open  – invitația: palma în sus, puțin spre cameră, ca să se citească deschisă;
 #   cup   – ține ceva de dedesubt (tava): palma în sus și înăuntru;
 #   grip  – strânge (cartea): ca `cup`, cu degetele strânse;
-#   reach – întinde mâna spre țintă: degetele spre ea, palma în jos;
+#   reach – întinde mâna spre țintă: degetele spre ea, palma în jos și puțin
+#           dinspre cameră, ca degetele întinse să se vadă, nu doar muchia lor;
 #   stop  – semnul de oprire: degetele în sus, palma spre cameră;
 #   cheek – mâna căuș pe obraz: palma spre obraz, înăuntru și puțin înapoi.
 POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "pumn",
@@ -1016,7 +1028,7 @@ def default_palm(pose, side):
         "cup": norm(add((0, 1, 0), mul(inward, .5))),
         "grip": norm(add((0, 1, 0), mul(inward, .5))),
         "cheek": norm(add((0, 0, -.65), mul(inward, .75))),
-        "reach": (0, -1, 0),
+        "reach": norm((0, -.75, -.66)),
         "stop": (0, 0, 1),
     }[pose]
 
@@ -1051,12 +1063,15 @@ def wrist_from_tip(profile, side, tip, direction, palm, gesture):
     return flip(w) if side == "R" else w
 
 
-def hand_rig(profile, side, wrist3, q, gesture):
-    """Proxy-ul palmei la încheietura dată; mâna dreaptă e proxy-ul reflectat (vezi `orientation`)."""
+def hand_rig(profile, side, wrist3, q, gesture, offset=(0., 0.)):
+    """Proxy-ul palmei la încheietura dată; mâna dreaptă e proxy-ul reflectat (vezi `orientation`).
+
+    `offset` este deplasarea umărului față de repaus (pașii mută osul `root`)."""
     hand = hand_of(profile)
     # În spațiul proxy-ului mâna este stângă: umărul și polul sunt cei ai brațului stâng.
     pose = {"w": flip(wrist3) if side == "R" else wrist3, "q": q, "g": gesture, "pole": flip(POLE), "cam": 0}
-    shoulder = (profile["shoulder_x"], profile["shoulder_y"], 0.)
+    dx = -offset[0] if side == "R" else offset[0]
+    shoulder = (profile["shoulder_x"]+dx, profile["shoulder_y"]+offset[1], 0.)
     rig = solve(pose, hand=hand, shoulder=shoulder, upper=profile["upper"], fore=profile["lower"])
     return rig
 
@@ -1357,3 +1372,17 @@ def q_path(points, digits=3, closed=True):
     for i in range(n):
         out.append(f"Q {f(points[i][0])} {f(points[i][1])} {f(mids[i][0])} {f(mids[i][1])}")
     return " ".join(out)+" Z"
+
+
+def convex_overlap(a, b):
+    """Două poligoane convexe se suprapun (teorema axei de separare)."""
+    for poly in (a, b):
+        n = len(poly)
+        for i in range(n):
+            p, q = poly[i], poly[(i+1) % n]
+            axis = (q[1]-p[1], p[0]-q[0])
+            pa = [axis[0]*v[0]+axis[1]*v[1] for v in a]
+            pb = [axis[0]*v[0]+axis[1]*v[1] for v in b]
+            if max(pa) <= min(pb) or max(pb) <= min(pa):
+                return False
+    return True

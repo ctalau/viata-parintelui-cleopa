@@ -122,7 +122,10 @@ def hand_frame(rig, p, side, frame, state):
     direction = (bone.tail.xy-bone.head.xy).normalized()
     depth = bone.get("p25_depth", 0.)
     palm = tuple(bone.get("p25_palm", (0, 0, 0)))
-    pose = HAND_POSES[int(round(bone.get("p25_pose", 0)))]
+    # Citit din curbă: o curbă creată în aceeași sesiune (gesture_source) nu e încă
+    # evaluată de depsgraph, iar proprietatea osului ar păstra ultima valoare scrisă.
+    curve = fcurve(rig, f'pose.bones["hand.{side}"]["p25_pose"]')
+    pose = HAND_POSES[int(round(curve.evaluate(frame) if curve else bone.get("p25_pose", 0)))]
     if sum(abs(v) for v in palm) < 1e-9:
         palm = P.default_palm(pose, side)
     q_target = P.orientation((direction.x, direction.y), palm, side)
@@ -139,8 +142,13 @@ def hand_frame(rig, p, side, frame, state):
     else:
         q, g = q_target, g_target
     state["q"], state["g"] = q, g
-    arm = P.arm_points(p, side, (wrist.x, wrist.y), depth)
-    hand = P.hand_rig(p, side, arm["W"], q, g)
+    # Pașii mută osul `root`, deci și umărul: IK-ul se rezolvă față de umărul de repaus
+    # și se mută cu deplasarea lui.
+    sign = P.side_sign(side)
+    delta = rig.pose.bones["upper_arm."+side].head.xy-Vector((sign*p["shoulder_x"], p["shoulder_y"]))
+    local = P.arm_points(p, side, (wrist.x-delta.x, wrist.y-delta.y), depth)
+    arm = {k: ((v[0]+delta.x, v[1]+delta.y, v[2]) if k in "SEW" else v) for k, v in local.items()}
+    hand = P.hand_rig(p, side, arm["W"], q, g, (delta.x, delta.y))
     return {"arm": arm, "rig": hand, "pose": pose, "wrist": wrist, "direction": direction,
             "held": bool(round(bone.get("p25_held", 0)))}
 
@@ -386,7 +394,7 @@ def bake_actor(scene, rig, report):
             data = hand_frame(rig, p, side, frame, state)
             h, built = build_c(p, side, data, memory)
             over_tray = data["pose"] == "cup" and not data["held"] and levels.tray_world is not None \
-                and name.endswith("bucătărie") and frame < build_episode.beat_frame("cuptor", .78)+1
+                and name == "Mama · bucătărie" and frame < build_episode.beat_frame("cuptor", .78)+1
             probe = P.layered_vertices(built, levels.at(frame, over_tray), level_rule(h, over_tray))
             lifted = overlaps_head(probe, head_box(coll, rig))
             lift = FACE_LIFT if lifted else 0.

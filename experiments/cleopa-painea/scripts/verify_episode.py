@@ -147,6 +147,7 @@ def verify_palme25d(beats):
         for side in ("R", "L"):
             palm = coll.objects[f"Palmă 2.5D · {actor} · {side}"]
             sleeve, _ = B.lift_parts(coll, side)
+            levels = B.Levels(coll, rig, side)
             state, memory = {}, {"__stable__": P.ORDER_HYSTERESIS}
             order_history, tray_offsets, cheek_offsets = {}, [], {}
             poses, worst = [], {"lungime": 0, "contact": 0, "pas tavă": 0}
@@ -207,7 +208,7 @@ def verify_palme25d(beats):
                 for g in built["groups"]:
                     pts = [q for shape in g["shapes"] for q in (shape["pts"] if shape["t"] == "poly"
                            else P.capsule_ring(shape["a"], shape["b"], shape["ra"]+built["lw"], shape["rb"]+built["lw"]))]
-                    boxes[g["id"]] = (pts, min(q[0] for q in pts), min(q[1] for q in pts),
+                    boxes[g["id"]] = (P.hull(pts), min(q[0] for q in pts), min(q[1] for q in pts),
                                       max(q[0] for q in pts), max(q[1] for q in pts))
                 for a in ranks:
                     for b in ranks:
@@ -215,24 +216,35 @@ def verify_palme25d(beats):
                             A, Bx = boxes[a], boxes[b]
                             touching = A[1] < Bx[3] and Bx[1] < A[3] and A[2] < Bx[4] and Bx[2] < A[4]
                             # Doar perechile suprapuse pe ecran: ordinea celorlalte nu se vede.
-                            if touching and P.iou([A[0]], [Bx[0]], 48) > 0:
+                            if touching and P.convex_overlap(A[0], Bx[0]):
                                 order_history.setdefault((a, b), []).append((frame, ranks[a] < ranks[b]))
-                evaluated = palm.evaluated_get(graph).data
-                # Only visible blocks (non-zero area) count; equal z means the same piece.
-                zs = []
-                for _, first, ring in P.TOPOLOGY["blocks"]:
-                    pts = [evaluated.vertices[first+i].co for i in range(ring)]
-                    if abs(P.polygon_area([p.xy[:] for p in pts])) > 1e-10:
-                        zs.append(pts[0].z)
-                zs.sort()
-                gaps = [b-a for a, b in zip(zs, zs[1:]) if b-a > 1e-5]
-                if gaps and min(gaps) < epsilon/2:
-                    fail(f"{actor} {side}: două piese ale palmei sunt la mai puțin de ε/2 în adâncime", frame)
-                # 5. Pliuri: palma și mâneca.
-                verts = [v.co[:] for v in evaluated.vertices]
-                flips = P.flipped_faces(verts)
-                if flips:
-                    fail(f"{actor} {side}: {flips} triunghiuri întoarse în palmă", frame)
+                # The depsgraph does not evaluate a hidden object; in A frames the
+                # C mesh is stale, so the mesh checks run where C is shown.
+                evaluated = palm.evaluated_get(graph).data if not palm.hide_render else None
+                if evaluated is not None:
+                    # Only visible blocks (non-zero area) count; equal z means the same piece.
+                    zs = []
+                    for _, first, ring in P.TOPOLOGY["blocks"]:
+                        pts = [evaluated.vertices[first+i].co for i in range(ring)]
+                        if abs(P.polygon_area([p.xy[:] for p in pts])) > 1e-10:
+                            zs.append(pts[0].z)
+                    zs.sort()
+                    gaps = [b-a for a, b in zip(zs, zs[1:]) if b-a > 1e-5]
+                    if gaps and min(gaps) < epsilon/2:
+                        fail(f"{actor} {side}: două piese ale palmei sunt la mai puțin de ε/2 în adâncime", frame)
+                    # 5. Pliuri: palma și mâneca.
+                    verts = [v.co[:] for v in evaluated.vertices]
+                    # Plasa coaptă este exact desenul recalculat din rig (shape key-ul corect).
+                    over_tray = actor == "Mama · bucătărie" and pose == "cup" and not data["held"] \
+                        and levels.tray_world is not None and frame <= settle
+                    expected = P.layered_vertices(built, levels.at(frame, over_tray), B.level_rule(h, over_tray))
+                    shift = verts[0][2]-expected[0][2]
+                    worst_xy = max(abs(a[0]-b[0])+abs(a[1]-b[1]) for a, b in zip(verts, expected))
+                    if worst_xy > 1e-4 or min(abs(shift), abs(shift-B.FACE_LIFT)) > 1e-4:
+                        fail(f"{actor} {side}: palma coaptă nu e desenul proxy-ului ({worst_xy:.2e})", frame)
+                    flips = P.flipped_faces(verts)
+                    if flips:
+                        fail(f"{actor} {side}: {flips} triunghiuri întoarse în palmă", frame)
                 flips = sleeve_flips(sleeve, graph)
                 if flips:
                     fail(f"{actor} {side}: {flips} triunghiuri întoarse în mânecă", frame)
@@ -374,6 +386,16 @@ def verify_hands(beats):
         coll = bpy.data.collections[actor]
         rig = bpy.data.objects["RIG_"+actor]
         scene.frame_set(frame)
+        if rig.get("palme25d_profile"):
+            # 2.5D hands: the C palm draws the gesture chosen by the choreography.
+            bone = rig.pose.bones["hand."+side]
+            assert HAND_POSES[int(round(bone["p25_pose"]))] == pose, (actor,frame)
+            palm = coll.objects[f"Palmă 2.5D · {actor} · {side}"]
+            assert not palm.hide_render, (actor,frame)
+            levels = B.Levels(coll, rig, side)
+            # The palm base sits under the cuff tip, above the forearm (verify_palme25d checks the rest).
+            assert levels.values["base"] < levels.cuff < levels.values["top"], actor
+            continue
         drawings = [obj for obj in coll.objects
                     if obj.type=="MESH" and obj.parent_bone=="hand."+side and not obj.hide_render]
         assert len(drawings)==1 and f"{pose} hand" in drawings[0].name, (actor,frame)
