@@ -29,6 +29,7 @@ Pentru producția de animație, instalează Blender 4.3.2 sau 4.5 LTS, Python 3 
 | Riguri ale familiei, veselă, casă, scenele de rugăciune și testul semnului crucii | [`experiments/cleopa-blender/`](experiments/cleopa-blender/) |
 | Teste de articulații cu Mama | [Palmă, cot și umăr](https://viata-parintelui-cleopa-seven.vercel.app/articulatii/) |
 | Asamblare de scene Three.js | [Atelierul Three.js](https://viata-parintelui-cleopa-seven.vercel.app/asamblare/) |
+| Palme 2.5D: trei abordări în test de stres | [Palme 2.5D](https://viata-parintelui-cleopa-seven.vercel.app/palme/) · [`experiments/cleopa-palme/`](experiments/cleopa-palme/) |
 | Corp complet volumetric și episodul de probă | [Corp volumetric](https://viata-parintelui-cleopa-seven.vercel.app/volum/) · [`experiments/cleopa-volum/`](experiments/cleopa-volum/) |
 | Inspector de scenă pentru mobil | [Inspectorul public](https://viata-parintelui-cleopa-seven.vercel.app/inspectie/) |
 | Instrucțiuni și skill pentru un episod | [`AGENTS.md`](AGENTS.md) · [facut-episod](.agents/skills/facut-episod/SKILL.md) |
@@ -36,6 +37,10 @@ Pentru producția de animație, instalează Blender 4.3.2 sau 4.5 LTS, Python 3 
 `npm run check:cleopa` rulează smoke testul Blender, verifică rigurile și filmul, inclusiv suprapunerile la fiecare cadru. `npm test` testează validarea feedbackului. Cu preview-ul pornit, `npm run check:preview` verifică în Chromium redarea, capitolele, formularul, biblioteca, afișarea pe mobil, inspectorul și asamblarea Three.js. Poți da o adresă Vercel ca argument. Adaugă `--write-feedback` pentru a testa și salvarea, cu o observație etichetată ca test. Consultă README-ul episodului pentru refacerea vocii și a muzicii prin OpenRouter și exportul cadrelor.
 
 Prima pagină are secțiunea **Ateliere**, cu legături către toate atelierele. Când alegi un test, un gest, un clip sau un plan, acesta pornește imediat și se reia în buclă. Butonul de pauză și cursorul opresc bucla.
+
+## Palme 2.5D
+
+Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese plate. Corpul și capul rămân desene. Un schelet 3D primitiv, pe care nu-l vede nimeni, calculează umărul, cotul, încheietura și degetele. Proiecția lui conduce desenul. `/palme/` compară trei abordări pentru palme pe același schelet: substituție de desene, plasă 2D pe oase proiectate și volume proiectate, desenate plat. Le compară în șase teste de stres, cu metrici calculate în browser. Vezi [fișa experimentului](experiments/cleopa-palme/README.md).
 
 ## Mama cu brațe volumetrice în film
 

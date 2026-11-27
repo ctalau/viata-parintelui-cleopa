@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Palme 2.5D · Atelierul Cleopa</title>
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/asamblare/asamblare.css">
+  <link rel="stylesheet" href="/palme/palme.css">
+  <script src="/palme/palme.js" type="module"></script>
+</head>
+<body class="palms-page">
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/comparatie-maini/">Mâini în 3D și 2D</a></nav>
+  </header>
+  <main class="shell">
+    <section class="assembly-intro">
+      <p class="series">Atelierul de animație · 2.5D</p>
+      <h1>Palme 2.5D: test de stres</h1>
+      <p class="description">Toate cele trei palme sunt conduse de același schelet 3D primitiv, pe care nu îl vede nimeni. Corpul rămâne desenat plat, iar mâneca e un „furtun” curbat prin umăr, cot și încheietură. Doar palma se schimbă de la o coloană la alta.</p>
+    </section>
+
+    <section class="view palms-toolbar" aria-label="Controale comune">
+      <div class="test-picker" id="test-picker" role="group" aria-label="Testul"></div>
+      <p id="test-note" class="test-note"></p>
+      <div class="play-row">
+        <button type="button" id="play">Redă</button>
+        <button type="button" id="previous-frame" aria-label="Cadrul anterior">−1</button>
+        <button type="button" id="next-frame" aria-label="Cadrul următor">+1</button>
+        <input type="range" id="frame" min="0" max="1" step="1" value="0" aria-label="Cadru comun">
+        <output id="current-frame" for="frame">1 / 1</output>
+      </div>
+      <div class="option-row">
+        <label class="angle"><span>Unghiul camerei</span><input type="range" id="angle" min="-60" max="60" value="0"><output id="current-angle" for="angle">0°</output></label>
+        <label><input type="checkbox" id="twos"> Animație pe doi (12 desene/s)</label>
+        <label><input type="checkbox" id="close"> Prim-plan pe palmă</label>
+        <label><input type="checkbox" id="skeleton"> Scheletul 3D proiectat</label>
+        <label>Viteză <select id="speed"><option value="1">1×</option><option value="0.5">½×</option><option value="0.25">¼×</option></select></label>
+      </div>
+    </section>
+
+    <div class="palms-grid">
+      <section class="view palm-panel" aria-labelledby="title-substitutie">
+        <h2 id="title-substitutie"><span>A</span> Substituție de desene</h2>
+        <p class="variant-description">O bibliotecă de palme desenate: 6 gesturi × 12 vederi. Pentru fiecare cadru se alege desenul cu gestul și vederea cele mai apropiate de schelet. Desenul se rotește și se mută în 2D. Aici desenele sunt generate din schelet, ca să poată fi comparate. În producție le redesenează un artist.</p>
+        <canvas id="canvas-substitutie" role="img" aria-label="Palma prin substituție de desene"></canvas>
+        <p class="readout" id="readout-substitutie" aria-live="off"></p>
+      </section>
+      <section class="view palm-panel" aria-labelledby="title-plasa">
+        <h2 id="title-plasa"><span>B</span> Plasă 2D pe oase proiectate</h2>
+        <p class="variant-description">Un singur desen cu palma deschisă, triunghiulat. Palma urmează o transformare afină dată de trei puncte proiectate. Fiecare falangă e un os 2D elastic, între două articulații proiectate. Când palma se întoarce, desenul trece pe dos.</p>
+        <canvas id="canvas-plasa" role="img" aria-label="Palma ca plasă 2D deformată"></canvas>
+        <p class="readout" id="readout-plasa" aria-live="off"></p>
+      </section>
+      <section class="view palm-panel" aria-labelledby="title-volum">
+        <h2 id="title-volum"><span>C</span> Volume desenate plat</h2>
+        <p class="variant-description">Palma e învelitoarea unor sfere, iar degetele sunt capsule. Proiecția ortografică a unei capsule este exact o capsulă 2D. Piesele se desenează plat, cu contur, de la spate spre față. Linia de contur apare doar unde o articulație se îndoaie peste 40°.</p>
+        <canvas id="canvas-volum" role="img" aria-label="Palma din volume proiectate"></canvas>
+        <p class="readout" id="readout-volum" aria-live="off"></p>
+      </section>
+    </div>
+
+    <section class="view report" aria-labelledby="report-heading">
+      <h2 id="report-heading">Rezultatele testului de stres</h2>
+      <p id="report-status" role="status">Se măsoară toate cadrele…</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col" rowspan="2">Test</th><th scope="colgroup" colspan="2">A · Substituție</th><th scope="colgroup" colspan="3">B · Plasă 2D</th><th scope="colgroup" colspan="2">C · Volume</th></tr>
+            <tr><th scope="col">Siluetă · salturi</th><th scope="col">Contact</th><th scope="col">Siluetă · salturi</th><th scope="col">Pliuri</th><th scope="col">Contact</th><th scope="col">Ordine schimbată</th><th scope="col">Contact</th></tr>
+          </thead>
+          <tbody id="report-rows"></tbody>
+        </table>
+      </div>
+      <dl class="totals">
+        <dt>A</dt><dd id="sum-A">…</dd>
+        <dt>B</dt><dd id="sum-B">…</dd>
+        <dt>C</dt><dd id="sum-C">…</dd>
+      </dl>
+      <h3>Ce arată testul</h3>
+      <ul class="verdicts">
+        <li><strong>A · Substituție.</strong> Este cea mai „de desen animat”: fiecare poză poate fi redesenată frumos, iar pe doi salturile se văd ca stil, nu ca defect. Cu 12 vederi însă, palma pocnește la răsucire și la orbita camerei. La semnul crucii, desenul ancorat la încheietură ratează fruntea și umerii cu câțiva centimetri. Pentru contact, desenul trebuie ancorat la vârful degetelor, iar atunci se rupe de manșetă. Fiecare gest nou cere încă 12 desene.</li>
+        <li><strong>B · Plasă 2D.</strong> Este procesul propus: proxy 3D, proiecție, apoi deformare 2D. Funcționează cât timp degetele stau în planul desenului, de exemplu la salut sau la palma deschisă. Când degetele se strâng sau vin spre cameră, falangele proiectate se suprapun și plasa se întoarce pe dos. Pliurile apar în aproape jumătate din cadre, iar trecerea de la palmă la dos se face dintr-o dată. O plasă nu poate inventa partea din deget pe care desenul nu o are.</li>
+        <li><strong>C · Volume desenate plat.</strong> Are mereu silueta corectă și contactele exacte, la orice unghi, fără desene noi. Riscul este ordinea pieselor. Cu memorie de o jumătate de centimetru, aceeași pereche aproape că nu mai pâlpâie. Aspectul e mai „tubular” decât un desen de mână, așa că detaliile, ca unghiile, liniile palmei și cutele, se adaugă după reguli.</li>
+      </ul>
+      <details class="method">
+        <summary>Cum se măsoară</summary>
+        <ul>
+          <li><strong>Siluetă</strong>: suprapunerea (IoU) dintre palma desenată și silueta scheletului proiectat, într-o cameră care urmărește palma. C este referința, deci are 100%.</li>
+          <li><strong>Salt</strong>: un cadru în care desenul se schimbă cu cel puțin 20 de puncte procentuale mai mult decât referința. Asta e o pocnitură pe care ochiul o vede.</li>
+          <li><strong>Contact</strong>: distanța maximă, pe planul corpului, dintre vârfurile celor trei degete unite și frunte, piept sau umeri, în timp ce mâna ține contactul. Este dată în milimetri, la scara Mamei.</li>
+          <li><strong>Pliuri</strong>: cadre în care cel puțin un triunghi al plasei se întoarce pe dos.</li>
+          <li><strong>Ordine schimbată</strong>: cadre în care două piese ale palmei care se suprapun pe ecran își schimbă locul. Atunci linia de contur dintre ele se mută. Unele mutări sunt corecte, de exemplu când un deget trece peste palmă. <strong>Pâlpâirea</strong> înseamnă că aceeași pereche se întoarce în cel mult patru cadre, iar asta e mereu o greșeală.</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="view strategy" aria-labelledby="strategy-heading">
+      <h2 id="strategy-heading">Strategia 2.5D</h2>
+      <h3>Cum lucrează serialele de referință</h3>
+      <p><em>Bluey</em>, <em>Hello Kitty</em> și <em>Popeye</em> fac animație limitată. Personajul e un set de piese plate, desenate o singură dată. Piesele se mișcă pe un schelet 2D, de obicei pe doi, la 12 desene pe secundă. Ce nu încape într-o rotație plată, cum ar fi palma întoarsă, pumnul sau capul din profil, se rezolvă prin <strong>substituție de desene</strong>: o nouă poză din biblioteca personajului. Brațele de tip Popeye sunt <strong>rubber hose</strong>, adică un tub curbat fără cot desenat. Membrele mai realiste folosesc deformatoare de curbă sau de plasă.</p>
+      <h3>Cum se numește procesul propus</h3>
+      <p>Un schelet 3D primitiv, proiectat ca să conducă un desen 2D, se numește <strong>rig 2.5D condus de un proxy 3D</strong>. Deformarea desenului după oasele proiectate se numește <strong>skinning 2D al unei plase</strong>, adică <em>linear blend skinning</em> pe o plasă triunghiulată, ca în Spine sau Live2D, unde plasa se numește <em>ArtMesh</em>. Varianta fără oase este <strong>deformarea <em>as-rigid-as-possible</em></strong> (Igarashi, 2005), cunoscută ca <em>Puppet Warp</em> în After Effects. Desenele care se interpolează după unghiul de vedere se numesc <em>2.5D Cartoon Models</em> (Rivers, Igarashi și Durand, 2010).</p>
+      <h3>Ce recomandăm</h3>
+      <ul id="recommendation">
+        <li><strong>Scheletul 3D primitiv rămâne sursa mișcării.</strong> Cu el se fac cinematica inversă, contactele, cum ar fi fruntea, pieptul și umerii la semnul crucii, ordinea în adâncime și unghiul camerei. Niciun schelet 2D pur nu știe singur că palma s-a întors.</li>
+        <li><strong>Corpul și capul rămân desene plate.</strong> Se deformează după proiecție doar unde e nevoie, cu skinning 2D pe trunchi și fustă.</li>
+        <li><strong>Brațele sunt tuburi curbe</strong> prin punctele proiectate. Lățimea lor nu depinde de perspectivă, deci nu apar pliuri la cot.</li>
+        <li><strong>Pentru palme alegem C ca bază.</strong> Peste ea punem <strong>substituții A</strong> pentru pozele-cheie desenate de mână, în cadrele în care ținem palma pe ecran. Desenul înlocuitor se ancorează la punctul de contact, nu la încheietură. Plasa B rămâne pentru piese care nu se întorc, precum fusta, baticul și mâneca, nu pentru degete.</li>
+        <li><strong>Animația rămâne pe doi</strong>, cu poze-cheie clare și puține desene intermediare, ca la serialele de referință. Bifează „Animație pe doi” ca să vezi diferența.</li>
+      </ul>
+      <h3>Comparat cu modelul 3D complet</h3>
+      <p>Modelul volumetric din <a href="/volum/">atelierul anterior</a> randează totul în 3D. Silueta e corectă, dar desenul se pierde: liniile se subțiază, fața devine o textură pe o sferă, iar mânecile se încrețesc. Varianta 2.5D păstrează desenul original peste tot. 3D-ul rămâne doar un instrument de calcul pentru poziții și ordine. Riscurile se mută în palme, de aceea le testăm aici.</p>
+    </section>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span><a href="https://github.com/ctalau/viata-parintelui-cleopa/tree/main/studio/palme">Sursele paginii</a></footer>
+</body>
+</html>

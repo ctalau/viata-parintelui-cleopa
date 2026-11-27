@@ -38,6 +38,7 @@ const library = [
     ['Semnul crucii', `${first}/scenes/cleopa_cross_test.blend`],
     ['Palme și degete', `${episodeDir}/scripts/hands.py`],
     ['Teste de articulații cu Mama', '/articulatii/'],
+    ['Palme 2.5D: trei abordări în test de stres', '/palme/'],
     ['Compară mâinile în 3D și 2D', '/comparatie-maini/'],
     ['Corp volumetric și teste de stres', '/volum/'],
     ['Mama volumetrică în Blender', 'experiments/cleopa-volum/scenes/mama_volumetrica.blend'],
@@ -126,6 +127,14 @@ if (fs.existsSync(volumeRenders)) fs.cpSync(volumeRenders, path.join(volume, 're
 buildSync({
   entryPoints: [path.join(ROOT, 'studio/volum/volum.js')],
   outfile: path.join(volume, 'volum.js'),
+  bundle: true, minify: true, format: 'esm',
+});
+const palms = path.join(out, 'palme');
+fs.mkdirSync(palms, { recursive: true });
+for (const name of ['index.html', 'palme.css']) fs.copyFileSync(path.join(ROOT, 'studio/palme', name), path.join(palms, name));
+buildSync({
+  entryPoints: [path.join(ROOT, 'studio/palme/palme.js')],
+  outfile: path.join(palms, 'palme.js'),
   bundle: true, minify: true, format: 'esm',
 });
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
