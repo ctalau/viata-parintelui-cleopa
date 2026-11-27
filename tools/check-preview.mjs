@@ -4,7 +4,6 @@ import { episode } from '../studio/episode.mjs';
 
 const args = process.argv.slice(2);
 const address = args.find((arg) => !arg.startsWith('--')) || 'http://127.0.0.1:4173';
-const writeFeedback = args.includes('--write-feedback');
 const browser = await chromium.launch({
   ...(process.env.CHROMIUM_BIN && { executablePath: process.env.CHROMIUM_BIN }),
   args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
@@ -14,28 +13,24 @@ try {
   const page = await browser.newPage({ viewport: { width: 1360, height: 960 } });
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  const feedback = [];
-  if (!writeFeedback) {
-    await page.route('**/api/feedback', async (route) => {
-      feedback.push(route.request().postDataJSON());
-      await route.fulfill({ status: 201, json: { id: 'browser-check' } });
-    });
+  await page.goto(address);
+  await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4);
+  assert.equal(await page.locator('.episode-card').count(), 1);
+  const workshopLinks = await page.locator('#ateliere a.workshop').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  for (const href of ['/palme/', '/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
+    '/articulatii/', '/asamblare/', '/asamblare/?mod=recuzita', '/inspectie/', `/episoade/${episode.id}/#cadru-2`]) {
+    assert.ok(workshopLinks.includes(href), `Lipsește atelierul ${href} de pe prima pagină`);
   }
   const catalogResponse = page.waitForResponse((response) => new URL(response.url()).pathname === '/catalog.json');
-  await page.goto(address);
+  await page.locator('.episode-card').click();
   const { chapters: expectedChapters } = await (await catalogResponse).json();
   await page.waitForFunction(
     (duration) => Math.abs(document.querySelector('#episode')?.duration - duration) < 0.05,
     episode.duration,
   );
-  await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4 &&
-    document.querySelector('#episode-picture').dataset.frame === '1' && !document.querySelector('#seek').disabled);
+  await page.waitForFunction(() => document.querySelector('#episode-picture').dataset.frame === '1' &&
+    !document.querySelector('#seek').disabled);
   assert.equal(await page.locator('#episode').evaluate((media) => media.tagName), 'AUDIO');
-  const workshopLinks = await page.locator('#ateliere a.workshop').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
-  for (const href of ['/palme/', '/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
-    '/articulatii/', '/asamblare/', '/asamblare/?mod=recuzita', '/inspectie/', '#cadru-2']) {
-    assert.ok(workshopLinks.includes(href), `Lipsește atelierul ${href} de pe prima pagină`);
-  }
   assert.equal(Number(await page.locator('#seek').getAttribute('max')), episode.duration);
   await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
   await page.waitForFunction(() => {
@@ -70,19 +65,22 @@ try {
   await page.getByRole('button', { name: 'Marchează o observație' }).click();
   assert.equal(await page.locator('#note').evaluate((note) => document.activeElement === note), true);
   assert.equal(await page.locator('#episode').evaluate((video) => video.paused), true);
+  await page.locator('#note').fill('Test automat atelier: redare, derulare și note.');
+  await page.getByRole('button', { name: 'Salvează', exact: true }).click();
+  await page.locator('#notes li').waitFor();
+  const stored = await page.evaluate((id) => JSON.parse(localStorage.getItem(`cleopa-observatii-v1:${id}`)), episode.id);
+  assert.equal(stored.length, 1);
+  assert.ok(Math.abs(stored[0].time - markedTime) < 0.055);
+  await page.reload();
+  await page.locator('#notes li').waitFor();
   await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
-  await page.locator('#note').fill('Test automat atelier: redare, derulare și feedback.');
-  const [post] = await Promise.all([
-    page.waitForResponse((response) => response.url().endsWith('/api/feedback')),
-    page.getByRole('button', { name: 'Trimite observația' }).click(),
-  ]);
-  assert.equal(post.status(), 201, await post.text());
-  await page.getByText('Mulțumim! Observația a fost salvată.').waitFor();
-  if (!writeFeedback) {
-    assert.equal(feedback.length, 1);
-    assert.equal(feedback[0].episode, 'painea-care-poate-sa-astepte');
-    assert.ok(Math.abs(feedback[0].time - markedTime) < 0.055);
-  }
+  await page.locator('.note-seek').click();
+  await page.waitForFunction((time) => Math.abs(document.querySelector('#episode').currentTime - time) < 0.05, markedTime);
+  const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#download-notes').click()]);
+  assert.match(download.suggestedFilename(), /^observatii-.*\.md$/);
+  await page.getByRole('button', { name: /^Șterge observația/ }).click();
+  assert.equal(await page.locator('#notes li').count(), 0);
+  assert.equal(await page.locator('#download-notes').isDisabled(), true);
   assert.equal(await page.locator('#episode').evaluate((video) => video.textTracks.length), 0);
   await page.getByRole('link', { name: 'Editează straturile cadrului 2' }).click();
   const yard = page.locator('#cadru-2');
@@ -104,7 +102,7 @@ try {
   assert.equal(await yard.locator('[name="fence-y"]').inputValue(), '0');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
-  await page.getByRole('link', { name: 'Inspector de scenă', exact: true }).click();
+  await page.goto(new URL('/inspectie/', address).href);
   await page.getByRole('heading', { name: 'Inspector de scenă' }).waitFor();
   await page.waitForFunction(() => {
     const video = document.querySelector('#shot');
@@ -339,7 +337,7 @@ try {
   assert.equal(await page.locator('#report-rows tr').count(), 6);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
-  console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
+  console.log('PREVIEW_OK', address);
 } finally {
   await browser.close();
 }
