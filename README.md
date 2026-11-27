@@ -40,7 +40,7 @@ Prima pagină are secțiunea **Ateliere**, cu legături către toate atelierele.
 
 ## Palme 2.5D
 
-Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese plate. Corpul și capul rămân desene. Un schelet 3D primitiv, pe care nu-l vede nimeni, calculează umărul, cotul, încheietura și degetele. Proiecția lui conduce desenul. `/palme/` compară trei abordări pentru palme pe același schelet: substituție de desene, plasă 2D pe oase proiectate și volume proiectate, desenate plat. Le compară în șase teste de stres, cu metrici calculate în browser. Vezi [fișa experimentului](experiments/cleopa-palme/README.md).
+Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese plate. Corpul și capul rămân desene. Un schelet 3D primitiv, pe care nu-l vede nimeni, calculează umărul, cotul, încheietura și degetele. Proiecția lui conduce desenul. `/palme/` compară trei abordări pentru palme pe același schelet: substituție de desene, plasă 2D pe oase proiectate și volume proiectate, desenate plat. Le compară în șase teste de stres, cu metrici calculate în browser. Vezi [fișa experimentului](experiments/cleopa-palme/README.md), [specificația variantei alese](experiments/cleopa-palme/SPECIFICATIE.md) și [handoff-ul pentru episod](experiments/cleopa-palme/HANDOFF.md).
 
 ## Mama cu brațe volumetrice în film
 

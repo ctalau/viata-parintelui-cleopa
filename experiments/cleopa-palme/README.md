@@ -2,7 +2,7 @@
 
 Ne întoarcem la modelul 2.5D. Mama rămâne un set de desene plate, animate limitat, ca în serialele cu piese tăiate (*Bluey*, *Hello Kitty*, *Popeye*). Un schelet 3D primitiv, pe care nu îl vede nimeni, calculează mișcarea. Proiecția lui ortografică conduce desenul. Palmele sunt partea cea mai grea, așa că le comparăm în trei variante, pe același schelet.
 
-[Deschide atelierul](https://viata-parintelui-cleopa-seven.vercel.app/palme/) · sursele: [`studio/palme/`](../../studio/palme/) · test: [`tests/palme.test.mjs`](../../tests/palme.test.mjs)
+[Deschide atelierul](https://viata-parintelui-cleopa-seven.vercel.app/palme/) · [Specificația variantei alese](SPECIFICATIE.md) · [Handoff pentru episod](HANDOFF.md) · sursele: [`studio/palme/`](../../studio/palme/) · test: [`tests/palme.test.mjs`](../../tests/palme.test.mjs)
 
 ## Straturile modelului
 
