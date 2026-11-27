@@ -84,6 +84,10 @@ def actor(coll, design, name, position, size=1, look=None, hat=False, interior=F
     profile,rig,char,*_ = create_character(
         design, overrides=changes, sleeve_builder=continuous_sleeves, hand_poses=HAND_POSES,
     )
+    if profile["palme25d"]:
+        rig["palme25d_profile"] = json.dumps({key: profile[key] for key in (
+            "id","shoulder_x","shoulder_y","upper","lower","hand","leg","head_y","head_h",
+            "skin","skin_shadow")})
     bpy.context.scene.collection.children.unlink(char)
     coll.children.link(char)
     char.name = name
@@ -144,7 +148,7 @@ def smooth(t):
     return t*t*t*(t*(6*t-15)+10)
 
 
-def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_first=False):
+def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_first=False, palm=None):
     p,rig=a["p"],a["rig"]
     prev=None
     for index,(first,second) in enumerate(zip(waypoints,waypoints[1:])):
@@ -157,10 +161,10 @@ def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_f
             if world:
                 bpy.context.scene.frame_set(frame)
                 point=(point-Vector((rig.location.x,rig.location.y)))/a["size"]
-            prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit)
+            prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit,palm=palm)
 
 
-def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wrist_limit=None):
+def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wrist_limit=None, held=0):
     """Cheie de braț din punctul de contact: încheietura = țintă − R · contactul gestului.
 
     Orientarea se ia din unghiul pe care osul mâinii îl primește efectiv (după
@@ -172,7 +176,7 @@ def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wris
     for _ in range(4):
         w = palme25d.wrist_from_tip(p, side, tip, (want.x, want.y), palm, gesture)
         rotations = arm_key(rig, p, side, frame, (w[0], w[1]), want, previous,
-                            wrist_limit=wrist_limit, depth=w[2], palm=palm)
+                            wrist_limit=wrist_limit, depth=w[2], palm=palm, held=held)
         angle = sum(rotations)
         actual = Vector((sin(angle), -cos(angle)))
         if (actual-want).length < 1e-7:
@@ -181,13 +185,18 @@ def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wris
     return rotations, Vector((w[0], w[1])), w[2]
 
 
-def contact_hold(a, side, frames, tip_at, direction, pose, palm=None, wrist_limit=None):
-    """Ține vârful de contact pe o țintă care se mișcă (tava, obrazul), cadru cu cadru."""
+def contact_hold(a, side, frames, tip_at, direction, pose, palm=None, wrist_limit=None, held=1):
+    """Ține vârful de contact pe o țintă care se mișcă (obrazul), cadru cu cadru.
+
+    `held` marchează o poză ținută: acolo `palme25d_bake.py` pune desenul de autor (A)."""
     previous = None
     for frame in frames:
         bpy.context.scene.frame_set(frame)
         previous, wrist, depth = tip_key(a, side, frame, tip_at(frame), direction, pose, palm,
-                                         previous, wrist_limit)
+                                         previous, wrist_limit, held)
+    # Prima cheie după poză închide marcajul.
+    a["rig"].pose.bones["hand."+side]["p25_held"] = 0
+    a["rig"].pose.bones["hand."+side].keyframe_insert('["p25_held"]', frame=frames[-1]+1)
     return wrist
 
 
@@ -796,14 +805,14 @@ def kitchen_replies(mother, child, brother, father, start):
     arms(mother,"R",[
         (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
         (first[0],touch(first[0]),toward),
-    ],wrist_limit=wrist_limit)
-    left = contact_hold(mother,"R",first,cheek_at,toward,"cup",palm,wrist_limit)
+    ],wrist_limit=wrist_limit,palm=palm)
+    left = contact_hold(mother,"R",first,cheek_at,toward,"cheek",palm,wrist_limit)
     arms(mother,"R",[
         (first[-1],tuple(left),toward),(ask["start"]+29,rest,(0,-1)),
         (laugh-26,rest,(0,-1)),(second[0],touch(second[0]),toward),
-    ],wrist_limit=wrist_limit,skip_first=True)
-    contact_hold(mother,"R",second,cheek_at,toward,"cup",palm,wrist_limit)
-    for f, pose_ in ((lesson_reaction+5,"cup"),(ask["start"]+12,"rest"),(laugh+8,"cup")):
+    ],wrist_limit=wrist_limit,skip_first=True,palm=palm)
+    contact_hold(mother,"R",second,cheek_at,toward,"cheek",palm,wrist_limit)
+    for f, pose_ in ((lesson_reaction+5,"cheek"),(ask["start"]+12,"rest"),(laugh+8,"cheek")):
         hand_pose(mother,"R",f,pose_)
     scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
     scarf_fold(mother,laugh+11,prayer_start)

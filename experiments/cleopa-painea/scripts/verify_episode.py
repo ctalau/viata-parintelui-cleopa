@@ -84,45 +84,235 @@ def local_wrist(frame):
     return wrist-child.pose.bones["root"].matrix.translation
 
 assert (local_wrist(hold["start"])-local_wrist(hold["end"]-1)).length<.004
-VOLUMETRIC = ("Mama · bucătărie", "Mama · rugăciune")
+import sys
+sys.path.insert(0, str(ROOT/"scripts"))
+import palme25d as P  # noqa: E402
+import palme25d_bake as B  # noqa: E402
+from hands import HAND_POSES, OUTLINE  # noqa: E402
+
+PALME25D = [obj for obj in scene.objects if obj.type == "ARMATURE" and obj.get("palme25d_profile")]
 
 
-def verify_volumetric(beats):
-    """The Mother wears the volumetric arm: fixed segments, ink shell, wrist on the rig."""
-    for actor in VOLUMETRIC:
+class Stop(AssertionError):
+    pass
+
+
+def fail(message, frame=None):
+    camera = scene.camera.name if scene.camera else "—"
+    raise Stop(f"{message} · cadrul {frame} · camera „{camera}”" if frame is not None else message)
+
+
+def silhouette_c(built):
+    return [shape["pts"] if shape["t"] == "poly" else
+            P.capsule_ring(shape["a"], shape["b"], shape["ra"], shape["rb"])
+            for g in built["groups"] for shape in g["shapes"]]
+
+
+def silhouette_a(obj, rig, p, side, pose):
+    sign = P.side_sign(side)
+    x, y = sign*p["shoulder_x"], p["shoulder_y"]-p["upper"]-p["lower"]
+    m = obj.matrix_basis
+    return [[(m @ Vector((x+ox*p["hand"]*sign, y+oy*p["hand"], 0))).xy[:] for ox, oy in loop]
+            for loop in P.path_points(OUTLINE[pose])]
+
+
+def sleeve_flips(obj, graph):
+    rest = obj.data
+    evaluated = obj.evaluated_get(graph).data
+    flips = 0
+    for poly in rest.polygons:
+        ids = poly.vertices
+        for i in range(1, len(ids)-1):
+            tri = (ids[0], ids[i], ids[i+1])
+            if P.flipped([rest.vertices[k].co.xy[:] for k in tri],
+                         [evaluated.vertices[k].co.xy[:] for k in tri], tolerance=1e-7):
+                flips += 1
+    return flips
+
+
+def verify_palme25d(beats):
+    """Brațele și palmele 2.5D (experiments/cleopa-palme/HANDOFF.md §5)."""
+    assert PALME25D, "niciun personaj cu palme 2.5D"
+    settle = round(beats[5]["start"]+.78*(beats[5]["end"]-beats[5]["start"]-1))
+    summary = {}
+    for rig in PALME25D:
+        actor = rig.name[4:]
         coll = bpy.data.collections[actor]
-        rig = bpy.data.objects["RIG_"+actor]
-        drawn = [obj for obj in coll.objects if obj.type == "MESH" and (
-            "Mânecă continuă" in obj.name or obj.parent_bone.startswith("hand."))]
-        assert not drawn, [obj.name for obj in drawn]
-        for side in ("R","L"):
-            parts = {kind: next(obj for obj in coll.objects if obj.name.split(".")[0] == f"{kind} · {side}")
-                     for kind in ("Mânecă volumetrică", "Palmă volumetrică")}
-            for obj in parts.values():
-                assert obj.parent == rig, obj.name
-                # In the prayer the Mother stands still, so one evaluated shape suffices.
-                if actor.endswith("bucătărie"):
-                    assert obj.data.shape_keys and len(obj.data.shape_keys.key_blocks) > 100, obj.name
-                assert obj.get("cleopa_volumetric"), obj.name
-            hand = parts["Palmă volumetrică"]
-            for frame in (beats[5]["start"]+40, beats[6]["cues"][0]["start"]+45, beats[-1]["start"]+30):
-                if actor.endswith("rugăciune") != (frame >= beats[-1]["start"]):
-                    continue
+        p = json.loads(rig["palme25d_profile"])
+        mm = P.mm(p)
+        epsilon = P.EPSILON
+        start, end = B.visible_range(coll, scene)
+        frames = B.drawn(start, end)
+        loaf = bpy.data.objects.get("Pâine pe taler")
+        for side in ("R", "L"):
+            palm = coll.objects[f"Palmă 2.5D · {actor} · {side}"]
+            sleeve, _ = B.lift_parts(coll, side)
+            state, memory = {}, {"__stable__": P.ORDER_HYSTERESIS}
+            order_history, tray_offsets, cheek_offsets = {}, [], {}
+            poses, worst = [], {"lungime": 0, "contact": 0, "pas tavă": 0}
+            for frame in frames:
                 scene.frame_set(frame)
                 graph = bpy.context.evaluated_depsgraph_get()
-                points = [v.co for v in hand.evaluated_get(graph).data.vertices]
-                wrist = rig.pose.bones["hand."+side].head
-                # The palm's first ring surrounds the rig's wrist in the picture.
-                ring = sum(points[:10], Vector())/10
-                assert (ring.xy-wrist.xy).length < .06, (actor, side, frame, (ring.xy-wrist.xy).length)
-                assert not hand.hide_render, (actor, side, frame)
-    print("VOLUMETRIC_OK", len(VOLUMETRIC)*2, "brațe 3D ale Mamei cu degete și contur")
+                data = B.hand_frame(rig, p, side, frame, state)
+                h, built = B.build_c(p, side, data, memory)
+                arm = data["arm"]
+                bones = rig.pose.bones
+                # 1. Lungimi fixe în 3D, iar osul cotului este proiecția IK-ului.
+                error = max(abs(P.length(P.sub(arm["E"], arm["S"]))-p["upper"]),
+                            abs(P.length(P.sub(arm["W"], arm["E"]))-p["lower"]),
+                            (bones["forearm."+side].head.xy-Vector(arm["E"][:2])).length,
+                            (bones["hand."+side].head.xy-Vector(arm["W"][:2])).length)
+                worst["lungime"] = max(worst["lungime"], error)
+                if error > 1e-4:
+                    fail(f"{actor} {side}: brațul nu are lungimi fixe sau cotul nu e proiecția IK ({error:.2e})", frame)
+                pose = HAND_POSES[int(round(bones["hand."+side].get("p25_pose", 0)))]
+                value = int(round(rig[f"hand_{side}_pose"]))
+                poses.append(value)
+                # Desenele hand.* sunt ascunse cât timp palma C este activă, și invers.
+                shown = [obj.name for obj in coll.objects if obj.type == "MESH" and not obj.hide_render
+                         and any(obj.name.split(".")[0].endswith(f"{v} hand · {side}") for v in HAND_POSES)]
+                if frame >= start and (palm.hide_render == (value == B.C_INDEX) or (value == B.C_INDEX) == bool(shown)):
+                    fail(f"{actor} {side}: palma C și desenele A se văd deodată sau deloc ({shown})", frame)
+                tip = Vector(h["contact"][:2])
+                # 2–3. Tava urmează mâinile; vârful rămâne sub buza talerului.
+                if loaf and actor.endswith("bucătărie") and frame <= settle and pose == "cup":
+                    here = (loaf.matrix_world.translation.xy-rig.matrix_world.translation.xy)/rig.matrix_world.to_scale().x
+                    offset = tip-here
+                    if tray_offsets:
+                        step = (offset-tray_offsets[-1]).length/mm
+                        drift = (offset-tray_offsets[0]).length/mm
+                        worst["pas tavă"] = max(worst["pas tavă"], step)
+                        worst["contact"] = max(worst["contact"], drift)
+                        if step > .5:
+                            fail(f"{actor} {side}: tava se mișcă față de degete cu {step:.2f} mm între desene", frame)
+                        if drift > 2:
+                            fail(f"{actor} {side}: vârful a plecat de sub tavă cu {drift:.2f} mm", frame)
+                    tray_offsets.append(offset)
+                # 2. Obrazul: în poza ținută, vârful stă pe același punct al capului.
+                if data["held"]:
+                    head = bones["head"].matrix @ rig.data.bones["head"].matrix_local.inverted()
+                    local = (head.inverted() @ tip.to_3d()).xy
+                    run = cheek_offsets.setdefault(side, [])
+                    if run and frame-run[-1][0] == 2:
+                        drift = (local-run[0][1]).length/mm
+                        worst["contact"] = max(worst["contact"], drift)
+                        if drift > 2:
+                            fail(f"{actor} {side}: palma alunecă pe obraz cu {drift:.2f} mm", frame)
+                    else:
+                        run.clear()
+                    run.append((frame, local))
+                # 4. Ordinea: pâlpâiri și trepte de adâncime.
+                ranks = {g["id"]: i for i, g in enumerate(built["groups"])}
+                boxes = {}
+                for g in built["groups"]:
+                    pts = [q for shape in g["shapes"] for q in (shape["pts"] if shape["t"] == "poly"
+                           else P.capsule_ring(shape["a"], shape["b"], shape["ra"]+built["lw"], shape["rb"]+built["lw"]))]
+                    boxes[g["id"]] = (pts, min(q[0] for q in pts), min(q[1] for q in pts),
+                                      max(q[0] for q in pts), max(q[1] for q in pts))
+                for a in ranks:
+                    for b in ranks:
+                        if a < b:
+                            A, Bx = boxes[a], boxes[b]
+                            touching = A[1] < Bx[3] and Bx[1] < A[3] and A[2] < Bx[4] and Bx[2] < A[4]
+                            # Doar perechile suprapuse pe ecran: ordinea celorlalte nu se vede.
+                            if touching and P.iou([A[0]], [Bx[0]], 48) > 0:
+                                order_history.setdefault((a, b), []).append((frame, ranks[a] < ranks[b]))
+                evaluated = palm.evaluated_get(graph).data
+                # Only visible blocks (non-zero area) count; equal z means the same piece.
+                zs = []
+                for _, first, ring in P.TOPOLOGY["blocks"]:
+                    pts = [evaluated.vertices[first+i].co for i in range(ring)]
+                    if abs(P.polygon_area([p.xy[:] for p in pts])) > 1e-10:
+                        zs.append(pts[0].z)
+                zs.sort()
+                gaps = [b-a for a, b in zip(zs, zs[1:]) if b-a > 1e-5]
+                if gaps and min(gaps) < epsilon/2:
+                    fail(f"{actor} {side}: două piese ale palmei sunt la mai puțin de ε/2 în adâncime", frame)
+                # 5. Pliuri: palma și mâneca.
+                verts = [v.co[:] for v in evaluated.vertices]
+                flips = P.flipped_faces(verts)
+                if flips:
+                    fail(f"{actor} {side}: {flips} triunghiuri întoarse în palmă", frame)
+                flips = sleeve_flips(sleeve, graph)
+                if flips:
+                    fail(f"{actor} {side}: {flips} triunghiuri întoarse în mânecă", frame)
+                # 6. Repaus: vârful degetului mijlociu deasupra genunchiului.
+                rest = P.rest_wrist(p, side)
+                if pose == "rest" and (bones["hand."+side].head.xy-Vector(rest)).length < .02:
+                    middle = next(d for d in h["digits"] if d["id"] == "mijlociu")
+                    fingertip = min(pt[1] for pt in middle["pts"])-middle["r"][2]
+                    knee = bones["shin."+side].head.y
+                    if fingertip-knee < 2*middle["r"][2]:
+                        fail(f"{actor} {side}: degetele în repaus coboară până la genunchi", frame)
+                # 7. Lateralitate: degetul mare de partea anatomică corectă.
+                if P.thumb_side(h["axes"], side) <= 0:
+                    fail(f"{actor} {side}: degetul mare e pe partea greșită", frame)
+                if P.facing(h) > .35 and h["axes"]["y"][1] < -.5:
+                    thumb = h["digits"][0]["pts"][3][0]-h["W"][0]
+                    if (thumb > 0) == (side == "R"):
+                        fail(f"{actor} {side}: cu palma spre cameră, degetul mare nu e în afară", frame)
+                # 8. Treceri C ↔ A cu siluete apropiate.
+                if len(poses) > 1 and (poses[-1] == B.C_INDEX) != (poses[-2] == B.C_INDEX):
+                    shown = poses[-1] if poses[-1] != B.C_INDEX else poses[-2]
+                    drawing = B.drawing_of(coll, side, HAND_POSES[shown])
+                    if poses[-1] == B.C_INDEX:
+                        scene.frame_set(frame-2)
+                    score = P.iou(silhouette_c(built), silhouette_a(drawing, rig, p, side, HAND_POSES[shown]))
+                    scene.frame_set(frame)
+                    summary.setdefault("iou", []).append(round(score, 3))
+                    if score < .85:
+                        fail(f"{actor} {side}: trecerea C ↔ A schimbă silueta (IoU {score:.2f})", frame)
+            for pair, seen in order_history.items():
+                flips = [f for (f, now), (g, before) in zip(seen[1:], seen) if now != before and f-g <= 4]
+                for first, second in zip(flips, flips[1:]):
+                    if second-first <= 4:
+                        fail(f"{actor} {side}: piesele {pair[0]} și {pair[1]} pâlpâie", second)
+            changes = [i for i in range(1, len(poses)) if poses[i] != poses[i-1]]
+            for first, second in zip(changes, changes[1:]):
+                if second-first < 2:
+                    fail(f"{actor} {side}: hand_{side}_pose se schimbă după un singur desen", frames[second])
+            summary[f"{actor} {side}"] = {k: round(v, 5) for k, v in worst.items()}
+        verify_scarf(rig, coll, p)
+    print("PALME25D_OK", json.dumps(summary, ensure_ascii=False))
+
+
+def verify_scarf(rig, coll, p):
+    """Colțul baticului urmează vârful degetelor, nu capul."""
+    corners = [obj for obj in coll.objects if obj.get("cleopa_palme25d_scarf")]
+    if not corners:
+        return
+    state, memory = {}, {"__stable__": P.ORDER_HYSTERESIS}
+    start, end = B.visible_range(coll, scene)
+    for frame in B.drawn(start, end):
+        scene.frame_set(frame)
+        data = B.hand_frame(rig, p, "R", frame, state)
+        h, _ = B.build_c(p, "R", data, memory)
+        for obj in corners:
+            if obj.hide_render:
+                continue
+            grip = obj.matrix_basis @ Vector(obj["cleopa_grip"])
+            gap = (grip.xy-Vector(h["contact"][:2])).length/P.mm(p)
+            if gap > 2:
+                fail(f"colțul baticului e la {gap:.1f} mm de degete", frame)
+
+
+def verify_cutout_sleeve(rig, sleeve, side):
+    """2.5D arms: the sleeve is two rigid cut-out pieces, the forearm piece in front."""
+    names = {group.index: group.name for group in sleeve.vertex_groups}
+    pieces = {}
+    for vertex in sleeve.data.vertices:
+        groups = [g for g in vertex.groups if g.weight > 0]
+        assert len(groups) == 1 and abs(groups[0].weight-1) < 1e-6, (sleeve.name, vertex.index)
+        pieces.setdefault(names[groups[0].group], []).append(vertex.co)
+    assert set(pieces) == {"upper_arm."+side, "forearm."+side}, (sleeve.name, set(pieces))
+    elbow = rig.data.bones["forearm."+side].head_local.y
+    upper = [co for co in pieces["upper_arm."+side] if abs(co.y-elbow) < .1]
+    lower = [co for co in pieces["forearm."+side] if abs(co.y-elbow) < .1]
+    assert upper and lower and min(co.z for co in lower) > max(co.z for co in upper), sleeve.name
 
 
 def verify_sleeves(rigs):
     for rig in rigs:
-        if rig.name[4:] in VOLUMETRIC:
-            continue
         coll = bpy.data.collections[rig.name[4:]]
         bodice = next(obj for obj in coll.objects
                       if "Shirt and clothing panels" in obj.name)
@@ -134,6 +324,9 @@ def verify_sleeves(rigs):
             assert {group.name for group in sleeve.vertex_groups} == {
                 "chest", "shoulder."+side, "upper_arm."+side, "forearm."+side, "hand."+side,
             }, sleeve.name
+            if rig.get("palme25d_profile"):
+                verify_cutout_sleeve(rig, sleeve, side)
+                continue
             assert sum(len(vertex.groups) >= 2 for vertex in sleeve.data.vertices) >= 25
             assert all(abs(sum(group.weight for group in vertex.groups)-1) < .00001
                        for vertex in sleeve.data.vertices)
@@ -146,11 +339,13 @@ def verify_sleeves(rigs):
             cap_y = rig.data.bones["upper_arm."+side].head_local.y
             cap = [v for v in sleeve.data.vertices if v.co.y > cap_y+.065]
             assert cap and all(any(g.group == shoulder and g.weight > .99 for g in v.groups) for v in cap)
-            cuff = sleeve.vertex_groups["hand."+side].index
+            # With 2.5D hands the cuff follows the forearm and the palm turns inside it.
+            cuff_bone = "forearm." if rig.get("palme25d_profile") else "hand."
+            cuff = sleeve.vertex_groups[cuff_bone+side].index
             assert any(any(group.group == cuff and group.weight > .95 for group in v.groups)
                        for v in sleeve.data.vertices)
             assert min(v.co.z for v in sleeve.data.vertices) < min(v.co.z for v in bodice.data.vertices)
-    print("SLEEVES_OK", (len(rigs)-len(VOLUMETRIC))*2, "mâneci continue de la umăr la manșetă")
+    print("SLEEVES_OK", len(rigs)*2, "mâneci continue de la umăr la manșetă")
 
 
 def verify_arm_length(beats):
@@ -289,7 +484,7 @@ rigs = [obj for obj in scene.objects if obj.type=="ARMATURE"]
 verify_sleeves(rigs)
 verify_arm_length(data["beats"])
 verify_hands(data["beats"])
-verify_volumetric(data["beats"])
+verify_palme25d(data["beats"])
 verify_idle(data["beats"])
 verify_trough_and_father(data["beats"])
 verify_arms(rigs)

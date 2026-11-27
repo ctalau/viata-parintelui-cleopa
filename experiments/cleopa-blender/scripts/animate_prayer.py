@@ -80,7 +80,7 @@ _DEPTHS = {}
 
 
 def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None,
-            depth=None, palm=None):
+            depth=None, palm=None, held=0):
     """Key one arm. With `p["palme25d"]`, the bones get the projected 3D IK of
     `palme25d.solve_arm`; the wrist depth and palm direction are keyed on the
     hand bone, so the 2.5D hand bake reads the same proxy the bones show."""
@@ -96,7 +96,8 @@ def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, 
         hand=rig.pose.bones['hand.'+side]
         hand['p25_depth']=points['W'][2]
         hand['p25_palm']=tuple(palm) if palm is not None else (0.,0.,0.)
-        for name in ('p25_depth','p25_palm'):
+        hand['p25_held']=held
+        for name in ('p25_depth','p25_palm','p25_held'):
             hand.keyframe_insert(f'["{name}"]',frame=frame,group='Arm '+side)
     else:
         rotations, scales=solve_arm(p,side,wrist,angle,seated)

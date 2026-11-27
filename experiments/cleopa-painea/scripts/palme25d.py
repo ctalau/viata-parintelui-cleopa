@@ -526,13 +526,14 @@ BEND_SPLIT = 40
 SKIN, SHADE = "skin", "shade"
 
 
-def build_volume(h, details=True, memory=None, hand=HAND):
+def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
     """Piesele palmei, de la spate la față.
 
     Un deget drept face corp comun cu palma; o articulație îndoită peste 40° începe
     o piesă nouă, deci linia de contur apare unde ar pune-o un animator.
     """
-    lw = max(1.2, .26*h["k"])
+    if lw is None:
+        lw = max(1.2, .26*h["k"])
     palm_poly = circle_hull(h["palm"])
     palm = {"id": "palm", "z": h["palmZ"], "shapes": [{"t": "poly", "pts": palm_poly}], "details": []}
     groups = [palm]
@@ -542,7 +543,7 @@ def build_volume(h, details=True, memory=None, hand=HAND):
         for k in range(3):
             a, b = d["pts"][k], d["pts"][k+1]
             shape = {"t": "cap", "a": xy(a), "b": xy(b), "ra": d["r"][k], "rb": d["r"][min(2, k+1)]*.97,
-                     "z": (a[2]+b[2])/2}
+                     "z": (a[2]+b[2])/2, "piece": f"{d['id']}{k}"}
             if thumb and k == 0:
                 palm["shapes"].append(shape)
                 continue
@@ -559,7 +560,7 @@ def build_volume(h, details=True, memory=None, hand=HAND):
                 along = len2(direction)
                 if along > d["r"][2]*.6:
                     cur["details"].append({
-                        "t": "nail", "c": lerp2(xy(a), xy(b), .66), "angle": atan2(direction[1], direction[0]),
+                        "digit": d["id"], "t": "nail", "c": lerp2(xy(a), xy(b), .66), "angle": atan2(direction[1], direction[0]),
                         "rx": min(along*.3, d["r"][2]*.62),
                         "ry": d["r"][2]*.5*min(1, d["dorsal"][2][2]+.25), "w": lw*.45})
     for g in groups[1:]:
@@ -571,24 +572,28 @@ def build_volume(h, details=True, memory=None, hand=HAND):
         if g["z"] < h["palmZ"]-.3*h["k"] and not g["rooted"]:
             g["fill"] = SHADE
         if g["rooted"]:
-            g["details"].insert(0, {"t": "patch", "clip": palm_poly, "c": g["root"], "r": g["rootR"]*1.45,
+            g["details"].insert(0, {"t": "patch", "digit": g["id"][:-1], "clip": palm_poly, "c": g["root"], "r": g["rootR"]*1.45,
                                     "color": SKIN})
     if details and facing(h) > .35:
         lines = creases(hand)
         crease = [xy(h["to_screen"](p)) for p in lines["long"]]
         short = [xy(h["to_screen"](p)) for p in lines["short"]]
-        palm["details"] += [{"t": "line", "pts": crease, "w": lw*.6}, {"t": "line", "pts": short, "w": lw*.6}]
+        palm["details"] += [{"t": "line", "id": "long", "pts": crease, "w": lw*.6},
+                            {"t": "line", "id": "short", "pts": short, "w": lw*.6}]
     # Cu memorie, piesele își păstrează ordinea până când adâncimile diferă cu
     # peste o jumătate de centimetru: degetele aproape la același nivel nu pâlpâie.
-    if memory is not None:
-        n = len(groups)
-        for g in groups:
-            g["z"] += memory[g["id"]]/n*.5*h["k"] if g["id"] in memory else 0
-    groups.sort(key=lambda g: g["z"])
-    if memory is not None:
-        memory.clear()
-        for i, g in enumerate(groups):
-            memory[g["id"]] = i
+    if memory is not None and "__stable__" in memory:
+        groups = stable_order(groups, memory, memory["__stable__"]*h["k"])
+    else:
+        if memory is not None:
+            n = len(groups)
+            for g in groups:
+                g["z"] += memory[g["id"]]/n*.5*h["k"] if g["id"] in memory else 0
+        groups.sort(key=lambda g: g["z"])
+        if memory is not None:
+            memory.clear()
+            for i, g in enumerate(groups):
+                memory[g["id"]] = i
     # Peticul trebuie să vină după palmă; un deget pictat în spatele ei îl pierde.
     palm_index = groups.index(palm)
     for i, g in enumerate(groups):
@@ -596,6 +601,33 @@ def build_volume(h, details=True, memory=None, hand=HAND):
             g["details"] = [d for d in g["details"] if d["t"] != "patch"]
     return {"groups": groups, "lw": lw, "contact": xy(h["contact"]),
             "order": " ".join(g["id"] for g in groups)}
+
+
+def stable_order(groups, memory, hysteresis):
+    """Ordinea pieselor cu histerezis pe perechi (episodul).
+
+    Memoria din `hands.js` adaugă rang/n × 0,5 cm; când o articulație trece de 40°,
+    numărul de piese n se schimbă și toate decalajele se mută, iar două degete
+    aproape la aceeași adâncime se pot inversa de două ori în câteva cadre. Aici se
+    pornește de la ordinea desenului anterior, piesele noi se inserează după
+    adâncime, iar doi vecini își schimbă locul doar dacă adâncimile lor diferă cu
+    mai mult decât `hysteresis`."""
+    by_id = {g["id"]: g for g in groups}
+    order = [by_id[i] for i in memory.get("__order__", []) if i in by_id]
+    for g in sorted((g for g in groups if g not in order), key=lambda g: g["z"]):
+        k = 0
+        while k < len(order) and order[k]["z"] <= g["z"]:
+            k += 1
+        order.insert(k, g)
+    changed = True
+    while changed:
+        changed = False
+        for k in range(len(order)-1):
+            if order[k]["z"] > order[k+1]["z"]+hysteresis:
+                order[k], order[k+1] = order[k+1], order[k]
+                changed = True
+    memory["__order__"] = [g["id"] for g in order]
+    return order
 
 
 class Volume:
@@ -871,7 +903,7 @@ def flip(v):
 # umărului și brațul se desface în lateral. Polul relaxat lasă cotul să cadă pe
 # lângă corp; rămâne în afară și înapoi.
 POLE = (-.45, -.8, -.4)
-REACH = .985        # brațul nu se întinde complet, ca să nu se blocheze cotul
+REACH = .997        # brațul aproape întins: talerul purtat ajunge până la 99,6 % din braț
 READABLE = .45      # proiecția fiecărui segment rămâne ≥ 45 % din lungime
 DEPTH_MAX = 1.0     # în unități de (umăr + cot)
 DEPTH_RATE = .035   # schimbarea maximă a adâncimii între două cadre, în aceeași unitate
@@ -970,9 +1002,10 @@ def solve_arm(profile, side, wrist, hand_angle, depth=None):
 #   cup   – ține ceva de dedesubt (tava): palma în sus și înăuntru;
 #   grip  – strânge (cartea): ca `cup`, cu degetele strânse;
 #   reach – întinde mâna spre țintă: degetele spre ea, palma în jos;
-#   stop  – semnul de oprire: degetele în sus, palma spre cameră.
+#   stop  – semnul de oprire: degetele în sus, palma spre cameră;
+#   cheek – mâna căuș pe obraz: palma spre obraz, înăuntru și puțin înapoi.
 POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "pumn",
-                "reach": "deschis", "stop": "deschis"}
+                "reach": "deschis", "stop": "deschis", "cheek": "cupa"}
 
 
 def default_palm(pose, side):
@@ -982,13 +1015,20 @@ def default_palm(pose, side):
         "open": (0, 1, .35),
         "cup": norm(add((0, 1, 0), mul(inward, .5))),
         "grip": norm(add((0, 1, 0), mul(inward, .5))),
+        "cheek": norm(add((0, 0, -.65), mul(inward, .75))),
         "reach": (0, -1, 0),
         "stop": (0, 0, 1),
     }[pose]
 
 
 def orientation(direction, palm, side):
-    """Cuaternionul palmei în spațiul mâinii drepte (stânga e oglindită).
+    """Cuaternionul palmei în spațiul proxy-ului.
+
+    Mâna din `rig.js` este, anatomic, o mână stângă: `handQuat` pune degetul mare
+    la −(degete × palmă). La mâna dreaptă degetul mare este la +(degete × palmă)
+    (în poziția anatomică, cu palma în față și degetele în jos, degetul mare e
+    lateral). De aceea mâna stângă folosește proxy-ul direct, iar dreapta e
+    oglinda lui (§6 din specificație: o singură geometrie).
 
     Dacă palma cerută e aproape paralelă cu degetele, se înclină spre cameră,
     ca baza să rămână definită."""
@@ -996,7 +1036,7 @@ def orientation(direction, palm, side):
     p = norm(palm)
     if length(sub(p, mul(d3, dot(p, d3)))) < .35:
         p = norm(add(p, (0, 0, .6)))
-    if side == "L":
+    if side == "R":
         d3, p = flip(d3), flip(p)
     return hand_quat(d3, p)
 
@@ -1006,22 +1046,23 @@ def wrist_from_tip(profile, side, tip, direction, palm, gesture):
     hand = hand_of(profile)
     q = orientation(direction, palm, side)
     local = hand_local(GESTURES[gesture] if isinstance(gesture, str) else gesture, hand)
-    target = flip(tip) if side == "L" else tuple(tip)
+    target = flip(tip) if side == "R" else tuple(tip)
     w = sub(target, quat_rotate(q, local["contact"]))
-    return flip(w) if side == "L" else w
+    return flip(w) if side == "R" else w
 
 
 def hand_rig(profile, side, wrist3, q, gesture):
-    """Proxy-ul palmei la încheietura dată (spațiul rigului); stânga e dreapta reflectată."""
+    """Proxy-ul palmei la încheietura dată; mâna dreaptă e proxy-ul reflectat (vezi `orientation`)."""
     hand = hand_of(profile)
-    pose = {"w": flip(wrist3) if side == "L" else wrist3, "q": q, "g": gesture, "pole": POLE, "cam": 0}
-    shoulder = (-profile["shoulder_x"], profile["shoulder_y"], 0.)
+    # În spațiul proxy-ului mâna este stângă: umărul și polul sunt cei ai brațului stâng.
+    pose = {"w": flip(wrist3) if side == "R" else wrist3, "q": q, "g": gesture, "pole": flip(POLE), "cam": 0}
+    shoulder = (profile["shoulder_x"], profile["shoulder_y"], 0.)
     rig = solve(pose, hand=hand, shoulder=shoulder, upper=profile["upper"], fore=profile["lower"])
     return rig
 
 
 class Mirror:
-    """Camera episodului pentru mâna stângă: proiecția frontală reflectată (x → −x)."""
+    """Camera episodului pentru mâna dreaptă: proiecția frontală reflectată (x → −x)."""
     k = 1
 
     def p(self, v):
@@ -1036,6 +1077,283 @@ def contact_point(profile, side, wrist3, direction, palm, gesture):
     hand = hand_of(profile)
     q = orientation(direction, palm, side)
     local = hand_local(GESTURES[gesture] if isinstance(gesture, str) else gesture, hand)
-    w = flip(wrist3) if side == "L" else tuple(wrist3)
+    w = flip(wrist3) if side == "R" else tuple(wrist3)
     tip = add(w, quat_rotate(q, local["contact"]))
-    return flip(tip) if side == "L" else tip
+    return flip(tip) if side == "R" else tip
+
+
+def camera_for(side):
+    return Mirror() if side == "R" else Identity()
+
+
+def thumb_side(axes, side):
+    """Semnul anatomic: + dacă degetul mare e de partea (degete × palmă) a mâinii drepte,
+    respectiv −(degete × palmă) a stângii, în spațiul rigului. `axes` sunt axele proiectate."""
+    palm = mul(axes["z"], -1)
+    expected = cross(axes["y"], palm)
+    if side == "L":
+        expected = mul(expected, -1)
+    return dot(axes["x"], expected)
+
+
+# --- C: palma ca plasă cu topologie fixă --------------------------------------
+# 16 piese: palma, metacarpianul degetului mare și 14 falange. Fiecare piesă are
+# un inel de contur (INK) și două inele de umplere, piele și umbră; cel nefolosit
+# se strânge într-un punct. Detaliile (peticele de rădăcină, unghiile, liniile
+# palmei) sunt tot piese fixe, scalate la zero când nu se văd. Așa obiectul are
+# același număr de vârfuri în fiecare desen și se coace în shape keys.
+DIGITS = ("mare", "aratator", "mijlociu", "inelar", "mic")
+PIECES = ("palm",)+tuple(f"{d}{k}" for d in DIGITS for k in range(3))
+NAIL_RING = 16
+MATERIALS = ("ink", "skin", "shade", "nail", "crease")
+# Ordinea prin Z. Fiecare rang (piesă vizuală) are patru trepte: conturul,
+# umplerea, detaliile de pe umplere (petic, conturul unghiei, liniile palmei) și
+# umplerea unghiei. Specificația cere 2 trepte pe rang; a treia și a patra țin
+# detaliile deasupra umplerii fără să coboare sub pragul ε/2 al verificării.
+SLOTS = 4
+ORDER_HYSTERESIS = 1.5   # cm (× k): peste saltul de 1,2 cm al regulii „degetul înrădăcinat stă în fața palmei”
+EPSILON = 4e-4       # unități de rig; ×0,5 (scara Z a rigului) = 2e-4 în lume
+
+
+def _ring_count(piece):
+    return PALM_RING if piece == "palm" else CAP_RING
+
+
+def topology():
+    """Fețele (triunghiuri în evantai), materialele și blocurile de vârfuri."""
+    blocks, faces, materials = [], [], []
+    count = 0
+
+    def block(name, ring, material):
+        nonlocal count
+        start = count
+        blocks.append((name, start, ring))
+        for i in range(ring):
+            faces.append((start+ring, start+i, start+(i+1) % ring))
+            materials.append(material)
+        count += ring+1
+    for piece in PIECES:
+        block(("ink", piece), _ring_count(piece), 0)
+        block(("skin", piece), _ring_count(piece), 1)
+        block(("shade", piece), _ring_count(piece), 2)
+    for digit in DIGITS:
+        block(("patch", digit), CAP_RING, 1)
+        block(("nail_ink", digit), NAIL_RING, 4)
+        block(("nail", digit), NAIL_RING, 3)
+    lines = []
+    for name, points in (("long", 3), ("short", 2)):
+        start = count
+        for i in range(points-1):
+            a, b = start+2*i, start+2*i+2
+            faces.append((a, a+1, b+1))
+            faces.append((a, b+1, b))
+            materials += [4, 4]
+        lines.append((name, start, points))
+        count += 2*points
+    return {"blocks": blocks, "faces": faces, "materials": materials, "count": count, "lines": lines}
+
+
+TOPOLOGY = topology()
+
+
+def _fan(ring, z):
+    cx = sum(p[0] for p in ring)/len(ring)
+    cy = sum(p[1] for p in ring)/len(ring)
+    return [(x, y, z) for x, y in ring]+[(cx, cy, z)]
+
+
+def _collapsed(n, point, z):
+    return [(point[0], point[1], z)]*(n+1)
+
+
+def _clip_into(points, polygon, centre):
+    """Aduce fiecare punct în interiorul poligonului convex, pe raza din `centre`.
+
+    Peticul de rădăcină rămâne un poligon stelat cu același număr de vârfuri,
+    tăiat după conturul palmei, ca în `paintDetail` (clip)."""
+    out = []
+    n = len(polygon)
+    orient = 1 if polygon_area(polygon) > 0 else -1
+    for p in points:
+        t_max = 1.
+        d = sub2(p, centre)
+        for i in range(n):
+            a, b = polygon[i], polygon[(i+1) % n]
+            edge = sub2(b, a)
+            # Interiorul: orient · cross(edge, q − a) ≥ 0
+            fa = orient*cross2(edge, sub2(centre, a))
+            fd = orient*cross2(edge, d)
+            if fd < 0 and fa >= 0:
+                t_max = min(t_max, fa/-fd)
+        out.append(add2(centre, mul2(d, max(0., t_max))))
+    return out
+
+
+def _ellipse(c, rx, ry, angle, n=NAIL_RING, grow_by=0.):
+    ca, sa = cos(angle), sin(angle)
+    out = []
+    for i in range(n):
+        t = i/n*2*pi
+        x, y = cos(t)*(rx+grow_by), sin(t)*(ry+grow_by)
+        out.append((c[0]+x*ca-y*sa, c[1]+x*sa+y*ca))
+    return out
+
+
+def _ribbon(points, width):
+    out = []
+    half = width/2
+    for i, p in enumerate(points):
+        a = points[max(0, i-1)]
+        b = points[min(len(points)-1, i+1)]
+        t = sub2(b, a)
+        lt = len2(t) or 1
+        nrm = (-t[1]/lt*half, t[0]/lt*half)
+        out += [add2(p, nrm), sub2(p, nrm)]
+    return out
+
+
+def layered_vertices(built, levels, level_of=None):
+    """Vârfurile plasei fixe pentru un desen C.
+
+    `levels` dă z-ul de bază al fiecărui nivel; `level_of(group, rank, palm_rank)`
+    alege nivelul unei piese vizuale (sub manșetă, peste ea, în fața tăvii).
+    Piesa cu rangul r are conturul la z0 + 4rε, umplerea la z0 + (4r+1)ε, iar
+    piesele contopite în aceeași piesă vizuală au același rang."""
+    lw = built["lw"]
+    groups = built["groups"]
+    palm_rank = next(i for i, g in enumerate(groups) if g["id"] == "palm")
+    level_of = level_of or (lambda g, r, pr: "base")
+    verts = [None]*TOPOLOGY["count"]
+    shapes, details, home = {}, {}, {}
+    for rank, g in enumerate(groups):
+        z0 = levels[level_of(g, rank, palm_rank)]+SLOTS*rank*EPSILON
+        for shape in g["shapes"]:
+            piece = shape.get("piece", "palm")
+            shapes[piece] = (shape, g, z0)
+        for d in g["details"]:
+            key = ("line", d["id"]) if d["t"] == "line" else (d["t"], d["digit"])
+            details[key] = (d, z0)
+        home[g["id"]] = z0
+    anchor = None
+    for name, start, ring in TOPOLOGY["blocks"]:
+        kind, piece = name
+        if kind in ("ink", "skin", "shade"):
+            shape, g, z0 = shapes[piece]
+            outline = shape["pts"] if shape["t"] == "poly" else None
+            fill = resample(outline, ring) if outline else capsule_ring(shape["a"], shape["b"], shape["ra"], shape["rb"])
+            anchor = anchor or fill[0]
+            if kind == "ink":
+                ring_pts = grow(fill, lw) if outline else capsule_ring(shape["a"], shape["b"], shape["ra"]+lw, shape["rb"]+lw)
+                block = _fan(ring_pts, z0)
+            else:
+                shaded = g.get("fill") == SHADE
+                if (kind == "shade") == shaded:
+                    block = _fan(fill, z0+EPSILON)
+                else:
+                    c = shape["pts"][0] if outline else shape["a"]
+                    block = _collapsed(ring, c, z0+EPSILON)
+        else:
+            d, z0 = details.get((kind if kind != "nail_ink" else "nail", piece), (None, None))
+            if d is None:
+                block = _collapsed(ring, anchor, levels["base"])
+            elif kind == "patch":
+                circle = capsule_ring(d["c"], d["c"], d["r"], d["r"])
+                block = _fan(_clip_into(circle, d["clip"], d["c"]), z0+2*EPSILON)
+            elif kind == "nail_ink":
+                block = _fan(_ellipse(d["c"], d["rx"], d["ry"], d["angle"], grow_by=d["w"]), z0+2*EPSILON)
+            else:
+                block = _fan(_ellipse(d["c"], d["rx"], d["ry"], d["angle"]), z0+3*EPSILON)
+        verts[start:start+ring+1] = block
+    for name, start, points in TOPOLOGY["lines"]:
+        d, z0 = details.get(("line", name), (None, None))
+        if d is None:
+            ribbon = [anchor]*(2*points)
+            z = levels["base"]
+        else:
+            ribbon = _ribbon(d["pts"], d["w"])
+            z = z0+2*EPSILON
+        verts[start:start+2*points] = [(x, y, z) for x, y in ribbon]
+    return verts
+
+
+def flipped_faces(verts, sign=1, tolerance=1e-12):
+    """Câte triunghiuri ale palmei C sunt întoarse pe dos. Inelele sunt în sens
+    trigonometric în spațiul mâinii drepte; oglinda stângă le inversează (`sign`)."""
+    count = 0
+    for a, b, c in TOPOLOGY["faces"]:
+        p, q, r = verts[a], verts[b], verts[c]
+        got = cross2(sub2(q, p), sub2(r, p))
+        if abs(got) > tolerance and (1 if got > 0 else -1) != sign:
+            count += 1
+    return count
+
+
+# --- Desene A noi, trase după silueta C -----------------------------------------
+def trace_outline(polygons, size=160, tolerance=.012):
+    """Conturul exterior al reuniunii poligoanelor, simplificat și netezit ca drum Q.
+
+    Folosit o singură dată, ca să redeseneze o poză A care nu atinge IoU 0,85 cu C
+    (HANDOFF §5: se ajustează desenul A, nu proxy-ul). Întoarce punctele conturului."""
+    pts = [p for poly in polygons for p in poly]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    pad = .04*max(max(xs)-min(xs), max(ys)-min(ys))
+    x0, y0 = min(xs)-pad, min(ys)-pad
+    step = max(max(xs)-x0+pad, max(ys)-y0+pad)/size
+    cells = raster(polygons, (x0, y0, x0+size*step, y0+size*step), size)
+    # Muchiile dintre o celulă plină și una goală, orientate cu plinul la stânga.
+    edges = {}
+    for i, j in cells:
+        for di, dj, a, b in ((0, -1, (i, j), (i+1, j)), (1, 0, (i+1, j), (i+1, j+1)),
+                             (0, 1, (i+1, j+1), (i, j+1)), (-1, 0, (i, j+1), (i, j))):
+            if (i+di, j+dj) not in cells:
+                edges.setdefault(a, []).append(b)
+    loops = []
+    while edges:
+        start = next(iter(edges))
+        loop, here = [start], start
+        while True:
+            nxt = edges[here].pop()
+            if not edges[here]:
+                del edges[here]
+            if nxt == start:
+                break
+            loop.append(nxt)
+            here = nxt
+        loops.append(loop)
+    loop = max(loops, key=len)
+    points = [(x0+i*step, y0+j*step) for i, j in loop]
+
+    def simplify(chain, tol):
+        if len(chain) < 3:
+            return chain
+        a, b = chain[0], chain[-1]
+        ab = sub2(b, a)
+        lab = len2(ab) or 1e-12
+        far, index = 0, 0
+        for k, p in enumerate(chain[1:-1], 1):
+            d = abs(cross2(ab, sub2(p, a)))/lab
+            if d > far:
+                far, index = d, k
+        if far <= tol:
+            return [a, b]
+        return simplify(chain[:index+1], tol)[:-1]+simplify(chain[index:], tol)
+    size_ = max(max(xs)-min(xs), max(ys)-min(ys))
+    half = len(points)//2
+    simple = simplify(points[:half+1], tolerance*size_)[:-1]+simplify(points[half:]+[points[0]], tolerance*size_)[:-1]
+    return simple
+
+
+def q_path(points, digits=3, closed=True):
+    """Un drum închis netezit: vârfurile devin puncte de control, mijloacele capete."""
+    if not closed:
+        return "M "+" L ".join(f"{p[0]:.{digits}f} {p[1]:.{digits}f}" for p in points)
+    n = len(points)
+    mids = [lerp2(points[i], points[(i+1) % n], .5) for i in range(n)]
+    import re
+
+    def f(v):
+        return re.sub(r"^(-?)0\.", r"\1.", f"{v:.{digits}f}")
+    out = [f"M {f(mids[-1][0])} {f(mids[-1][1])}"]
+    for i in range(n):
+        out.append(f"Q {f(points[i][0])} {f(points[i][1])} {f(mids[i][0])} {f(mids[i][1])}")
+    return " ".join(out)+" Z"
