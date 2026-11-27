@@ -156,6 +156,7 @@ def export_shot(scene, index, marker, next_frame):
 
 def main():
     scene = bpy.context.scene
+    assert not scene.get("coacere_partiala"), "scena are o coacere parțială (npm run cadru): rulează coacerile complete"
     markers = sorted((mark for mark in scene.timeline_markers if mark.camera), key=lambda mark: mark.frame)
     OUTPUT.mkdir(parents=True, exist_ok=True)
     shots = [export_shot(scene, i, marker,

@@ -249,7 +249,7 @@ def verify_palme25d(beats):
                     # Plasa coaptă este exact desenul recalculat din rig (shape key-ul corect).
                     over_tray = actor == "Mama · bucătărie" and pose == "cup" and not data["held"] \
                         and levels.tray_world is not None and frame <= settle
-                    expected = P.layered_vertices(built, levels.at(frame, over_tray), B.level_rule(h, over_tray))
+                    expected = P.layered_vertices(built, levels.at(frame, over_tray), B.level_rule(h, over_tray, data))
                     shift = verts[0][2]-expected[0][2]
                     worst_xy = max(abs(a[0]-b[0])+abs(a[1]-b[1]) for a, b in zip(verts, expected))
                     if worst_xy > 1e-4 or min(abs(shift), abs(shift-B.FACE_LIFT)) > 1e-4:
@@ -509,6 +509,7 @@ def verify_arms(rigs):
           round(wrist_peak/radians(1),1), "grade la încheietură")
 
 
+assert not scene.get("coacere_partiala"), "scena are o coacere parțială (npm run cadru): rulează coacerile complete"
 rigs = [obj for obj in scene.objects if obj.type=="ARMATURE"]
 verify_sleeves(rigs)
 verify_arm_length(data["beats"])

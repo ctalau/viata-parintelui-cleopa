@@ -58,6 +58,18 @@ blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --pyth
 
 `/volum/` arată Mama cu tot corpul în 3D, pe un drum de sat. Capul este o sferă pe care este lipit desenul 2D al capului din episod. Hainele poartă aceleași desene ca în 2D, înfășurate pe volume, în șapte teste de stres. Testele cuprind mersul spre cameră, mersul din profil, întoarcerea pe loc, semnul crucii, atingerile și brațele încrucișate, aplecarea după găleată și brațele deasupra capului. Ultima probă are două personaje care se întâlnesc. „Drumul la troiță” le montează ca episod de probă. Blender verifică alunecarea tălpilor, distanța degetelor la fiecare contact și intersecțiile dintre piese. Raportul apare lângă fiecare test. Vezi [fișa experimentului](experiments/cleopa-volum/README.md).
 
+## Cadre rapide (three.js + GLB)
+
+`npm run cadru` arată orice cadru al episodului în câteva secunde, fără randarea Blender. Blender doar evaluează cadrele cerute și le exportă ca GLB-uri (`cadru_export.py`: desenele vizibile ale planului în coordonatele lumii, materiale neluminate, decorurile ca texturi externe). Three.js le asamblează și le randează în Chromium fără ecran, ca `npm run still` din lego-shorts. Rezultatul este `experiments/cleopa-painea/renders/cadre/foaie.jpg`: fiecare cadru etichetat (număr · plan · timp), apoi zoom pe brațele fiecărui personaj sau, cu `--maini`, pe fiecare mână cu manșeta. Cadrele întregi sunt în `cadru-NNNN.png`.
+
+```bash
+npm run cadru -- 1263 3301                     # scena salvată, ~5 s
+npm run cadru -- 2590-2610:5 --build --maini   # după o schimbare în coregrafie, ~30 s
+npm run cadru -- 3301 --coace --zoom Tata      # coacere parțială fără build; zoom doar pe Tata
+```
+
+`--build` reface scena (`build_episode.py`). Apoi palmele și mânecile se coc doar în jurul cadrelor cerute (±24 de cadre), într-o copie din `.cadru/`. Lanțul complet durează ~16 minute, iar ciclul acesta ~30 de secunde. Copia e marcată `coacere_partiala`, iar `verify_episode.py` și exportul playerului o refuză. Înainte de commit, rulează lanțul complet din README-ul episodului.
+
 ## Filmul în Three.js și foi de cadre
 
 Atelierul deschide planurile reale din episod. Exportul păstrează geometria, camera ortografică pe fiecare cadru, ordinea după adâncime, obiectele vizibile și pozițiile mesh-urilor evaluate. Playerul descarcă planurile pe rând, iar imaginea urmează timpul pistei audio. Modul „Scene de probă cu GLB” permite compoziții independente.

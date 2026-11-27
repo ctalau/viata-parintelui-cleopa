@@ -214,6 +214,7 @@ def check_rigid(scene, sleeve, frame):
 
 
 def main():
+    windows, out = B.bake_options()
     scene = bpy.context.scene
     rigs = [obj for obj in scene.objects if obj.type == "ARMATURE" and "forearm.R" in obj.pose.bones]
     sleeves = []
@@ -221,10 +222,12 @@ def main():
         coll = bpy.data.collections.get(rig.name[4:])
         if coll is None:
             continue
-        start, end = B.visible_range(coll, scene)
+        start, end = B.visible_range(coll, scene, windows)
         for side in ("R", "L"):
             for obj in sleeves_of(coll, side):
-                sleeves.append((Sleeve(obj, rig, side), set(B.drawn(start, end))))
+                frames = {f for f in B.drawn(start, end) if B.in_windows(f, windows)}
+                if frames:
+                    sleeves.append((Sleeve(obj, rig, side), frames))
     for sleeve, frames in sleeves:
         if any(m.show_render for m in sleeve.obj.modifiers if m.type == "ARMATURE"):
             check_rigid(scene, sleeve, min(frames))
@@ -241,11 +244,7 @@ def main():
         total += count
         print("MANECA", sleeve.obj.name, len(frames), "desene", count, "forme", flush=True)
     scene.frame_set(scene.frame_start)
-    options = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
-    if options[:1] == ["--out"]:
-        bpy.ops.wm.save_as_mainfile(filepath=options[1], compress=True, copy=True)
-    else:
-        bpy.ops.wm.save_mainfile(compress=True)
+    B.save(windows, out)
     print("MANECI_OK", total, "forme", flush=True)
 
 

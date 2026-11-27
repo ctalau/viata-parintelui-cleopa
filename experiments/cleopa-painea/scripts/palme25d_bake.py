@@ -14,7 +14,7 @@ interpolare constantă. În pozele ținute marcate de coregrafie (`p25_held`, m�
 la obraz), desenul de autor din `hands.py` (A) înlocuiește C, ancorat la punctul
 de contact. Colțul baticului urmează vârful degetelor. Scriptul e idempotent.
 """
-from math import atan2, cos, sin
+from math import atan2, cos, pi, sin
 from pathlib import Path
 import json
 import sys
@@ -48,14 +48,16 @@ def ease(t):
     return t*t*(3-2*t)
 
 
-def visible_range(coll, scene):
+def visible_range(coll, scene, windows=None):
+    """Primul și ultimul cadru (exclusiv) în care se vede personajul; cu `windows`, doar acolo."""
     body = next(obj for obj in coll.objects if "Shirt and clothing panels" in obj.name)
     frames = []
-    for frame in range(scene.frame_start, scene.frame_end+1):
+    span = range(scene.frame_start, scene.frame_end+1)
+    for frame in span if windows is None else [f for f in span if in_windows(f, windows)]:
         scene.frame_set(frame)
         if not body.hide_render:
             frames.append(frame)
-    return frames[0], frames[-1]+1
+    return (frames[0], frames[-1]+1) if frames else (0, 0)
 
 
 def drawn(start, end):
@@ -151,7 +153,8 @@ def hand_frame(rig, p, side, frame, state):
     arm = {k: ((v[0]+delta.x, v[1]+delta.y, v[2]) if k in "SEW" else v) for k, v in local.items()}
     hand = P.hand_rig(p, side, arm["W"], q, g, (delta.x, delta.y))
     return {"arm": arm, "rig": hand, "pose": pose, "wrist": wrist, "direction": direction,
-            "held": bool(round(bone.get("p25_held", 0)))}
+            "held": bool(round(bone.get("p25_held", 0))),
+            "bend": abs(P.lift_angle(0, bone.rotation_euler.z))}
 
 
 def build_c(p, side, frame_data, memory):
@@ -161,14 +164,23 @@ def build_c(p, side, frame_data, memory):
     return h, built
 
 
-def level_rule(h, over_tray):
-    """Degetele care arată departe de cameră (y.z < −0,35) trec sub manșetă (SPECIFICATIE §5)."""
+BEND_FRONT = 35*pi/180   # încheietura îndoită peste atât: palma iese în fața manșetei
+
+
+def level_rule(h, over_tray, data=None):
+    """Degetele care arată departe de cameră (y.z < −0,35) trec sub manșetă (SPECIFICATIE §5).
+
+    Cu încheietura dreaptă, baza palmei stă sub vârful manșetei (manșeta acoperă încheietura).
+    Cu încheietura îndoită tare, palma se întoarce peste manșetă: sub ea, manșeta cu cusătura
+    tăia palma în două (Tata cu mâna ridicată, Mihai cu cartea pe palmă). Atunci toată
+    palma stă în fața manșetei, cu excepția degetelor care arată departe de cameră."""
     away = h["axes"]["y"][2] < -.35
+    bent = data is not None and data.get("bend", 0) > BEND_FRONT
 
     def level_of(group, rank, palm_rank):
         if over_tray and group["id"].startswith("mare") and group["id"] != "mare0":
             return "tray"
-        if rank > palm_rank and not away:
+        if (rank > palm_rank or bent) and not away:
             return "top"
         return "base"
     return level_of
@@ -379,9 +391,13 @@ def bake_actor(scene, rig, report):
     name = rig.name[4:]
     coll = bpy.data.collections[name]
     p = json.loads(rig["palme25d_profile"])
+    start, end = visible_range(coll, scene, WINDOWS)
+    if start == end:
+        return
     remove_previous(coll, rig)
-    start, end = visible_range(coll, scene)
-    frames = drawn(start, end)
+    frames = [f for f in drawn(start, end) if in_windows(f, WINDOWS)]
+    if not frames:
+        return
     record = {"actor": name, "start": start, "end": end, "sides": {}}
     for side in ("R", "L"):
         gesture_source(rig, side)
@@ -396,10 +412,10 @@ def bake_actor(scene, rig, report):
             h, built = build_c(p, side, data, memory)
             over_tray = data["pose"] == "cup" and not data["held"] and levels.tray_world is not None \
                 and name == "Mama · bucătărie" and frame < build_episode.beat_frame("cuptor", .78)+1
-            probe = P.layered_vertices(built, levels.at(frame, over_tray), level_rule(h, over_tray))
+            probe = P.layered_vertices(built, levels.at(frame, over_tray), level_rule(h, over_tray, data))
             lifted = overlaps_head(probe, head_box(coll, rig))
             lift = FACE_LIFT if lifted else 0.
-            verts = P.layered_vertices(built, levels.at(frame, over_tray, lift), level_rule(h, over_tray)) \
+            verts = P.layered_vertices(built, levels.at(frame, over_tray, lift), level_rule(h, over_tray, data)) \
                 if lifted else probe
             samples.append((frame, verts))
             info[frame] = {"data": data, "h": h, "built": built, "verts": verts, "lift": lift}
@@ -486,7 +502,39 @@ def scarf(scene, rig, coll, report):
         obj["cleopa_palme25d_scarf"] = True
 
 
+def bake_options():
+    """`-- [--frames 3280-3310,2590-2600] [--out copie.blend]`: o coacere doar pe ferestrele
+    de cadre cerute (pentru `npm run cadru`), salvată într-o copie. Fără `--frames`,
+    tot filmul. O coacere parțială se marchează în scenă (`coacere_partiala`)."""
+    args = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
+    values = dict(zip(args[::2], args[1::2]))
+    windows = None
+    if "--frames" in values:
+        windows = [tuple(map(int, span.split("-"))) for span in values["--frames"].split(",")]
+    return windows, values.get("--out")
+
+
+def in_windows(frame, windows):
+    return windows is None or any(lo <= frame <= hi for lo, hi in windows)
+
+
+def save(windows, out):
+    scene = bpy.context.scene
+    if windows is not None:
+        scene["coacere_partiala"] = True
+    if out:
+        bpy.ops.wm.save_as_mainfile(filepath=out, compress=True, copy=True)
+    else:
+        assert windows is None, "o coacere parțială se salvează doar într-o copie (--out)"
+        bpy.ops.wm.save_mainfile(compress=True)
+
+
+WINDOWS = None
+
+
 def main():
+    global WINDOWS
+    WINDOWS, out = bake_options()
     scene = bpy.context.scene
     report = {"actors": []}
     rigs = [obj for obj in scene.objects if obj.type == "ARMATURE" and obj.get("palme25d_profile")]
@@ -494,11 +542,7 @@ def main():
     for rig in rigs:
         bake_actor(scene, rig, report)
     scene.frame_set(scene.frame_start)
-    options = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
-    if options[:1] == ["--out"]:
-        bpy.ops.wm.save_as_mainfile(filepath=options[1], compress=True, copy=True)
-    else:
-        bpy.ops.wm.save_mainfile(compress=True)
+    save(WINDOWS, out)
 
 
 if __name__ == "__main__":

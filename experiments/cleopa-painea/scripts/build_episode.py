@@ -1040,8 +1040,10 @@ def prayer_tableau(coll,start,end):
         for y in (-.14,-.045,.05,.14):
             book.line([(x*.13,y),(x*.36,y+.07),(x*.55,y+.073)],"b38d66",.013)
     bind(book.finish(),father["rig"],"chest")
-    for side,wrist,direction in (("L",(.50,.52),(-.30,.95)),("R",(-.62,.52),(.30,.95))):
-        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180)
+    # Palms up under the lower edge, fingers pointing inward along it (with the fingers up and
+    # the palms toward the chest, the hands looked like they pushed the book, not held it).
+    for side,wrist,direction in (("L",(.68,.50),(-.97,.24)),("R",(-.82,.50),(.97,.24))):
+        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,1,0))
         hand_pose(father,side,start,"open")
     choir = BEATS["la-icoane"]["cues"][-1]
     for index, a in enumerate((father,mother,brother,child)):
