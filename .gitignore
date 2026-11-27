@@ -9,3 +9,6 @@ __pycache__/
 *.pyc
 *.blend[1-9]
 .DS_Store
+.runpod/
+costs/
+experiments/cleopa-painea/renders/frames/

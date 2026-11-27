@@ -1,6 +1,6 @@
 # Viața Părintelui Cleopa · Școala Evlaviei
 
-Pentru un episod, folosește [skill-ul `facut-episod`](.agents/skills/facut-episod/SKILL.md). Pentru scenele Blender ale familiei, citește și [instrucțiunile proiectului original](experiments/cleopa-blender/AGENTS.md).
+Pentru un episod, folosește [skill-ul `facut-episod`](.agents/skills/facut-episod/SKILL.md). Pentru randarea completă a filmului, când `RUNPOD_KEY` e în mediu, folosește [skill-ul `render-runpod`](.agents/skills/render-runpod/SKILL.md). Pentru scenele Blender ale familiei, citește și [instrucțiunile proiectului original](experiments/cleopa-blender/AGENTS.md).
 
 - Pune experimentul și sursele reproductibile în `experiments/<episod>/`. Dă nume stabile personajelor, gesturilor, obiectelor și cadrelor. Refolosește biblioteca înainte să modelezi o variantă nouă.
 - Spune povestea cu replici scurte și română firească. Populează fiecare plan cu acțiunea cerută de replică. Verifică orientarea personajelor, traiectoria obiectelor și continuitatea dintre cadre. Folosește culorile calde și siluetele clare ale seriei.
