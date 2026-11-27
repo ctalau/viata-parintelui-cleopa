@@ -209,6 +209,10 @@ GESTURES = {
     "aratator": {"curl": (0, 1, 1, 1), "spread": .1, "opp": .8, "tcurl": .7, "pinch": 0},
     "treiDegete": {"curl": (.5, .46, 1, 1), "spread": -.3, "opp": 1, "tcurl": .4, "pinch": 1},
     "cupa": {"curl": (.55, .6, .62, .66), "spread": .2, "opp": .6, "tcurl": .3, "pinch": 0},
+    # Ține cartea de dedesubt (doar în episod, nu în atelier): degete întinse și ușor curbate pe
+    # muchia de jos, degetul mare în față. `cupa` (curl ~.6) văzută din față, cu degetele spre
+    # centrul cărții, se scurta într-o minge, iar `pumn` (curl 1) arăta ca un pumn.
+    "tine": {"curl": (.2, .24, .28, .34), "spread": .12, "opp": .5, "tcurl": .2, "pinch": 0},
 }
 GESTURE_NAMES = tuple(GESTURES)
 
@@ -1032,12 +1036,12 @@ def solve_arm(profile, side, wrist, hand_angle, depth=None, prefer=None):
 #   rest  – brațul atârnă: degetele în jos, palma spre coapsă (înăuntru);
 #   open  – invitația: palma în sus, puțin spre cameră, ca să se citească deschisă;
 #   cup   – ține ceva de dedesubt (tava): palma în sus și înăuntru;
-#   grip  – strânge (cartea): ca `cup`, cu degetele strânse;
+#   grip  – ține cartea de dedesubt: degete aproape întinse (`tine`), nu pumn;
 #   reach – întinde mâna spre țintă: degetele spre ea, palma în jos și puțin
 #           dinspre cameră, ca degetele întinse să se vadă, nu doar muchia lor;
 #   stop  – semnul de oprire: degetele în sus, palma spre cameră;
 #   cheek – mâna căuș pe obraz: palma spre obraz, înăuntru și puțin înapoi.
-POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "pumn",
+POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "tine",
                 "reach": "deschis", "stop": "deschis", "cheek": "cupa"}
 
 
