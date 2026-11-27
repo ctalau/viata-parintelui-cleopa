@@ -18,6 +18,7 @@ from build_rigs import bind
 from build_scene import setup
 from decor import empty, painted_backdrop, pig, rooster, steam_art, trough, village
 from hands import HAND_POSES
+import palme25d
 from painted_bedroom import bedroom
 from painted_kitchen import painted_kitchen
 from sleeves import continuous_sleeves
@@ -34,6 +35,8 @@ FPS = TIMING["fps"]
 GOLD = "d99b51"
 COCOA = "593a2e"
 GROUND = "a48962"
+# Personajele cu brațe și palme 2.5D. Faza 1: Mama.
+PALME25D = {"mother"}
 ZONE = {"village": 0, "yard": 33, "bed": 66, "kitchen": 99, "yard_dawn": 132}
 
 
@@ -60,7 +63,7 @@ def key(obj, frame, position=None, turn=None, scale=None):
             obj.keyframe_insert(attr,frame=frame)
 
 
-def actor(coll, design, name, position, size=1, look=None, hat=False, interior=False):
+def actor(coll, design, name, position, size=1, look=None, hat=False, interior=False, palme=None):
     base = character_profile(design)
     changes = {
         "soft_shoulder": True,
@@ -74,6 +77,8 @@ def actor(coll, design, name, position, size=1, look=None, hat=False, interior=F
     }
     if look is not None:
         changes["look"] = look
+    # Brațele și palmele 2.5D (experiments/cleopa-palme): proxy 3D proiectat.
+    changes["palme25d"] = design in PALME25D if palme is None else palme
     if interior:
         changes.update(shirt="ffedcb", shade="dfb991", skin="f5b488", skin_shadow="e1946d")
     profile,rig,char,*_ = create_character(
@@ -139,13 +144,13 @@ def smooth(t):
     return t*t*t*(t*(6*t-15)+10)
 
 
-def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None):
+def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None, skip_first=False):
     p,rig=a["p"],a["rig"]
     prev=None
     for index,(first,second) in enumerate(zip(waypoints,waypoints[1:])):
         fa,pa,da=first
         fb,pb,db=second
-        for frame in range(fa+(index>0),fb+1):
+        for frame in range(fa+(index>0 or skip_first),fb+1):
             t=smooth((frame-fa)/max(1,fb-fa))
             point=Vector(pa).lerp(Vector(pb),t)
             direction=Vector(da).lerp(Vector(db),t)
@@ -153,6 +158,45 @@ def arms(a, side, waypoints, seated=False, world=False, wrist_limit=None):
                 bpy.context.scene.frame_set(frame)
                 point=(point-Vector((rig.location.x,rig.location.y)))/a["size"]
             prev=arm_key(rig,p,side,frame,point,direction,prev,seated=seated,wrist_limit=wrist_limit)
+
+
+def tip_key(a, side, frame, tip, direction, pose, palm=None, previous=None, wrist_limit=None):
+    """Cheie de braț din punctul de contact: încheietura = țintă − R · contactul gestului.
+
+    Orientarea se ia din unghiul pe care osul mâinii îl primește efectiv (după
+    `wrist_limit`), ca vârful proxy-ului să rămână pe țintă."""
+    p, rig = a["p"], a["rig"]
+    palm = palm or palme25d.default_palm(pose, side)
+    gesture = palme25d.POSE_GESTURE[pose]
+    want = Vector(direction).normalized()
+    for _ in range(4):
+        w = palme25d.wrist_from_tip(p, side, tip, (want.x, want.y), palm, gesture)
+        rotations = arm_key(rig, p, side, frame, (w[0], w[1]), want, previous,
+                            wrist_limit=wrist_limit, depth=w[2], palm=palm)
+        angle = sum(rotations)
+        actual = Vector((sin(angle), -cos(angle)))
+        if (actual-want).length < 1e-7:
+            break
+        want = actual
+    return rotations, Vector((w[0], w[1])), w[2]
+
+
+def contact_hold(a, side, frames, tip_at, direction, pose, palm=None, wrist_limit=None):
+    """Ține vârful de contact pe o țintă care se mișcă (tava, obrazul), cadru cu cadru."""
+    previous = None
+    for frame in frames:
+        bpy.context.scene.frame_set(frame)
+        previous, wrist, depth = tip_key(a, side, frame, tip_at(frame), direction, pose, palm,
+                                         previous, wrist_limit)
+    return wrist
+
+
+def point_on_bone(a, bone, point):
+    """Un punct desenat pe un os (coordonatele rigului în repaus), în poza curentă."""
+    rig = a["rig"]
+    pose = rig.pose.bones[bone]
+    rest = rig.data.bones[bone].matrix_local
+    return (pose.matrix @ rest.inverted() @ Vector((point[0], point[1], 0))).xy
 
 
 def stabilize_wrists(rig, action):
@@ -476,22 +520,34 @@ def animate_kitchen(coll):
                            (settle-20,.66,-.10),(settle,1.15,-.54),
                            (settle+31,0,0),(end,0,0)])
     invite=BEATS["traista"]["cues"][0]
-    # Maintain the grasp while the platter travels. The rest occurs after it touches the table.
+    # Maintain the grasp while the platter travels. The fingertips stay under the
+    # platter rim: the contact point is fixed to the loaf and the wrist is solved
+    # from it (palme25d.wrist_from_tip). The rest occurs after it touches the table.
+    def loaf_at(frame):
+        bpy.context.scene.frame_set(frame)
+        return (Vector((loaf.location.x,loaf.location.y))
+                -Vector((mother["rig"].location.x,mother["rig"].location.y)))/mother["size"]
     for side in ("L","R"):
-        previous=None
-        for f in range(begin,settle+1):
-            bpy.context.scene.frame_set(f)
-            grip = -.91 if side=="R" else .76
-            point=Vector((loaf.location.x+grip,loaf.location.y-.142))
-            point=(point-Vector((mother["rig"].location.x,mother["rig"].location.y)))/mother["size"]
+        grip = -.91 if side=="R" else .76
+        def aim_at(f):
             aim=Vector((.90,.28))
             if side=="L":
                 aim=aim.lerp(Vector((.86,-.50)),smooth((f-settle+34)/34))
-            previous=arm_key(mother["rig"],mother["p"],side,f,point,aim,previous)
+            return aim
+        start=loaf_at(begin)
+        wrist0=((start+Vector((grip,-.142))).x,(start+Vector((grip,-.142))).y)
+        depth0=palme25d.default_depth(mother["p"],side,wrist0)
+        palm=palme25d.default_palm("cup",side)
+        tip0=palme25d.contact_point(mother["p"],side,(*wrist0,depth0),tuple(aim_at(begin)),palm,"cupa")
+        previous=None
+        for f in range(begin,settle+1):
+            moved=loaf_at(f)-start
+            tip=(tip0[0]+moved.x,tip0[1]+moved.y,tip0[2])
+            previous,last,_=tip_key(mother,side,f,tip,aim_at(f),"cup",palm,previous)
         hand_pose(mother,side,begin,"cup")
         rest=relax_wrist(mother,side)
         f=settle+21
-        arm_key(mother["rig"],mother["p"],side,f,rest,(0,-1))
+        arms(mother,side,[(settle,tuple(last),tuple(aim_at(settle))),(f,rest,(0,-1))],skip_first=True)
         hand_pose(mother,side,f,"rest")
         if side=="L":
             arms(mother,side,[(f,rest,(0,-1)),(invite["start"]+3,rest,(0,-1)),
@@ -710,22 +766,47 @@ def kitchen_replies(mother, child, brother, father, start):
     voice(father,[question,lesson,hour,joke])
 
     rig = mother["rig"]
-    rest = relax_wrist(mother,"R")
-    cheek = (-.51,1.83)
-    arms(mother,"R",[
-        (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
-        (lesson_reaction+10,cheek,(.52,.85)),
-        (ask["start"]-3,cheek,(.52,.85)),(ask["start"]+29,rest,(0,-1)),
-        (laugh-26,rest,(0,-1)),(laugh+12,cheek,(.52,.85)),
-        (prayer_start-1,cheek,(.52,.85)),
-    ],wrist_limit=wrist_limit)
-    for f, pose in ((lesson_reaction+5,"cup"),(ask["start"]+12,"rest"),(laugh+8,"cup")):
-        hand_pose(mother,"R",f,pose)
-    scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
-    scarf_fold(mother,laugh+11,prayer_start)
+    # The head moves first: the cupped hand follows the cheek, not the other way round.
     blink(rig,whisper["end"])
     for f,bow,tilt in ((start,.02,-.014),(lesson_reaction+10,.13,-.13),(ask["start"]+16,.025,-.05)):
         head(rig,f,bow,tilt)
+    laugh_reaction(mother,laugh+4,prayer_start-1,.17)
+    rest = relax_wrist(mother,"R")
+    cheek = (-.51,1.83)
+    toward = (.52,.85)
+    # The palm faces the cheek: inward, towards the face, and a little back.
+    palm = (.75,0,-.65)
+    depth = palme25d.default_depth(mother["p"],"R",cheek)
+    tip = palme25d.contact_point(mother["p"],"R",(*cheek,depth),toward,palm,"cupa")
+    bpy.context.scene.frame_set(lesson_reaction+10)
+    pose = rig.pose.bones["head"].matrix @ rig.data.bones["head"].matrix_local.inverted()
+    on_face = (pose.inverted() @ Vector((tip[0],tip[1],0))).xy
+
+    def cheek_at(frame):
+        bpy.context.scene.frame_set(frame)
+        point = point_on_bone(mother,"head",on_face)
+        return (point.x,point.y,tip[2])
+
+    def touch(frame):
+        w = palme25d.wrist_from_tip(mother["p"],"R",cheek_at(frame),toward,palm,"cupa")
+        return (w[0],w[1])
+
+    first = range(lesson_reaction+10,ask["start"]-2)
+    second = range(laugh+12,prayer_start)
+    arms(mother,"R",[
+        (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
+        (first[0],touch(first[0]),toward),
+    ],wrist_limit=wrist_limit)
+    left = contact_hold(mother,"R",first,cheek_at,toward,"cup",palm,wrist_limit)
+    arms(mother,"R",[
+        (first[-1],tuple(left),toward),(ask["start"]+29,rest,(0,-1)),
+        (laugh-26,rest,(0,-1)),(second[0],touch(second[0]),toward),
+    ],wrist_limit=wrist_limit,skip_first=True)
+    contact_hold(mother,"R",second,cheek_at,toward,"cup",palm,wrist_limit)
+    for f, pose_ in ((lesson_reaction+5,"cup"),(ask["start"]+12,"rest"),(laugh+8,"cup")):
+        hand_pose(mother,"R",f,pose_)
+    scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
+    scarf_fold(mother,laugh+11,prayer_start)
     prop(rig,"mouth_pose",lesson_reaction+5,7)
     prop(rig,"mouth_pose",ask["start"]+12,0)
 
@@ -735,7 +816,8 @@ def kitchen_replies(mother, child, brother, father, start):
     head(rig,question["end"],.02,.05)
     laugh_reaction(brother,lesson_reaction,ask["start"]+3,.16)
     for index,a in enumerate((father,brother,mother,child)):
-        laugh_reaction(a,laugh+index*2,prayer_start-1,.12 if a is father else .17)
+        if a is not mother:   # Mama's reaction is keyed with her cheek contact above.
+            laugh_reaction(a,laugh+index*2,prayer_start-1,.12 if a is father else .17)
 
 
 def laugh_reaction(a, start, end, tilt):

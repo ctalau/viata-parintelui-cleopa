@@ -663,3 +663,379 @@ def mirror_pose(pose):
     # Oglinda x → −x pe o rotație: (w, x, y, z) → (w, x, −y, −z).
     return dict(pose, w=(-pose["w"][0], pose["w"][1], pose["w"][2]), q=(w, x, -y, -z),
                 pole=(-pose["pole"][0], pose["pole"][1], pose["pole"][2]))
+
+
+# =============================================================================
+# Stratul episodului: topologie fixă, desene de autor, siluete.
+# Tot ce urmează este Python pur, folosit de `palme25d_bake.py` și de verificări.
+# =============================================================================
+CAP_ARC = 12          # vârfuri pe fiecare semicerc al unei capsule
+CAP_RING = 2*CAP_ARC
+PALM_RING = 40        # vârfurile învelitorii palmei, reeșantionate
+
+
+def capsule_ring(a, b, ra, rb, n=CAP_ARC):
+    """Conturul unei capsule 2D cu rază descrescătoare: 2 × n vârfuri, în sens trigonometric.
+
+    Aceeași construcție ca `capsule` din `draw.js`: arcul mare în jurul lui a,
+    tangentele exterioare și arcul mic în jurul lui b. O capsulă scurtată până la
+    cerc (lungime < |ra − rb|) devine cercul mai mare, cu același număr de vârfuri.
+    """
+    d = sub2(b, a)
+    l = len2(d)
+    if l < abs(ra-rb)+1e-6:
+        c, r = (a, ra) if ra > rb else (b, rb)
+        return [(c[0]+cos(i/(2*n)*2*pi)*r, c[1]+sin(i/(2*n)*2*pi)*r) for i in range(2*n)]
+    ang = atan2(d[1], d[0])
+    off = acos(max(-1, min(1, (ra-rb)/l)))
+    ring = []
+    a0, a1 = ang+off, ang-off+2*pi
+    for i in range(n):
+        t = a0+(a1-a0)*i/(n-1)
+        ring.append((a[0]+cos(t)*ra, a[1]+sin(t)*ra))
+    b0, b1 = ang-off, ang+off
+    for i in range(n):
+        t = b0+(b1-b0)*i/(n-1)
+        ring.append((b[0]+cos(t)*rb, b[1]+sin(t)*rb))
+    return ring
+
+
+def polygon_area(points):
+    return .5*sum(cross2(p, points[(i+1) % len(points)]) for i, p in enumerate(points))
+
+
+def resample(loop, n):
+    """Reeșantionează un poligon închis la n vârfuri egal depărtate pe contur."""
+    edges = [(loop[i], loop[(i+1) % len(loop)]) for i in range(len(loop))]
+    lengths = [len2(sub2(b, a)) for a, b in edges]
+    total = sum(lengths) or 1
+    # Pornește din cel mai de jos vârf (apoi cel mai din stânga), ca indicii să
+    # rămână stabili de la un desen la altul.
+    start = min(range(len(loop)), key=lambda i: (round(loop[i][1], 9), loop[i][0]))
+    edges = edges[start:]+edges[:start]
+    lengths = lengths[start:]+lengths[:start]
+    out, i, walked = [], 0, 0.
+    for k in range(n):
+        s = total*k/n
+        while i < len(edges)-1 and walked+lengths[i] < s:
+            walked += lengths[i]
+            i += 1
+        a, b = edges[i]
+        t = (s-walked)/(lengths[i] or 1)
+        out.append(lerp2(a, b, min(1, max(0, t))))
+    return out
+
+
+def grow(ring, amount):
+    """Mărește un poligon convex (sau o capsulă) cu grosimea liniei, din centrul lui."""
+    cx = sum(p[0] for p in ring)/len(ring)
+    cy = sum(p[1] for p in ring)/len(ring)
+    out = []
+    n = len(ring)
+    for i, p in enumerate(ring):
+        a, b = ring[i-1], ring[(i+1) % n]
+        tangent = sub2(b, a)
+        normal = (tangent[1], -tangent[0])
+        ln = len2(normal)
+        if ln < 1e-12:
+            normal = sub2(p, (cx, cy))
+            ln = len2(normal) or 1
+        normal = mul2(normal, 1/ln)
+        if cross2(sub2(p, (cx, cy)), normal) != 0 and (normal[0]*(p[0]-cx)+normal[1]*(p[1]-cy)) < 0:
+            normal = mul2(normal, -1)
+        out.append(add2(p, mul2(normal, amount)))
+    return out
+
+
+def path_points(data, steps=9):
+    """Eșantionează un drum M/L/Q/C/Z, ca `vector_art.path`. Întoarce lista de contururi."""
+    import re
+    tokens = iter(re.findall(r"[MLQCZ]|-?(?:\d+\.?\d*|\.\d+)", data))
+    loops, points = [], []
+    for command in tokens:
+        if command == "M" and points:
+            loops.append(points)
+            points = []
+        if command in "ML":
+            points.append((float(next(tokens)), float(next(tokens))))
+        elif command in "QC":
+            p0 = points[-1]
+            controls = [(float(next(tokens)), float(next(tokens))) for _ in range(2 if command == "Q" else 3)]
+            for step in range(1, steps+1):
+                t = step/steps
+                s = 1-t
+                if command == "Q":
+                    c, e = controls
+                    points.append((s*s*p0[0]+2*s*t*c[0]+t*t*e[0], s*s*p0[1]+2*s*t*c[1]+t*t*e[1]))
+                else:
+                    c1, c2, e = controls
+                    points.append(tuple(s**3*p0[i]+3*s*s*t*c1[i]+3*s*t*t*c2[i]+t**3*e[i] for i in (0, 1)))
+        elif command == "Z":
+            loops.append(points)
+            points = []
+    if points:
+        loops.append(points)
+    return loops
+
+
+def _inside(polygon, x, y):
+    inside = False
+    j = len(polygon)-1
+    for i, (xi, yi) in enumerate(polygon):
+        xj, yj = polygon[j]
+        if (yi > y) != (yj > y) and x < (xj-xi)*(y-yi)/(yj-yi)+xi:
+            inside = not inside
+        j = i
+    return inside
+
+
+def raster(polygons, box, size=128):
+    """Masca reuniunii poligoanelor (fiecare cu par-impar) pe o grilă size × size din `box`."""
+    x0, y0, x1, y1 = box
+    sx, sy = (x1-x0)/size, (y1-y0)/size
+    cells = set()
+    for poly in polygons:
+        px = [p[0] for p in poly]
+        py = [p[1] for p in poly]
+        i0, i1 = max(0, int((min(px)-x0)/sx)), min(size-1, int((max(px)-x0)/sx)+1)
+        j0, j1 = max(0, int((min(py)-y0)/sy)), min(size-1, int((max(py)-y0)/sy)+1)
+        for j in range(j0, j1+1):
+            y = y0+(j+.5)*sy
+            for i in range(i0, i1+1):
+                if (i, j) not in cells and _inside(poly, x0+(i+.5)*sx, y):
+                    cells.add((i, j))
+    return cells
+
+
+def iou(first, second, size=128):
+    """IoU-ul a două siluete date ca liste de poligoane, pe cutia lor comună."""
+    pts = [p for poly in first+second for p in poly]
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    pad = .02*max(max(xs)-min(xs), max(ys)-min(ys))
+    box = (min(xs)-pad, min(ys)-pad, max(xs)+pad, max(ys)+pad)
+    a, b = raster(first, box, size), raster(second, box, size)
+    return len(a & b)/max(1, len(a | b))
+
+
+def silhouette(built):
+    """Conturul exterior (cu linia) al pieselor C, ca listă de poligoane convexe."""
+    lw = built["lw"]
+    polys = []
+    for g in built["groups"]:
+        for shape in g["shapes"]:
+            if shape["t"] == "poly":
+                polys.append(grow(shape["pts"], lw))
+            else:
+                polys.append(capsule_ring(shape["a"], shape["b"], shape["ra"]+lw, shape["rb"]+lw))
+    return polys
+
+
+# --- Proxy-ul pe rigul episodului -------------------------------------------
+# Unitățile sunt cele ale rigului (planul XY al imaginii, +Z spre cameră).
+# Potrivirea siluetei cu desenele din `hands.py` (tests/palme25d_test.py,
+# `test_hand_matches_the_rest_drawing`): palma proxy-ului are mărimea desenului
+# `rest` la 0,0655 × profile["hand"] unități pe centimetru, adică 1,3 × anatomic,
+# deci factorul de desen animat 1,3 rămâne. Degetele seriei sunt scurte și
+# groase; grosimea care le potrivește este 1,6, nu 1,15.
+HAND_PER_CM = .0655 / 1.3
+FINGER_THICKNESS = 1.6
+# Înălțimea personajelor, pentru conversia în milimetri „la scara personajului”.
+HEIGHT_CM = {"mother": 160, "father": 175, "brother_01": 140, "brother_02": 140,
+             "cleopa": 120, "priest": 172}
+
+
+def hand_of(profile):
+    return Hand(scale=1.3*HAND_PER_CM*profile["hand"], thickness=FINGER_THICKNESS)
+
+
+def height_units(profile):
+    return profile["leg"]+profile["head_y"]+.5*profile["head_h"]
+
+
+def mm(profile):
+    """Câte unități de rig are un milimetru la scara personajului."""
+    return height_units(profile)/(HEIGHT_CM.get(profile["id"], 160)*10)
+
+
+def side_sign(side):
+    return -1 if side == "R" else 1
+
+
+def flip(v):
+    return (-v[0], v[1], v[2]) if len(v) == 3 else (-v[0], v[1])
+
+
+# Polul cotului, mâna dreaptă. `rig.js` folosește (−0,6, −0,5, −0,55), potrivit
+# pentru semnul crucii. În gesturile episodului (tava ținută aproape de piept,
+# mâna la obraz, invitația la nivelul taliei) acel pol ridică cotul la nivelul
+# umărului și brațul se desface în lateral. Polul relaxat lasă cotul să cadă pe
+# lângă corp; rămâne în afară și înapoi.
+POLE = (-.45, -.8, -.4)
+REACH = .985        # brațul nu se întinde complet, ca să nu se blocheze cotul
+READABLE = .45      # proiecția fiecărui segment rămâne ≥ 45 % din lungime
+DEPTH_MAX = 1.0     # în unități de (umăr + cot)
+DEPTH_RATE = .035   # schimbarea maximă a adâncimii între două cadre, în aceeași unitate
+
+
+def smooth(t):
+    t = max(0., min(1., t))
+    return t*t*(3-2*t)
+
+
+def rest_wrist(profile, side):
+    return (side_sign(side)*(profile["shoulder_x"]+.08),
+            profile["shoulder_y"]-profile["upper"]-profile["lower"]+.085)
+
+
+def default_depth(profile, side, wrist, previous=None):
+    """Adâncimea încheieturii: cea care lasă cotul cel mai jos (brațul cel mai relaxat),
+    cu ambele segmente proiectate lizibile.
+
+    O mână ridicată aproape de umăr vine astfel spre cameră, iar antebrațul se
+    scurtează în perspectivă în loc să se pliaze în planul imaginii. `previous`
+    limitează schimbarea între cadre consecutive, ca mișcarea să nu sară."""
+    span = profile["upper"]+profile["lower"]
+
+    def cost(depth):
+        pts = arm_points(profile, side, wrist, depth)
+        S, E, W = pts["S"], pts["E"], pts["W"]
+        su = hypot(E[0]-S[0], E[1]-S[1])/profile["upper"]
+        sf = hypot(W[0]-E[0], W[1]-E[1])/profile["lower"]
+        return E[1]/span+2*max(0, READABLE-min(su, sf))+.02*depth/span
+    steps = 50
+    best = min((cost(i/steps*DEPTH_MAX*span), i) for i in range(steps+1))[1]
+    lo, hi = max(0, best-1)/steps*DEPTH_MAX*span, min(steps, best+1)/steps*DEPTH_MAX*span
+    for _ in range(30):
+        a, b = lo+(hi-lo)*.382, lo+(hi-lo)*.618
+        if cost(a) <= cost(b):
+            hi = b
+        else:
+            lo = a
+    depth = (lo+hi)/2
+    if previous is not None:
+        rate = DEPTH_RATE*span
+        depth = max(previous-rate, min(previous+rate, depth))
+    return depth
+
+
+def arm_points(profile, side, wrist, depth=None):
+    """Umărul, cotul și încheietura în 3D (spațiul rigului), cu lungimi fixe.
+
+    Mâna stângă se rezolvă în oglindă, ca dreapta, apoi se reflectă."""
+    s = side_sign(side)
+    upper, lower = profile["upper"], profile["lower"]
+    if depth is None:
+        depth = default_depth(profile, side, wrist)
+    shoulder = (-profile["shoulder_x"], profile["shoulder_y"], 0.)
+    w = (wrist[0]*-s, wrist[1], depth)            # în spațiul mâinii drepte
+    planar = hypot(w[0]-shoulder[0], w[1]-shoulder[1])
+    reach = (upper+lower)*REACH
+    if planar > reach:
+        # Ținta e mai departe decât brațul: încheietura rămâne pe direcția ei, în plan.
+        k = reach/planar
+        w = (shoulder[0]+(w[0]-shoulder[0])*k, shoulder[1]+(w[1]-shoulder[1])*k, 0.)
+    elif hypot(planar, w[2]) > reach:
+        w = (w[0], w[1], sqrt(reach*reach-planar*planar))
+    arm = two_bone(shoulder, w, upper, lower, POLE)
+    S, E, W = shoulder, arm["joint"], arm["end"]
+    if s > 0:
+        S, E, W = flip(S), flip(E), flip(W)
+    return {"S": S, "E": E, "W": W, "depth": W[2], "miss": hypot(W[0]-wrist[0], W[1]-wrist[1])}
+
+
+def lift_angle(previous, angle):
+    tau = 2*pi
+    return previous+(angle-previous+tau/2) % tau-tau/2
+
+
+def solve_arm(profile, side, wrist, hand_angle, depth=None):
+    """Înlocuiește partea pseudo-3D din `build_rigs.solve_arm`: oasele 2D primesc
+    unghiul și scara segmentelor proiectate ale IK-ului 3D. Interfața e aceeași."""
+    pts = arm_points(profile, side, wrist, depth)
+    S, E, W = pts["S"], pts["E"], pts["W"]
+    elbow = (E[0]-S[0], E[1]-S[1])
+    fore = (W[0]-E[0], W[1]-E[1])
+    a = atan2(elbow[0], -elbow[1])
+    b = lift_angle(a, atan2(fore[0], -fore[1]))
+    c = lift_angle(b, hand_angle)
+    scales = (hypot(*elbow)/profile["upper"], hypot(*fore)/profile["lower"])
+    return (a, b-a, c-b), scales, pts
+
+
+# --- Gesturi și orientări ----------------------------------------------------
+# Corespondența desenelor din `HAND_POSES` cu gestul proxy-ului și orientarea
+# implicită a palmei, într-un singur loc. Motivul fiecăreia:
+#   rest  – brațul atârnă: degetele în jos, palma spre coapsă (înăuntru);
+#   open  – invitația: palma în sus, puțin spre cameră, ca să se citească deschisă;
+#   cup   – ține ceva de dedesubt (tava): palma în sus și înăuntru;
+#   grip  – strânge (cartea): ca `cup`, cu degetele strânse;
+#   reach – întinde mâna spre țintă: degetele spre ea, palma în jos;
+#   stop  – semnul de oprire: degetele în sus, palma spre cameră.
+POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "pumn",
+                "reach": "deschis", "stop": "deschis"}
+
+
+def default_palm(pose, side):
+    inward = (-side_sign(side), 0, 0)
+    return {
+        "rest": inward,
+        "open": (0, 1, .35),
+        "cup": norm(add((0, 1, 0), mul(inward, .5))),
+        "grip": norm(add((0, 1, 0), mul(inward, .5))),
+        "reach": (0, -1, 0),
+        "stop": (0, 0, 1),
+    }[pose]
+
+
+def orientation(direction, palm, side):
+    """Cuaternionul palmei în spațiul mâinii drepte (stânga e oglindită).
+
+    Dacă palma cerută e aproape paralelă cu degetele, se înclină spre cameră,
+    ca baza să rămână definită."""
+    d3 = norm((direction[0], direction[1], direction[2] if len(direction) > 2 else 0))
+    p = norm(palm)
+    if length(sub(p, mul(d3, dot(p, d3)))) < .35:
+        p = norm(add(p, (0, 0, .6)))
+    if side == "L":
+        d3, p = flip(d3), flip(p)
+    return hand_quat(d3, p)
+
+
+def wrist_from_tip(profile, side, tip, direction, palm, gesture):
+    """Încheietura care pune vârful de contact al gestului pe țintă (spațiul rigului, 3D)."""
+    hand = hand_of(profile)
+    q = orientation(direction, palm, side)
+    local = hand_local(GESTURES[gesture] if isinstance(gesture, str) else gesture, hand)
+    target = flip(tip) if side == "L" else tuple(tip)
+    w = sub(target, quat_rotate(q, local["contact"]))
+    return flip(w) if side == "L" else w
+
+
+def hand_rig(profile, side, wrist3, q, gesture):
+    """Proxy-ul palmei la încheietura dată (spațiul rigului); stânga e dreapta reflectată."""
+    hand = hand_of(profile)
+    pose = {"w": flip(wrist3) if side == "L" else wrist3, "q": q, "g": gesture, "pole": POLE, "cam": 0}
+    shoulder = (-profile["shoulder_x"], profile["shoulder_y"], 0.)
+    rig = solve(pose, hand=hand, shoulder=shoulder, upper=profile["upper"], fore=profile["lower"])
+    return rig
+
+
+class Mirror:
+    """Camera episodului pentru mâna stângă: proiecția frontală reflectată (x → −x)."""
+    k = 1
+
+    def p(self, v):
+        return (-v[0], v[1], v[2])
+
+    def d(self, v):
+        return (-v[0], v[1], v[2])
+
+
+def contact_point(profile, side, wrist3, direction, palm, gesture):
+    """Vârful de contact al gestului pentru o încheietură dată (inversul lui `wrist_from_tip`)."""
+    hand = hand_of(profile)
+    q = orientation(direction, palm, side)
+    local = hand_local(GESTURES[gesture] if isinstance(gesture, str) else gesture, hand)
+    w = flip(wrist3) if side == "L" else tuple(wrist3)
+    tip = add(w, quat_rotate(q, local["contact"]))
+    return flip(tip) if side == "L" else tip

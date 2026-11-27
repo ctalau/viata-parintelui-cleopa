@@ -1,5 +1,7 @@
-"""Hand drawings viewed from the wrist, scaled to each character's proportions."""
-from build_characters import INK, DETAIL
+"""Hand drawings viewed from the wrist, scaled to each character's proportions.
+
+The outlines are plain data, so `palme25d.py` reads them without Blender.
+"""
 
 HAND_POSES = ("rest","open","cup","grip","reach","stop")
 
@@ -100,6 +102,7 @@ CREASES = {
 
 
 def draw_hand(art, profile, pose):
+    from build_characters import INK, DETAIL
     skin, shadow = profile["skin"], profile["skin_shadow"]
     # The cloth rim closes the shape at the wrist. Keep its skin edge open
     # so the join remains clean as the hand and cuff turn together.
