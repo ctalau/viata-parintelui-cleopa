@@ -74,156 +74,156 @@ def two_bone(distance, lengths):
     return along,sqrt(max(0,a*a-along*along))
 
 
-def planar_contact(origin, point, angle, tip, lengths, bend_sign, prior):
-    """Fixed lengths and one signed hinge for the entire planar gesture."""
-    a,b = lengths
-    best = None
-    for degrees in range(-180,181,3):
-        palm = angle+radians(degrees)
-        desired = point-unit(palm)*tip
-        delta = desired-origin
-        radius = max(.32,min(delta.length,a+b-.008))
-        axis = delta.normalized()
-        along,away = two_bone(radius,lengths)
-        elbow = origin+axis*along+across(axis)*(away*bend_sign)
-        wrist = origin+axis*radius
-        upper = angle_of(elbow-origin)
-        fore = angle_of(wrist-elbow)
-        pose = (upper,wrapped(fore-upper),wrapped(palm-fore))
-        continuity = sum(abs(wrapped(v-p)) for v,p in zip(pose,prior))
-        score = (abs(delta.length-radius)*32
-                 + max(0,abs(pose[2])-radians(40))*13
-                 + abs(radians(degrees))*.58 + continuity*.67)
-        if best is None or score < best[0]:
-            best = score,pose
-    return best[1]
+def hermite(values, tangents, frames, i, frame):
+    """Cubic Hermite segment i in frame units; zero tangents make a soft stop."""
+    fa,fb = frames[i],frames[i+1]
+    h = fb-fa
+    s = (frame-fa)/h
+    s2,s3 = s*s,s*s*s
+    return (values[i]*(2*s3-3*s2+1) + tangents[i]*(h*(s3-2*s2+s))
+            + values[i+1]*(-2*s3+3*s2) + tangents[i+1]*(h*(s3-s2)))
 
 
-def planar_path(scene, rig, profile, kind, side, keys, tip):
-    origin,e,w,palm = rest_arm(profile,side)
-    arm_axis,fore_axis = angle_of(e-origin),angle_of(w-e)
-    bend_sign = SIGN[side] if kind in {"paine","cana","traista","cearta"} else -SIGN[side]
-    rest = arm_axis,-bend_sign*abs(wrapped(fore_axis-arm_axis)),wrapped(palm-fore_axis)
-    if kind == "cruce" and side == "R":
-        # The outward arc stays on the same side of the elbow hinge. Spatial
-        # motion can pass in front of the shoulder, while a flat drawing needs room.
-        keys = [(frame,(-1.75,1.12),-111,flex,spread) if frame == 25
-                else (frame,target,aim,flex,spread) for frame,target,aim,flex,spread in keys]
-    lengths=profile["upper"],profile["lower"]
-    stops = {}
-    previous = rest
-    for frame,target,aim,*_ in keys:
-        scene.frame_set(frame)
-        if target == "rest":
-            pose = rest
+def stops(keys):
+    """A key is a stop when the hand holds a contact or rests; via points flow."""
+    result = []
+    for i,key in enumerate(keys):
+        same = lambda j: 0 <= j < len(keys) and keys[j][1] == key[1]
+        result.append(i in (0,len(keys)-1) or isinstance(key[1],str) or same(i-1) or same(i+1))
+    return result
+
+
+def tangents_of(values, frames, still):
+    zero = values[0]*0
+    result = []
+    for i,value in enumerate(values):
+        if still[i]:
+            result.append(zero)
         else:
-            point = targets(profile,rig,frame)[target] if isinstance(target,str) else Vector(target)
-            pose = planar_contact(origin.xy,point,radians(aim),tip,lengths,bend_sign,previous)
-        stops[frame] = pose
-        previous = pose
+            # Catmull-Rom through the neighbours, a little softened.
+            result.append((values[i+1]-values[i-1])*(.85/(frames[i+1]-frames[i-1])))
+    return result
 
-    previous = rest
+
+FLAT_DEPTH = .7
+FLAT_MIN = .6
+FLAT_POLE = {"R":Vector((-.15,-1,-.25)).normalized(), "L":Vector((.15,-1,-.25)).normalized()}
+POLE = {"R":Vector((-.22,-1,-.22)).normalized(), "L":Vector((.22,-1,-.22)).normalized()}
+
+
+def arm_path(scene, rig, profile, kind, side, keys, tip, flat=1., pole=None):
+    """One choreography for both variants: a spatial wrist path through the keys.
+
+    The wrist follows a spline: it eases into contacts and rests, and passes through
+    via points without stopping. The elbow hangs towards a fixed pole, down, out
+    and a little back, as a relaxed elbow does, so it never swings above the hand."""
+    origin,_,rest_wrist,rest_angle = rest_arm(profile,side)
+    lengths = profile["upper"],profile["lower"]
+    reach = sum(lengths)-.013
+    depth = {"cruce":.52,"ras":.52,"batic":.52,"paine":.36}.get(kind,.58)*flat
+    pole = pole or POLE
+    frames = [k[0] for k in keys]
+    still = stops(keys)
+    aims = [rest_angle if k[1] == "rest" else radians(k[2]) for k in keys]
+    for i in range(1,len(aims)):
+        aims[i] = aims[i-1]+wrapped(aims[i]-aims[i-1])
+    lifts = [0. if k[1] == "rest" else 1. for k in keys]
+    scalars = [Vector((a,l,k[3],k[4])) for a,l,k in zip(aims,lifts,keys)]
+    scalar_tangents = tangents_of(scalars,frames,still)
+
+    carried = [None]
+
+    def solve_elbow(wrist):
+        offset = wrist-origin
+        axis = offset.normalized()
+        along,away = two_bone(offset.length,lengths)
+        wanted = pole[side]-axis*pole[side].dot(axis)
+        if carried[0] is None:
+            bend = wanted
+        else:
+            # The elbow keeps its last direction around the new arm axis and drifts
+            # towards the relaxed pole; it never jumps when the arm points along the pole.
+            kept = carried[0]-axis*carried[0].dot(axis)
+            bend = kept.normalized()+wanted*.45 if kept.length > 1e-4 else wanted
+        bend.normalize()
+        carried[0] = bend
+        return origin+axis*along+bend*away
+
     for frame in range(1,END+1):
         scene.frame_set(frame)
-        a,b,t = interval(keys,frame)
-        angles = tuple(turn(x,y,t) for x,y in zip(stops[a[0]],stops[b[0]]))
-        if isinstance(a[1],str) and a[1] == b[1] and a[1] != "rest":
-            point=targets(profile,rig,frame)[a[1]]
-            angles=planar_contact(origin.xy,point,sum(angles),tip,lengths,bend_sign,angles)
-        # Limit the total motion of the two segments during moving contacts,
-        # especially when their rotation would compound at the wrist.
-        changes = tuple(wrapped(goal-old) for goal,old in zip(angles,previous))
-        travel = abs(changes[0])*sum(lengths)+abs(changes[1])*lengths[1]
-        weight = min(1.,.223/max(.223,travel),radians(13)/max(radians(13),abs(changes[2])))
-        angles = tuple(old+change*weight for old,change in zip(previous,changes))
-        previous = angles
-        upper,bend,turning = angles
-        if bend*bend_sign > .001:
-            raise RuntimeError(f"Cotul a schimbat axa la {kind}, {side}, cadrul {frame}")
-        elbow = origin+Vector((*unit(upper),0))*lengths[0]
-        wrist = elbow+Vector((*unit(upper+bend),0))*lengths[1]
-        yield (frame,origin,elbow,wrist,Vector((*unit(upper+bend+turning),0)),
-               a[3]+t*(b[3]-a[3]),a[4]+t*(b[4]-a[4]))
+        contact = targets(profile,rig,frame)
+        contact["rest"] = (rest_wrist+Vector((*unit(rest_angle),0))*tip).xy
+        points = []
+        for key,aim,lift in zip(keys,aims,lifts):
+            point = contact[key[1]] if isinstance(key[1],str) else Vector(key[1])
+            xy = point-unit(aim)*tip
+            points.append(Vector((xy.x,xy.y,origin.z+depth*lift)))
+        i = next((j for j in range(len(keys)-1) if frame <= frames[j+1]),len(keys)-2)
+        frame_c = min(max(frame,frames[i]),frames[i+1])
+        wrist = hermite(points,tangents_of(points,frames,still),frames,i,frame_c)
+        aim,lift,flex,spread = hermite(scalars,scalar_tangents,frames,i,frame_c)
+        if keys[i][1] == "rest" and keys[i+1][1] == "rest":
+            wrist,aim = points[i].copy(),rest_angle
+        offset = wrist-origin
+        if offset.length > reach:
+            # Shorten the whole reach, never the depth alone: a depth that collapses
+            # near full extension would make the hand jump towards the body.
+            offset *= reach/offset.length
+        if offset.length < .12:
+            offset.z = sqrt(max(0,.0144-offset.xy.length_squared))+offset.z*0
+        wrist = origin+offset
+        elbow = solve_elbow(wrist)
+        forward = Vector((*unit(aim),.11*max(0,min(1,lift)))).normalized()
+        yield (frame,origin,elbow,wrist,forward,
+               max(0,min(1,flex)),max(0,min(1,spread)))
 
 
 def space_path(scene, rig, profile, kind, side, keys, tip):
-    origin,_,rest_wrist,rest_angle=rest_arm(profile,side)
-    lengths=profile["upper"],profile["lower"]
-    side_sign = SIGN[side]
-    prior = rest_angle
-    previous_wrist = rest_wrist
-    previous_pole = None
+    yield from arm_path(scene,rig,profile,kind,side,keys,tip)
 
-    def elbow_for(wrist, follow=None):
-        offset=wrist-origin
-        axis=offset.normalized()
-        length,away=two_bone(offset.length,lengths)
-        pole=Vector((1.05*side_sign,-.49,-.68))
-        bend=(pole-axis*pole.dot(axis)).normalized()
-        if follow is not None:
-            transported=(follow-axis*follow.dot(axis)).normalized()
-            if transported.length > .8:
-                signed=atan2(axis.dot(transported.cross(bend)),transported.dot(bend))
-                limit=radians(9)
-                bend=Quaternion(axis,max(-limit,min(limit,signed)))@transported
-        return origin+axis*length+bend*away,bend
 
-    for frame in range(1,END+1):
-        scene.frame_set(frame)
-        a,b,t=interval(keys,frame)
-        contact=targets(profile,rig,frame)
-        contact["rest"]=(rest_wrist+Vector((*unit(rest_angle),0))*tip).xy
-        p=contact[a[1]] if isinstance(a[1],str) else Vector(a[1])
-        q=contact[b[1]] if isinstance(b[1],str) else Vector(b[1])
-        point=p.lerp(q,t)
-        aimed=turn(radians(a[2]),radians(b[2]),t)
-        if a[1] == "rest" and b[1] == "rest":
-            aimed=rest_angle
-        lift=(0 if a[1]=="rest" else 1)*(1-t)+(0 if b[1]=="rest" else 1)*t
-        max_depth=.61 if kind in {"cruce","ras","batic"} else .69
+def planar_path(scene, rig, profile, kind, side, keys, tip):
+    """The drawing follows the same choreography, seen from the camera.
 
-        def solve(palm):
-            wrist_xy=point-unit(palm)*tip
-            delta=wrist_xy-origin.xy
-            wanted=delta.length
-            limit=sum(lengths)-.013
-            if wanted>limit:
-                delta*=limit/wanted
-            z_span=sqrt(max(0,limit*limit-delta.length_squared))
-            z=min(max_depth*lift,z_span)
-            offset=Vector((*delta,z))
-            if offset.length < .12:
-                offset.z=.12
-            wrist=origin+offset
-            elbow,_=elbow_for(wrist,previous_pole)
-            fore=(wrist-elbow).normalized()
-            # Room for a natural flexion, without a wrist turning back over the forearm.
-            divergence=Vector((*unit(palm),0)).angle(fore)
-            return elbow,wrist,max(0,wanted-limit),divergence
-
-        # Track the previous palm orientation across the arc; the elbow pole
-        # remains the same throughout the performance.
-        def cost(palm):
-            e,w,residual,divergence=solve(palm)
-            difference=abs(wrapped(palm-prior))
-            return (42*residual+max(0,divergence-radians(55))*3.9
-                    +abs(wrapped(palm-aimed))*.75+difference*.74
-                    +max(0,difference-radians(7))*9,palm,e,w)
-
-        _,palm,elbow,wrist=min((cost(prior+radians(d))
-                              for d in range(-9,10)),key=lambda item:item[0])
-        # Cap the change in depth as well as XY when the target grazes full reach.
-        move=wrist-previous_wrist
-        if move.length > .135:
-            wrist=previous_wrist+move.normalized()*.135
-        if (wrist-origin).length < .115:
-            wrist.z=origin.z+.115
-        elbow,previous_pole=elbow_for(wrist,previous_pole)
-        previous_wrist=wrist
-        prior=palm
-        forward=Vector((*unit(palm),.11*lift))
-        yield (frame,origin,elbow,wrist,forward.normalized(),
-               a[3]+t*(b[3]-a[3]),a[4]+t*(b[4]-a[4]))
+    A cut-out arm cannot turn towards the lens, so each segment keeps at least
+    82% of its length in the picture; the elbow stays on the side where the
+    spatial elbow is seen, and the wrist stays on the contact."""
+    lengths = profile["upper"],profile["lower"]
+    # The drawing lives in the picture plane: the same wrist path with a shallow
+    # depth, and an elbow that hangs out more than back, keeps both segments long.
+    poses = list(arm_path(scene,rig,profile,kind,side,keys,tip,FLAT_DEPTH,FLAT_POLE))
+    drawn,sides,clear = [],[],[]
+    for frame,s,e,w,d,flex,spread in poses:
+        s2,e2,w2 = (Vector((v.x,v.y,s.z)) for v in (s,e,w))
+        a = max((e2-s2).length,FLAT_MIN*lengths[0])
+        b = max((w2-e2).length,FLAT_MIN*lengths[1])
+        delta = w2-s2
+        need = delta.length+.004-(a+b)
+        if need > 0:
+            # Lengthen towards the true segments, never beyond them.
+            room = (lengths[0]-a)+(lengths[1]-b)
+            a += need*(lengths[0]-a)/max(room,1e-6)
+            b += need*(lengths[1]-b)/max(room,1e-6)
+        axis = delta.normalized()
+        normal = Vector((-axis.y,axis.x,0))
+        seen = normal.dot(e2-s2)
+        along,away = two_bone(min(delta.length,a+b-.002),(a,b))
+        sides.append(1 if seen >= 0 else -1)
+        drawn.append((s2,e2,w2,s2+axis*along+normal*(away*sides[-1])))
+        clear.append(min(1,abs(seen)/.16,max(0,(delta.length-.3)/.35)))
+    # Where the spatial elbow crosses the shoulder-wrist line the forearm points at
+    # the lens. Around that moment the drawing eases into the plain projection
+    # (a foreshortened arm) instead of flipping the elbow to the other side.
+    for i in range(1,len(sides)):
+        if sides[i] != sides[i-1]:
+            clear[i] = clear[i-1] = 0
+    window = 5
+    for i,(frame,s,e,w,d,flex,spread) in enumerate(poses):
+        k = min(clear[max(0,i-window):i+window+1])
+        k = k*k*(3-2*k)
+        s2,e2,w2,full = drawn[i]
+        forward = Vector((d.x,d.y,0)).normalized()
+        yield frame,s2,e2.lerp(full,k),w2,forward,flex,spread
 
 
 class Mesh:
@@ -462,7 +462,12 @@ def comparison_stage(scene, character, kind, volume, bake_shapes):
                 forward=Vector((d.x*sign,d.y))
                 hand_frames.append((frame,list(hand_points(drawing,local_w,forward,flex,spread,
                                                            sign,.636,.30 if shape!="deschisa" else 1))))
-            length_deviation=max(length_deviation,abs((e-s).length-p["upper"]),abs((w-e).length-p["lower"]))
+            if volume:
+                length_deviation=max(length_deviation,abs((e-s).length-p["upper"]),abs((w-e).length-p["lower"]))
+            else:
+                # The drawn segments may shorten towards the lens, never grow.
+                length_deviation=max(length_deviation,
+                    max(0,(e-s).length-p["upper"]-1e-5),max(0,(w-e).length-p["lower"]-1e-5))
             if previous_pose:
                 max_step=max(max_step,(w-previous_pose).length)
             previous_pose=w

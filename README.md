@@ -63,10 +63,11 @@ Primele patru sunt semnul crucii, ridicarea cănii, râsul cu mâna la gură și
 ```bash
 blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-painea/scripts/export_web_characters.py -- --comparatie
 npm run build
-npm run sheet -- mama-3d-cana 1 28 40 48 72 87 109 118 144 --out /tmp/mama-cana-3d.png
+node tools/frames-hands.mjs cana 4 1 145 /tmp/mama-cana.png   # cadrele intermediare, 3D lângă 2D
+node tools/frames-hands.mjs cana --sheet 3d 1,28,48,70,87,109,144 studio/comparatie-maini/foi/cana.webp
 ```
 
-Modelul 3D folosește cinematică inversă cu segmente fixe și o direcție continuă a cotului. Mâneca și mâna au volum, iar degetele se îndoaie individual. Desenul 2D folosește o balama într-un singur sens și interpolează unghiurile în plan. Ambele variante compun forma mânecii în jurul articulației și urmăresc aceleași repere ale feței și recuzitei. Blender salvează oasele cu chei și geometriile evaluate. Three.js redă GLB-urile la același timp și din aceeași cameră. Fișierele din `assets/proiectii/` conțin umărul, cotul, încheietura și axa palmei pentru fiecare al doilea cadru, cu coordonate XY normalizate în camera frontală și adâncime în unități Blender.
+Ambele variante au aceeași coregrafie: încheietura urmează o curbă în spațiu prin cheile din `TRACKS`. Se oprește lin la contacte și în repaus și trece fără oprire prin punctele intermediare. Cotul atârnă în jos, puțin în afară și înapoi, ca un cot relaxat. Direcția lui se păstrează de la un cadru la altul, așa că nu sare peste mână. Modelul 3D folosește segmente fixe, iar mâneca și mâna au volum și degete îndoite individual. Desenul 2D este aceeași mișcare văzută din cameră, cu adâncime mai mică. Antebrațul se scurtează când vine spre cameră, dar nu se lungește niciodată. Ambele variante compun forma mânecii în jurul articulației și urmăresc aceleași repere ale feței și recuzitei. Blender salvează oasele cu chei și geometriile evaluate. Three.js redă GLB-urile la același timp și din aceeași cameră. Fișierele din `assets/proiectii/` conțin umărul, cotul, încheietura și axa palmei pentru fiecare al doilea cadru, cu coordonate XY normalizate în camera frontală și adâncime în unități Blender.
 
 - **Rigul** este transferabil între personajele 2.5D cu aceleași nume și ierarhii de oase. Se potrivesc lungimile, pivoții și adâncimile la silueta fiecărui personaj.
 - **Animația** își poate păstra ritmul și ordinea reperelor. Ajustează traiectoriile libere, contactele și dimensiunile obiectelor la mâna, umerii și capul noului personaj, apoi reevaluează deformarea.
