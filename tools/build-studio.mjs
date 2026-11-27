@@ -39,6 +39,8 @@ const library = [
     ['Palme și degete', `${episodeDir}/scripts/hands.py`],
     ['Teste de articulații cu Mama', '/articulatii/'],
     ['Compară mâinile în 3D și 2D', '/comparatie-maini/'],
+    ['Corp volumetric și teste de stres', '/volum/'],
+    ['Mama volumetrică în Blender', 'experiments/cleopa-volum/scenes/mama_volumetrica.blend'],
     ['Mâneci și articulații', `${episodeDir}/scripts/sleeves.py`],
   ]),
   group('Scene', [
@@ -112,6 +114,18 @@ for (const name of ['index.html', 'comparatie.css']) {
 buildSync({
   entryPoints: [path.join(ROOT, 'studio/comparatie-maini/comparatie.js')],
   outfile: path.join(comparison, 'comparatie.js'),
+  bundle: true, minify: true, format: 'esm',
+});
+const volume = path.join(out, 'volum');
+fs.mkdirSync(volume, { recursive: true });
+for (const name of ['index.html', 'volum.css', 'teste.json', 'foi']) {
+  fs.cpSync(path.join(ROOT, 'studio/volum', name), path.join(volume, name), { recursive: true });
+}
+const volumeRenders = path.join(ROOT, 'studio/volum/renders');
+if (fs.existsSync(volumeRenders)) fs.cpSync(volumeRenders, path.join(volume, 'renders'), { recursive: true });
+buildSync({
+  entryPoints: [path.join(ROOT, 'studio/volum/volum.js')],
+  outfile: path.join(volume, 'volum.js'),
   bundle: true, minify: true, format: 'esm',
 });
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));

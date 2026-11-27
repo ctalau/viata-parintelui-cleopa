@@ -63,9 +63,12 @@ def clip(points, boundary):
 def silhouette(parts, camera):
     planar=[]
     depths=[]
+    graph=bpy.context.evaluated_depsgraph_get()
     for part in parts:
         transform=camera @ part.matrix_world
-        for vert in part.data.vertices:
+        # Volumetric hands are shape-keyed in the rig's space; read the evaluated mesh.
+        mesh=part.evaluated_get(graph).data if part.data.shape_keys else part.data
+        for vert in mesh.vertices:
             point=transform @ vert.co
             planar.append(Vector((point.x,point.y)))
             depths.append(-point.z)
@@ -91,6 +94,8 @@ def characters(scene):
                 parts["head"].append(obj)
             elif obj.parent_bone in ("hand.R","hand.L"):
                 parts[obj.parent_bone].append(obj)
+            elif obj.get("cleopa_bone") in ("hand.R","hand.L"):
+                parts[obj["cleopa_bone"]].append(obj)
         if parts["head"]:
             groups.append((rig,parts))
     return groups

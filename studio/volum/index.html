@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Corp volumetric · Atelierul Cleopa</title>
+  <meta name="description" content="Mama cu tot corpul în 3D, pusă la încercare în mers, întoarceri, aplecări și atingeri.">
+  <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
+  <link rel="stylesheet" href="/studio.css">
+  <link rel="stylesheet" href="/asamblare/asamblare.css">
+  <link rel="stylesheet" href="/volum/volum.css">
+  <script src="/volum/volum.js" type="module"></script>
+</head>
+<body>
+  <header class="top shell">
+    <a class="brand" href="/"><img src="/assets/branding/logo-scoala-mic.webp" alt="" width="46" height="46"><span>Școala Evlaviei</span></a>
+    <nav aria-label="Atelier"><a href="/#ateliere">Toate atelierele</a></nav>
+  </header>
+  <main class="shell">
+    <section class="assembly-intro">
+      <p class="series">Atelierul de animație</p>
+      <h1>Corp volumetric</h1>
+      <p class="description">Mama are aici tot corpul în 3D: cap, batic, trunchi, fustă, brațe, palme și picioare, legate de un singur schelet. Alege un test. Pornește imediat și se reia în buclă.</p>
+    </section>
+    <div class="assembly volume-bench">
+      <section class="view" aria-label="Testul ales">
+        <div class="clip-picker" id="test-picker" role="group" aria-label="Test"></div>
+        <div class="assembly-stage" id="volum-stage">
+          <canvas id="volum-canvas" role="img" aria-label="Mama volumetrică în testul ales"></canvas>
+          <p id="volum-status" role="status">Se încarcă modelul…</p>
+        </div>
+        <p class="shot-line" id="shot-line" aria-live="polite"></p>
+        <div id="volum-controls" hidden>
+          <div class="play-row">
+            <button type="button" id="volum-play" aria-label="Pauză">Pauză</button>
+            <input type="range" id="volum-time" min="0" max="1" value="0" step="0.01" aria-label="Momentul din test">
+            <output for="volum-time" id="volum-readout">0,0 s</output>
+          </div>
+          <label class="angle-row" for="volum-angle"><span>Rotește camera</span><input type="range" id="volum-angle" min="-180" max="180" value="0"><output for="volum-angle" id="volum-angle-readout">0°</output></label>
+        </div>
+      </section>
+      <aside class="assembly-panel">
+        <h2 id="test-title">Ce verifică testul</h2>
+        <p id="test-description"></p>
+        <h3>Raportul din Blender</h3>
+        <ul class="report" id="test-report"></ul>
+        <div class="assembly-links">
+          <a id="test-sheet" href="/volum/foi/mers-spre-camera.webp">Foaie de cadre</a>
+          <a href="/assets/recuzita/mama-volum.glb" download>GLB Mama</a>
+          <a href="/volum/teste.json">Testele în JSON</a>
+          <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-volum/scenes/mama_volumetrica.blend">Scena Blender</a>
+          <a href="https://github.com/ctalau/viata-parintelui-cleopa/tree/main/experiments/cleopa-volum">Sursele</a>
+        </div>
+      </aside>
+    </div>
+    <section class="assembly-notes">
+      <h2>Cum e construit</h2>
+      <p>Fiecare piesă este o suprafață închisă din inele, legată de oase cu o trecere scurtă la fiecare articulație. Conturul închis la culoare este o a doua coajă, puțin mai largă și întoarsă pe dos. Se vede doar pe margine, din orice unghi. Picioarele și brațele au segmente de lungime fixă. Talpa de sprijin rămâne pe urma ei, iar șoldurile coboară când pasul e lung. Blender caută la fiecare al doilea cadru intersecțiile dintre palme, mâneci, trunchi, cap, fustă și picioare. Contactele motivate sunt marcate ca atare în raport.</p>
+    </section>
+  </main>
+  <footer class="shell footer"><span>Școala Evlaviei</span><a href="/#ateliere">Toate atelierele</a></footer>
+</body>
+</html>

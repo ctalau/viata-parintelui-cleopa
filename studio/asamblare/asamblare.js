@@ -59,6 +59,19 @@ function stop() {
   play.textContent = 'Redă clipul';
 }
 
+// A chosen clip plays at once and starts over at the end, until paused.
+function loop() {
+  stop();
+  if (params.has('export')) return;
+  const startTime = performance.now() - time * 1000;
+  play.textContent = 'Pauză';
+  function tick(now) {
+    setTime(((now - startTime) / 1000) % clip.duration);
+    scheduledFrame = requestAnimationFrame(tick);
+  }
+  scheduledFrame = requestAnimationFrame(tick);
+}
+
 function resize() {
   const { width, height } = $('assembly-stage').getBoundingClientRect();
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -128,6 +141,7 @@ async function openClip({ id, png, mp4 }, catalog) {
     list.disabled = false;
     $('assembly-controls').hidden = false;
     status.hidden = true;
+    loop();
   } catch (error) {
     if (selection !== latest) return;
     status.textContent = 'Scena nu s-a încărcat. Selectează din nou un clip.';
@@ -174,15 +188,7 @@ async function start() {
   }
   play.addEventListener('click', () => {
     if (scheduledFrame !== undefined) return stop();
-    if (time >= clip.duration) setTime(0);
-    const startTime = performance.now() - time * 1000;
-    play.textContent = 'Pauză';
-    function tick(now) {
-      setTime(Math.min((now - startTime) / 1000, clip.duration));
-      if (time < clip.duration) scheduledFrame = requestAnimationFrame(tick);
-      else stop();
-    }
-    scheduledFrame = requestAnimationFrame(tick);
+    return loop();
   });
   timeSlider.addEventListener('input', () => {
     stop();

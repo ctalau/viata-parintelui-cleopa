@@ -26,7 +26,7 @@ Episodul urmărește primele zece pagini ale cărții ilustrate și continuă cu
 
 Dialogul are formulări mai scurte pentru rostire și o intervenție mai blândă a tatălui în prag. Scenariul și distribuția sunt în `scenariu.json`. Episodul folosește aceleași voci Gemini 3.8 Flash TTS prin OpenRouter în toate momentele. Melodia instrumentală este generată cu Lyria 3 Clip. Corul a fost mixat din cele patru voci ale personajelor. Indicațiile de joc sunt folosite pentru animație și regie, iar ghiorăitul are pista sa de efect. Muzica este reluată cu suprapuneri și atenuată în timpul replicilor. Cele trei efecte sonore sunt sintetizate local. Gurile răspund la energia replicilor și la aproximarea vocalelor din text.
 
-Mânecile au câte o singură suprafață, deformată de trunchi, braț, antebraț și încheietură. Marginea dinspre umăr rămâne ancorată în haină. Brațele și antebrațele sunt scurtate, astfel încât degetele rămân vizibil deasupra genunchilor în repaus. Manșeta se deformează cu antebrațul și încheietura. Degetele au lungimi și curburi diferite în desenele de repaus, prindere, întindere și oprire. În repaus, respirația se vede discret în piept, cu picioarele pe loc. Troaca are o muchie frontală separată de interior, iar râtul lui Grăsuțu se vede deasupra tărâțelor.
+Mama are brațele volumetrice din comparația 3D/2D. `scripts/mama_volumetrica.py` citește la fiecare desen umărul și încheietura rigului 2.5D. Apoi construiește mâneca tubulară și palma cu cinci degete și le salvează ca shape keys. Încheietura rămâne pe locul ei din imagine, iar segmentele au lungime fixă. Desenul de mână ales în episod devine flexia și deschiderea degetelor. Conturul este o coajă închisă la culoare, puțin mai lată și așezată în spatele tubului. La celelalte personaje, mânecile au câte o singură suprafață, deformată de trunchi, braț, antebraț și încheietură. Marginea dinspre umăr rămâne ancorată în haină. Brațele și antebrațele sunt scurtate, astfel încât degetele rămân vizibil deasupra genunchilor în repaus. Manșeta se deformează cu antebrațul și încheietura. Degetele au lungimi și curburi diferite în desenele de repaus, prindere, întindere și oprire. În repaus, respirația se vede discret în piept, cu picioarele pe loc. Troaca are o muchie frontală separată de interior, iar râtul lui Grăsuțu se vede deasupra tărâțelor.
 
 ## Redare și editare
 
@@ -42,6 +42,7 @@ Din acest folder, cu Blender 4.3.2, FFmpeg, Python 3, NumPy, Pillow și fonturil
 ```bash
 python3 scripts/prepare_timeline.py
 blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/mama_volumetrica.py
 blender -b --factory-startup --python-exit-code 1 --python scripts/verify_episode.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/check_overlaps.py -- --step 1
 mkdir -p renders/frames

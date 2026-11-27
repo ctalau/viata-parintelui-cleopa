@@ -31,6 +31,11 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4 &&
     document.querySelector('#episode-picture').dataset.frame === '1' && !document.querySelector('#seek').disabled);
   assert.equal(await page.locator('#episode').evaluate((media) => media.tagName), 'AUDIO');
+  const workshopLinks = await page.locator('#ateliere a.workshop').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  for (const href of ['/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
+    '/articulatii/', '/asamblare/', '/asamblare/?mod=recuzita', '/inspectie/', '#cadru-2']) {
+    assert.ok(workshopLinks.includes(href), `Lipsește atelierul ${href} de pe prima pagină`);
+  }
   assert.equal(Number(await page.locator('#seek').getAttribute('max')), episode.duration);
   await page.getByRole('button', { name: 'Înainte 5 secunde', exact: true }).click();
   await page.waitForFunction(() => {
@@ -146,13 +151,17 @@ try {
   await page.getByRole('heading', { name: 'Asamblare de scene' }).waitFor();
   await page.getByRole('img', { name: 'Planul episodului randat în Three.js' }).waitFor();
   await page.getByLabel('Plan din episod').selectOption('plan-17');
-  await page.waitForFunction(() => document.querySelector('#film-plan').dataset.frame === '2879');
+  // A chosen shot plays at once from its first drawing.
+  await page.waitForFunction(() => Number(document.querySelector('#film-plan').dataset.frame) > 2885);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
   await page.getByRole('link', { name: 'Scene de probă cu GLB' }).click();
   const assemblyTime = page.getByRole('slider', { name: 'Momentul din clip' });
   await assemblyTime.waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   const canvas = page.getByRole('img', { name: 'Scenă 2.5D recompusă cu personajele și recuzita Cleopa' });
   await canvas.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => Number(document.querySelector('#assembly-time').value) > 0.3);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
   const before = await canvas.screenshot();
   await assemblyTime.press('End');
   assert.equal(await assemblyTime.inputValue(), '4');
@@ -168,6 +177,7 @@ try {
     assert.equal(loadedProps.filter((url) => url.endsWith(`/${asset}.glb`)).length, 1);
   }
   await page.getByRole('checkbox', { name: 'Tata', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
   const withBook = await canvas.screenshot();
   await page.getByRole('checkbox', { name: 'Cartea lui Mihai' }).uncheck();
   assert.ok(!(await canvas.screenshot()).equals(withBook), 'Cartea trebuie să poată fi ascunsă');
@@ -195,6 +205,10 @@ try {
   for (const id of ['mama-palma', 'mama-cot', 'mama-umar']) {
     await tests.selectOption(id);
     await assemblyTime.waitFor();
+    // The chosen test starts by itself.
+    await page.waitForFunction((clip) => document.querySelector('#clip-source').href.endsWith(`/${clip}.json`) &&
+      document.querySelector('#assembly-play').textContent === 'Pauză' &&
+      Number(document.querySelector('#assembly-time').value) > 0.2, id);
     assert.equal(await tests.inputValue(), id);
     const sheet = await page.getByRole('link', { name: 'Foaie de cadre' }).getAttribute('href');
     assert.equal(sheet, `/articulatii/foi/${id.slice(5)}.webp`);
@@ -235,7 +249,12 @@ try {
   for (const id of actions) {
     await gestures.selectOption(`mama-${id}`);
     await compareFrame.waitFor();
-    assert.deepEqual(await panels.evaluateAll((items) => items.map((c) => c.dataset.frame)), ['1', '1']);
+    // The gesture starts by itself; both panels always show the same frame.
+    await page.waitForFunction((clip) => new URL(location.href).searchParams.get('clip') === clip &&
+      document.querySelector('#compare-play').textContent === 'Pauză' &&
+      Number(document.querySelector('#frame').value) > 3, `mama-${id}`);
+    const shown = await panels.evaluateAll((items) => items.map((c) => c.dataset.frame));
+    assert.equal(shown[0], shown[1]);
     const projections = await page.evaluate(async () => Promise.all(['3d','2d'].map(async (mode) => {
       const url = document.querySelector(`#projection-${mode}`).href;
       const sheet = document.querySelector(`#sheet-${mode}`).href;
@@ -249,11 +268,15 @@ try {
       const { width, aspect } = data.viewport;
       const length = (a, b) => Math.hypot((a[0]-b[0])*width, (a[1]-b[1])*width/aspect, a[2]-b[2]);
       for (const side of ['R','L']) {
-        const s = data.frames[0].arms[side];
+        // Reference: the 3D arm's true segment lengths at rest.
+        const s = projections[0].data.frames[0].arms[side];
         for (const { arms } of data.frames) {
           const p = arms[side];
-          assert.ok(Math.abs(length(p.umar, p.cot) - length(s.umar, s.cot)) < .001, `${id} ${data.mode} ${side} braț`);
-          assert.ok(Math.abs(length(p.cot, p.incheietura) - length(s.cot, s.incheietura)) < .001, `${id} ${data.mode} ${side} antebraț`);
+          // 3D segments keep their length; the 2D drawing may shorten towards the lens, never grow.
+          for (const [label, a, b] of [['braț', 'umar', 'cot'], ['antebraț', 'cot', 'incheietura']]) {
+            const change = length(p[a], p[b]) - length(s[a], s[b]);
+            assert.ok(data.mode === '3d' ? Math.abs(change) < .001 : change < .001, `${id} ${data.mode} ${side} ${label}`);
+          }
         }
       }
     }
@@ -267,8 +290,7 @@ try {
   const front = await panels.first().screenshot();
   await page.getByRole('slider', { name: 'Unghiul camerei' }).press('End');
   assert.ok(!(await panels.first().screenshot()).equals(front), 'Unghiul camerei trebuie să schimbe proiecția');
-  await page.getByRole('button', { name: 'Redă', exact: true }).click();
-  await page.waitForFunction(() => document.querySelector('#frame').value === '145');
+  // Playback from the next-to-last frame loops back to the start.
   await page.getByRole('button', { name: 'Redă', exact: true }).click();
   await page.waitForFunction(() => Number(document.querySelector('#frame').value) < 30);
   await page.getByRole('button', { name: 'Pauză', exact: true }).click();
@@ -280,6 +302,25 @@ try {
   for (const [index, initial] of beforeCompare.entries()) {
     assert.ok(!(await panels.nth(index).screenshot()).equals(initial), 'Derularea trebuie să redeseneze ambele variante');
   }
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  await page.goto(new URL('/volum/', address).href);
+  await page.getByRole('heading', { name: 'Corp volumetric' }).waitFor();
+  const volumCanvas = page.locator('#volum-canvas');
+  await page.waitForFunction(() => document.querySelector('#volum-canvas').dataset.test === 'mers-spre-camera' &&
+    Number(document.querySelector('#volum-canvas').dataset.time) > 0.3, null, { timeout: 60000 });
+  assert.equal(await page.locator('#test-picker button').count(), 9);
+  await page.getByRole('button', { name: 'Brațele deasupra capului' }).click();
+  await page.waitForFunction(() => document.querySelector('#volum-canvas').dataset.test === 'brate-sus' &&
+    Number(document.querySelector('#volum-canvas').dataset.time) > 4);
+  // The five-second test starts over by itself.
+  await page.waitForFunction(() => Number(document.querySelector('#volum-canvas').dataset.time) < 1, null, { timeout: 20000 });
+  assert.ok(await page.locator('#test-report li').count() > 0);
+  const sheet = await page.getByRole('link', { name: 'Foaie de cadre' }).getAttribute('href');
+  assert.equal(await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, sheet), 200);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  const paused = await volumCanvas.getAttribute('data-time');
+  await page.waitForTimeout(300);
+  assert.equal(await volumCanvas.getAttribute('data-time'), paused);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
