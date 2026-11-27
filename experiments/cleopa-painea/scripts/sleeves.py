@@ -14,7 +14,7 @@ def ease(value):
     return t*t*(3-2*t)
 
 
-def bind_cloth(obj, rig, side, shoulder, upper, length, cuff_on_forearm=False, islands=None):
+def bind_cloth(obj, rig, side, shoulder, upper, length, cuff_on_forearm=False, islands=None, rigid=False):
     """Keep the sleeve cap on the bodice and blend the moving joints.
 
     With 2.5D hands (`cuff_on_forearm`) the cuff follows the forearm rigidly and
@@ -32,7 +32,11 @@ def bind_cloth(obj, rig, side, shoulder, upper, length, cuff_on_forearm=False, i
         chest = (1-shoulder_blend)*(1-cuff)
         cap = shoulder_blend*(1-cap_blend)*(1-cuff)
         arm = shoulder_blend*cap_blend*(1-cuff)
-        if islands is not None:
+        if rigid:
+            # One continuous sleeve: rigid on the upper arm down to the elbow, rigid on
+            # the forearm after it. `maneci_bake.py` rounds the elbow on every drawing.
+            weights = (0,0,1,0,0) if distance <= upper else (0,0,0,1,0)
+        elif islands is not None:
             # Two cut-out pieces: the upper sleeve stays rigid on the upper arm
             # past the elbow, the forearm piece is rigid on the forearm.
             if islands[vertex.index]:
@@ -72,16 +76,17 @@ def sleeve(profile, rig, coll, side, sign):
     distances = (-.159,-.136,-.102,-.045,.060,upper*.30,upper*.71,upper,
                  upper+lower*.27,upper+lower*.54,end-.15,end-.035,end+.012,end+.027)
     widths = (.22,.55,.81,.93,.98,1,.92,.83,.87,.83,.73,.69,.62,.44)
-    split = profile.get("palme25d", False)
-    overlap = .10
-    extra = {upper-overlap, upper+overlap} if split else set()
-    rows = sorted(set(distances) | {end-.156,end-.134,end-.017} | extra)
+    # One piece from the shoulder to the cuff. The elbow is rounded on every drawing by
+    # `maneci_bake.py` (an arc outside, a fold inside), so the rows are denser there.
+    rows = sorted(set(distances) | {end-.156,end-.134,end-.017})
     samples = [rows[0]]
     for a,b in zip(rows,rows[1:]):
-        count = ceil((b-a)/.048)
+        middle = (a+b)/2
+        spacing = .024 if abs(middle-upper) < .34 else .048
+        count = ceil((b-a)/spacing)
         samples.extend(a+(b-a)*i/count for i in range(1,count+1))
 
-    vertices, faces, color_indices, island_of = [], [], [], []
+    vertices, faces, color_indices = [], [], []
     # The shoulder sits under the bodice. The cuff and wrist stay on the face
     # side of the sleeve so the hand and book can overlap consistently.
     def depth(distance):
@@ -89,35 +94,18 @@ def sleeve(profile, rig, coll, side, sign):
         body = near+(far-near)*(.95*advance+.05*ease(distance/end))
         return body+.032*ease((distance-end+.054)/.060)
 
-    # With 2.5D arms the projected elbow can fold the forearm back over the upper
-    # arm (the hand at the cheek). One skinned strip would turn its inner side
-    # inside out there, so the sleeve becomes two overlapping cut-out pieces in the
-    # same mesh: the forearm piece sits in front, with a rounded, inked top edge.
-    if split:
-        lift = depth(upper+overlap)-depth(upper-overlap)+.006
-        pieces = [([d for d in samples if d <= upper+overlap+1e-9], 0, 0.),
-                  ([d for d in samples if d >= upper-overlap-1e-9], 1, lift)]
-    else:
-        pieces = [(samples, 0, 0.)]
-
     columns = 5
-    for piece, island, lift in pieces:
+    for piece in (samples,):
         first = len(vertices)
         for distance in piece:
             radius = width*width_at(distance,distances,widths)
-            if split:
-                # Rounded ends where the two pieces overlap at the elbow.
-                if island:
-                    radius *= .62+.38*ease((distance-upper+overlap)/(.9*overlap))
-                else:
-                    radius *= .62+.38*ease((upper+overlap-distance)/(.9*overlap))
             border = min(.021,radius*.28)
             offsets = (-radius,-radius+border,-radius*.72,radius-border,radius)
             # Sink the inboard edge into the bodice while the outer edge follows the cap.
             inward = .09*(1-ease((distance+.10)/(.54*upper)))
             for offset in offsets:
-                vertices.append((x+sign*(offset-inward),top-distance,depth(distance)+lift))
-                island_of.append(island)
+                # A tiny rise along the sleeve keeps the forearm over the upper arm when it folds.
+                vertices.append((x+sign*(offset-inward),top-distance,depth(distance)+.004*distance/end))
         for row,(a,b) in enumerate(zip(piece,piece[1:])):
             length = (a+b)*.5
             for column in range(columns-1):
@@ -143,7 +131,7 @@ def sleeve(profile, rig, coll, side, sign):
     mesh.update()
     obj = bpy.data.objects.new(name,mesh)
     coll.objects.link(obj)
-    bind_cloth(obj,rig,side,top,upper,end,split,island_of if split else None)
+    bind_cloth(obj,rig,side,top,upper,end,True,rigid=True)
 
     # The cuff stitches share the forearm deformation. The other embroidered
     # strip stays on the upper sleeve, above the soft bend.
@@ -151,7 +139,7 @@ def sleeve(profile, rig, coll, side, sign):
                (x,top-end+.083),(width,1),z=far+.008)
     for stitch in range(-2,3):
         cuff.diamond(stitch*.231,0,.071,.026,RED)
-    bind_cloth(cuff.finish(),rig,side,top,upper,end,profile.get("palme25d",False))
+    bind_cloth(cuff.finish(),rig,side,top,upper,end,True,rigid=True)
     if profile.get("scarf"):
         at = upper*.32
         band = Art("Broderie pe braț · "+side,coll,
@@ -159,7 +147,7 @@ def sleeve(profile, rig, coll, side, sign):
         band.line("M -.76 .19 Q 0 .03 .77 .20",RED,.040)
         for index in range(-2,3):
             embroidery(band,index*.32,-.21,1.5)
-        bind_cloth(band.finish(),rig,side,top,upper,end,profile.get("palme25d",False))
+        bind_cloth(band.finish(),rig,side,top,upper,end,True,rigid=True)
     return far
 
 

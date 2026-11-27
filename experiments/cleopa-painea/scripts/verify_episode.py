@@ -116,12 +116,24 @@ def silhouette_a(obj, rig, p, side, pose):
             for loop in P.path_points(OUTLINE[pose])]
 
 
-def sleeve_flips(obj, graph):
+def sleeve_flips(obj, graph, rig, side):
+    """Triunghiuri întoarse în mânecă, în afara racordării cotului. Acolo unde `maneci_bake.py`
+    mută vârfurile (arcul, pliul), antebrațul se pliază peste braț prin construcție."""
+    import maneci_bake as MB
     rest = obj.data
     evaluated = obj.evaluated_get(graph).data
+    sleeve = MB.Sleeve(obj, rig, side)
+    rigid, _, _ = sleeve.rigid()
+    # Vârfurile mutate de racordare și rândurile de la joncțiunea braț–antebraț (pliul:
+    # marginea antebrațului începe puțin sub braț).
+    elbow = {v.index for v in evaluated.vertices
+             if abs(v.co.x-rigid[v.index][0])+abs(v.co.y-rigid[v.index][1]) > 1e-5
+             or abs(sleeve.d[v.index]-sleeve.upper) < .05}
     flips = 0
     for poly in rest.polygons:
         ids = poly.vertices
+        if any(k in elbow for k in ids):
+            continue
         for i in range(1, len(ids)-1):
             tri = (ids[0], ids[i], ids[i+1])
             if P.flipped([rest.vertices[k].co.xy[:] for k in tri],
@@ -245,7 +257,7 @@ def verify_palme25d(beats):
                     flips = P.flipped_faces(verts)
                     if flips:
                         fail(f"{actor} {side}: {flips} triunghiuri întoarse în palmă", frame)
-                flips = sleeve_flips(sleeve, graph)
+                flips = sleeve_flips(sleeve, graph, rig, side)
                 if flips:
                     fail(f"{actor} {side}: {flips} triunghiuri întoarse în mânecă", frame)
                 # 6. Repaus: vârful degetului mijlociu deasupra genunchiului.
@@ -308,22 +320,11 @@ def verify_scarf(rig, coll, p):
                 fail(f"colțul baticului e la {gap:.1f} mm de degete", frame)
 
 
-def verify_cutout_sleeve(rig, sleeve, side):
-    """2.5D arms: the sleeve is two rigid cut-out pieces, the forearm piece in front."""
-    names = {group.index: group.name for group in sleeve.vertex_groups}
-    pieces = {}
-    for vertex in sleeve.data.vertices:
-        groups = [g for g in vertex.groups if g.weight > 0]
-        assert len(groups) == 1 and abs(groups[0].weight-1) < 1e-6, (sleeve.name, vertex.index)
-        pieces.setdefault(names[groups[0].group], []).append(vertex.co)
-    assert set(pieces) == {"upper_arm."+side, "forearm."+side}, (sleeve.name, set(pieces))
-    elbow = rig.data.bones["forearm."+side].head_local.y
-    upper = [co for co in pieces["upper_arm."+side] if abs(co.y-elbow) < .1]
-    lower = [co for co in pieces["forearm."+side] if abs(co.y-elbow) < .1]
-    assert upper and lower and min(co.z for co in lower) > max(co.z for co in upper), sleeve.name
-
-
 def verify_sleeves(rigs):
+    """Mâneca e o singură bucată, rigidă pe braț și pe antebraț; cotul rotund e copt pe
+    fiecare desen de `maneci_bake.py` (shape keys), iar armătura mânecii e oprită."""
+    import maneci_bake as MB
+    count = 0
     for rig in rigs:
         coll = bpy.data.collections[rig.name[4:]]
         bodice = next(obj for obj in coll.objects
@@ -333,31 +334,37 @@ def verify_sleeves(rigs):
             sleeve, = [obj for obj in coll.objects if obj.name.split(".")[0].endswith(label)]
             skin, = sleeve.modifiers
             assert skin.type == "ARMATURE" and skin.object == rig, sleeve.name
-            assert {group.name for group in sleeve.vertex_groups} == {
-                "chest", "shoulder."+side, "upper_arm."+side, "forearm."+side, "hand."+side,
-            }, sleeve.name
-            if rig.get("palme25d_profile"):
-                verify_cutout_sleeve(rig, sleeve, side)
-                continue
-            assert sum(len(vertex.groups) >= 2 for vertex in sleeve.data.vertices) >= 25
-            assert all(abs(sum(group.weight for group in vertex.groups)-1) < .00001
-                       for vertex in sleeve.data.vertices)
-            cap_bone = rig.pose.bones["shoulder."+side]
-            assert cap_bone.constraints[0].subtarget == "upper_arm."+side
-            cap_group = sleeve.vertex_groups["shoulder."+side].index
-            assert any(any(group.group == cap_group and group.weight > .25 for group in vertex.groups)
-                       for vertex in sleeve.data.vertices)
-            shoulder = sleeve.vertex_groups["chest"].index
-            cap_y = rig.data.bones["upper_arm."+side].head_local.y
-            cap = [v for v in sleeve.data.vertices if v.co.y > cap_y+.065]
-            assert cap and all(any(g.group == shoulder and g.weight > .99 for g in v.groups) for v in cap)
-            # With 2.5D hands the cuff follows the forearm and the palm turns inside it.
-            cuff_bone = "forearm." if rig.get("palme25d_profile") else "hand."
-            cuff = sleeve.vertex_groups[cuff_bone+side].index
-            assert any(any(group.group == cuff and group.weight > .95 for group in v.groups)
-                       for v in sleeve.data.vertices)
+            assert not skin.show_render and not skin.show_viewport, (sleeve.name, "armătura mânecii e oprită")
+            keys = sleeve.data.shape_keys
+            assert keys and any(k.name.startswith(MB.PREFIX) for k in keys.key_blocks), \
+                (sleeve.name, "rulează maneci_bake.py")
+            names = {group.index: group.name for group in sleeve.vertex_groups}
+            pieces = {}
+            for vertex in sleeve.data.vertices:
+                groups = [g for g in vertex.groups if g.weight > 0]
+                assert len(groups) == 1 and abs(groups[0].weight-1) < 1e-6, (sleeve.name, vertex.index)
+                pieces.setdefault(names[groups[0].group], []).append(vertex)
+            assert set(pieces) == {"upper_arm."+side, "forearm."+side}, (sleeve.name, set(pieces))
+            # O singură bucată: fiecare rând e legat de următorul (fără insule suprapuse la cot).
+            links = {v.index: set() for v in sleeve.data.vertices}
+            for edge in sleeve.data.edges:
+                a, b = edge.vertices
+                links[a].add(b)
+                links[b].add(a)
+            seen, todo = {0}, [0]
+            while todo:
+                for k in links[todo.pop()]-seen:
+                    seen.add(k)
+                    todo.append(k)
+            assert len(seen) == len(sleeve.data.vertices), (sleeve.name, "mâneca are mai multe bucăți")
+            # Antebrațul stă deasupra brațului, ca să se plieze peste el.
+            elbow = rig.data.bones["forearm."+side].head_local.y
+            upper = [v.co for v in pieces["upper_arm."+side] if abs(v.co.y-elbow) < .3]
+            lower = [v.co for v in pieces["forearm."+side] if abs(v.co.y-elbow) < .3]
+            assert min(co.z for co in lower) >= max(co.z for co in upper)-1e-6, sleeve.name
             assert min(v.co.z for v in sleeve.data.vertices) < min(v.co.z for v in bodice.data.vertices)
-    print("SLEEVES_OK", len(rigs)*2, "mâneci continue de la umăr la manșetă")
+            count += 1
+    print("SLEEVES_OK", count, "mâneci dintr-o bucată, cu cotul rotund copt pe fiecare desen")
 
 
 def verify_arm_length(beats):

@@ -77,27 +77,36 @@ def breathe(rig, start, end, phase, amplitude=.027):
 
 
 _DEPTHS = {}
+_ELBOWS = {}
 
 
 def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None,
-            depth=None, palm=None, held=0):
+            depth=None, palm=None, held=0, continuity=True):
     """Key one arm. With `p["palme25d"]`, the bones get the projected 3D IK of
     `palme25d.solve_arm`; the wrist depth and palm direction are keyed on the
-    hand bone, so the 2.5D hand bake reads the same proxy the bones show."""
+    hand bone, so the 2.5D hand bake reads the same proxy the bones show.
+    `continuity=False`: a key pose of a gesture, solved alone (no depth or elbow side carried
+    over from a neighbouring frame keyed by another gesture)."""
     angle=atan2(direction[0],-direction[1])
     if p.get("palme25d"):
         import palme25d
         last=_DEPTHS.get((rig.name,side))
-        before=last[1] if last and 0 < abs(frame-last[0]) <= 1 else None
+        before=last[1] if continuity and last and 0 < abs(frame-last[0]) <= 1 else None
+        # The elbow keeps its side from the neighbouring frame (palme25d.CONTINUITY):
+        # otherwise it flips across when the wrist passes near the shoulder.
+        sides=_ELBOWS.setdefault((rig.name,side),{})
+        prefer=sides.get(frame-1, sides.get(frame+1)) if continuity else None
         if depth is None:
-            depth=palme25d.default_depth(p,side,wrist,before)
-        rotations, scales, points=palme25d.solve_arm(p,side,wrist,angle,depth)
+            depth=palme25d.default_depth(p,side,wrist,before,prefer)
+        rotations, scales, points=palme25d.solve_arm(p,side,wrist,angle,depth,prefer)
         _DEPTHS[rig.name,side]=(frame,depth)
+        sides[frame]=points['elbow']
         hand=rig.pose.bones['hand.'+side]
         hand['p25_depth']=points['W'][2]
+        hand['p25_elbow']=tuple(points['elbow'])
         hand['p25_palm']=tuple(palm) if palm is not None else (0.,0.,0.)
         hand['p25_held']=held
-        for name in ('p25_depth','p25_palm','p25_held'):
+        for name in ('p25_depth','p25_elbow','p25_palm','p25_held'):
             hand.keyframe_insert(f'["{name}"]',frame=frame,group='Arm '+side)
     else:
         rotations, scales=solve_arm(p,side,wrist,angle,seated)

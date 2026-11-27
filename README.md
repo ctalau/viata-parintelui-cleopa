@@ -44,12 +44,13 @@ Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese 
 
 ## Brațe și palme 2.5D în film
 
-În episod, Mama are brațele și palmele 2.5D din [specificație](experiments/cleopa-palme/SPECIFICATIE.md). Coregrafia rămâne cea regizată, iar oasele 2D primesc unghiul și scurtarea segmentelor proiectate ale unui IK 3D cu lungimi fixe. Palma este desenată plat din volumele proxy-ului (C), cu contur, umbre, unghii și liniile palmei. În pozele ținute, desenul de autor (A) se ancorează la punctul de contact. Tava, obrazul și colțul baticului sunt contacte: încheietura se calculează din vârful degetelor. Mâneca rămâne plasa episodului, în două piese suprapuse la cot, ca să nu se plieze. Palmele sunt coapte în shape keys, deci filmul MP4 și playerul Three.js arată aceeași geometrie. `verify_episode.py` verifică lungimile, contactele, ordinea pieselor, pliurile, repausul, lateralitatea și trecerile C ↔ A.
+În episod, Mama are brațele și palmele 2.5D din [specificație](experiments/cleopa-palme/SPECIFICATIE.md). Coregrafia rămâne cea regizată, iar oasele 2D primesc unghiul și scurtarea segmentelor proiectate ale unui IK 3D cu lungimi fixe. Palma este desenată plat din volumele proxy-ului (C), cu contur, umbre, unghii și liniile palmei. În pozele ținute, desenul de autor (A) se ancorează la punctul de contact. Tava, obrazul și colțul baticului sunt contacte: încheietura se calculează din vârful degetelor. Mâneca e o singură bucată de la umăr la manșetă, rigidă pe braț și pe antebraț; `maneci_bake.py` rotunjește cotul pe fiecare desen (arc în exterior, pliu în interior, antebrațul pliat peste braț la îndoiri strânse). Între pozele regizate brațul se mișcă în unghiurile articulațiilor (umăr, cot, încheietură), nu în linie dreaptă: mâna merge pe arc, segmentele își păstrează lungimea și cotul nu sare dintr-o parte în alta. Palmele sunt coapte în shape keys, deci filmul MP4 și playerul Three.js arată aceeași geometrie. `verify_episode.py` verifică lungimile, contactele, ordinea pieselor, pliurile, repausul, lateralitatea și trecerile C ↔ A.
 
 ```bash
 cd experiments/cleopa-painea
 blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/palme25d_bake.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/maneci_bake.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/export_web_episode.py
 ```
 

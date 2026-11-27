@@ -1,6 +1,6 @@
 ---
 name: render-runpod
-description: Randează filmul episodului (desenele Blender + MP4-ul compact + foaia de contact) pe un GPU ieftin RunPod, în ~3 minute în loc de ~30 pe CPU, cu raport de timp și cost. Folosește-l pentru orice randare completă a filmului când RUNPOD_KEY este în mediu, și când utilizatorul întreabă de RunPod.
+description: Randează filmul episodului (desenele Blender + MP4-ul compact + foaia de contact) pe un GPU ieftin RunPod, în ~3 minute în loc de ~30 pe CPU, cu raport de timp și cost. Folosește-l pentru orice randare completă a filmului când RUNPOD_KEY este în mediu, pentru orice altă operație care ar dura peste 3 minute local și se poate accelera pe GPU (randări de probă, foi de cadre, verificări pe cadre randate), și când utilizatorul întreabă de RunPod.
 ---
 
 # Randarea filmului pe RunPod
@@ -29,10 +29,25 @@ Are nevoie de `RUNPOD_KEY` (sau `RUNPOD_API_KEY`) în mediu sau în `.env`. Chei
 
 ## Înainte de randare
 
-1. Scena e gata: `build_episode.py`, apoi `palme25d_bake.py`, apoi `verify_episode.py` (lanțul din README-ul episodului).
+1. Scena e gata: `build_episode.py`, apoi `palme25d_bake.py`, `maneci_bake.py`, apoi `verify_episode.py` (lanțul din README-ul episodului).
 2. Fă probe pe ce e greu, local: `randeaza_momente.py`, `zoom_mana.py`. Podul produce aceleași desene ca CPU-ul (măsurat mai jos). Încadrarea și gesturile se repară local, nu pe pod.
 3. Randează pe RunPod **o dată**. O reluare costă sub un cent, dar nu se iterează pe pod.
 4. După descărcare, verifică MP4-ul cu `ffprobe`: sub 5 MB, 768 × 432, 24 fps, stereo (`export_episode.py` scrie `MEDIA_OK`). Apoi rulează `npm run build` și `npm run check:preview`.
+
+## Când folosim RunPod (regula celor 3 minute)
+
+Orice operație care durează **peste ~3 minute pe CPU-ul containerului** și care se poate accelera pe GPU (sau pe
+cele 100+ vCPU ale unei gazde RunPod) rulează pe un pod RunPod când `RUNPOD_KEY` e setată — nu se așteaptă local:
+
+- randarea desenelor (filmul întreg sau un interval mare: `render`, `render --to`);
+- foi de cadre / contact și randări de probă cu multe cadre (`randeaza_momente.py`, `zoom_mana.py`, foi pentru review);
+- verificările care randează cadre (suprapuneri pe cadre randate, comparații de imagini).
+
+Pentru un pas fără comandă dedicată: `up` → `push` scena și scripturile → `exec "cd /work/repo/... && blender -b ..."`
+(mai multe procese Blender pe intervale de cadre) → `pull` doar rezultatele mici → **`down`**. Local rămân pașii scurți
+(< 3 min) și cei care nu câștigă nimic pe GPU (`build_episode.py` ~15 s, coacerile Python într-un singur fir:
+`palme25d_bake.py` ~3,5 min, `maneci_bake.py` ~6 min, `verify_episode.py` ~6 min — pe pod câștigă doar dacă le împarți
+pe intervale de cadre). Notează în raport timpul local estimat și cel pe pod.
 
 ## Ce se întâmplă (`tools/runpod.mjs`, `tools/runpod/pod.mjs`, `tools/runpod/agent.mjs`)
 

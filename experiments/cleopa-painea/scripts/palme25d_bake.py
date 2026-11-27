@@ -146,7 +146,8 @@ def hand_frame(rig, p, side, frame, state):
     # și se mută cu deplasarea lui.
     sign = P.side_sign(side)
     delta = rig.pose.bones["upper_arm."+side].head.xy-Vector((sign*p["shoulder_x"], p["shoulder_y"]))
-    local = P.arm_points(p, side, (wrist.x-delta.x, wrist.y-delta.y), depth)
+    elbow = tuple(bone.get("p25_elbow", ())) or None
+    local = P.arm_points(p, side, (wrist.x-delta.x, wrist.y-delta.y), depth, exact=elbow)
     arm = {k: ((v[0]+delta.x, v[1]+delta.y, v[2]) if k in "SEW" else v) for k, v in local.items()}
     hand = P.hand_rig(p, side, arm["W"], q, g, (delta.x, delta.y))
     return {"arm": arm, "rig": hand, "pose": pose, "wrist": wrist, "direction": direction,
