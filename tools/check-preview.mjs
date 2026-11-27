@@ -32,7 +32,7 @@ try {
     document.querySelector('#episode-picture').dataset.frame === '1' && !document.querySelector('#seek').disabled);
   assert.equal(await page.locator('#episode').evaluate((media) => media.tagName), 'AUDIO');
   const workshopLinks = await page.locator('#ateliere a.workshop').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
-  for (const href of ['/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
+  for (const href of ['/palme/', '/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
     '/articulatii/', '/asamblare/', '/asamblare/?mod=recuzita', '/inspectie/', '#cadru-2']) {
     assert.ok(workshopLinks.includes(href), `Lipsește atelierul ${href} de pe prima pagină`);
   }
@@ -321,6 +321,22 @@ try {
   const paused = await volumCanvas.getAttribute('data-time');
   await page.waitForTimeout(300);
   assert.equal(await volumCanvas.getAttribute('data-time'), paused);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  await page.goto(new URL('/palme/?test=cruce', address).href);
+  await page.getByRole('heading', { name: 'Palme 2.5D: test de stres' }).waitFor();
+  const palmCanvases = page.locator('.palm-panel canvas');
+  assert.equal(await palmCanvases.count(), 3);
+  await page.waitForFunction(() => [...document.querySelectorAll('.palm-panel canvas')].every((c) => c.dataset.test === 'cruce' &&
+    Number(c.dataset.frame) > 3), null, { timeout: 20000 });
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  const palmBefore = await palmCanvases.last().screenshot();
+  await page.locator('#frame').evaluate((slider) => {
+    slider.value = String(Number(slider.value) > 40 ? 10 : 70);
+    slider.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  assert.ok(!(await palmCanvases.last().screenshot()).equals(palmBefore), 'Derularea trebuie să redeseneze palmele');
+  await page.waitForFunction(() => document.body.dataset.report === 'gata', null, { timeout: 120000 });
+  assert.equal(await page.locator('#report-rows tr').count(), 6);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
   console.log('PREVIEW_OK', address, writeFeedback ? 'cu feedback salvat' : 'cu răspuns de test pentru formular');
