@@ -1052,8 +1052,10 @@ def prayer_tableau(coll,start,end):
     # Palms up under the lower edge, fingers pointing inward along it (with the fingers up and
     # the palms toward the chest, the hands looked like they pushed the book, not held it).
     for side,wrist,direction in (("L",(.68,.50),(-.97,.24)),("R",(-.82,.50),(.97,.24))):
-        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,1,0))
-        hand_pose(father,side,start,"open")
+        # Palma doar în sus se vedea din profil, ca o fâșie sub carte, pe vestă. Înclinată spre
+        # cameră, degetele și degetul mare se văd pe marginea de jos a paginilor.
+        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,.6,.8))
+        hand_pose(father,side,start,"grip")
     choir = BEATS["la-icoane"]["cues"][-1]
     for index, a in enumerate((father,mother,brother,child)):
         rig = a["rig"]
