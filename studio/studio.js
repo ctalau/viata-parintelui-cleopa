@@ -3,11 +3,14 @@ import { createFilm } from './film/player.js';
 
 const audio = document.querySelector('#episode');
 const canvas = document.querySelector('#episode-picture');
-const form = document.querySelector('#feedback-form');
-const timeLabel = document.querySelector('#timestamp');
+const dialog = document.querySelector('#note-dialog');
+const form = document.querySelector('#note-form');
+const dialogTime = document.querySelector('#note-time');
 const status = document.querySelector('#feedback-status');
-const capture = document.querySelector('#capture');
-const submit = form.querySelector('[type="submit"]');
+const notesList = document.querySelector('#notes');
+const notesEmpty = document.querySelector('#notes-empty');
+const downloadButton = document.querySelector('#download-notes');
+const clearButton = document.querySelector('#clear-notes');
 const screen = document.querySelector('#screen');
 const controls = document.querySelector('#player-controls');
 const play = document.querySelector('#play');
@@ -21,7 +24,11 @@ const jumpButtons = [...document.querySelectorAll('[data-skip]')];
 const episodeLength = document.querySelector('#episode-length');
 const episode = 'painea-care-poate-sa-astepte';
 let episodeDuration;
-let markedTime = null;
+const notesKey = `cleopa-observatii-v1:${episode}`;
+const episodeTitle = document.querySelector('h1').textContent.replace(/\s+/g, ' ').trim();
+let chapterList = [];
+let markedTime = 0;
+let notes = loadNotes();
 let film;
 let tick;
 
@@ -62,7 +69,6 @@ function updateTime() {
   seek.value = time;
   seek.setAttribute('aria-valuetext', clock(time, true));
   playbackTime.textContent = `${clock(time, true)} / ${clock(duration(), true)}`;
-  if (markedTime === null) timeLabel.textContent = clock(time, true);
 }
 
 function updateDuration() {
@@ -100,19 +106,117 @@ async function togglePlayback() {
   }
 }
 
-function markTime() {
-  audio.pause();
-  markedTime = currentTime();
-  timeLabel.textContent = clock(markedTime, true);
-  status.removeAttribute('data-error');
-  status.textContent = `Moment ales la ${clock(markedTime, true)}.`;
+function loadNotes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(notesKey));
+    return Array.isArray(saved) ? saved.filter((note) => Number.isFinite(note?.time) && typeof note.message === 'string') : [];
+  } catch {
+    return [];
+  }
 }
 
-async function flagMoment() {
-  if (document.fullscreenElement === screen) await document.exitFullscreen();
-  markTime();
-  form.elements.message.focus();
+function saveNotes() {
+  try {
+    localStorage.setItem(notesKey, JSON.stringify(notes));
+    return true;
+  } catch {
+    status.setAttribute('data-error', '');
+    status.textContent = 'Browserul nu a putut salva notele. Descarcă-le înainte să închizi pagina.';
+    return false;
+  }
 }
+
+function chapterAt(time) {
+  return chapterList.findLast((chapter) => chapter.time <= time + 0.05)?.title;
+}
+
+function renderNotes() {
+  notesList.replaceChildren();
+  for (const note of [...notes].sort((a, b) => a.time - b.time)) {
+    const item = document.createElement('li');
+    const seekButton = document.createElement('button');
+    seekButton.type = 'button';
+    seekButton.className = 'note-seek';
+    seekButton.title = 'Derulează filmul la acest moment';
+    const stamp = document.createElement('span');
+    stamp.textContent = clock(note.time, true);
+    const text = document.createElement('span');
+    text.textContent = note.message;
+    seekButton.append(stamp, text);
+    seekButton.addEventListener('click', () => jumpTo(note.time));
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'note-delete';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', `Șterge observația de la ${clock(note.time, true)}`);
+    remove.addEventListener('click', () => {
+      notes = notes.filter((candidate) => candidate.id !== note.id);
+      saveNotes();
+      renderNotes();
+    });
+    item.append(seekButton, remove);
+    notesList.append(item);
+  }
+  notesEmpty.hidden = notes.length > 0;
+  downloadButton.disabled = clearButton.disabled = notes.length === 0;
+}
+
+function flagMoment() {
+  audio.pause();
+  markedTime = currentTime();
+  dialogTime.textContent = clock(markedTime, true);
+  status.removeAttribute('data-error');
+  status.textContent = '';
+  form.reset();
+  const open = () => {
+    if (!dialog.open) dialog.showModal();
+    form.elements.message.focus();
+  };
+  if (document.fullscreenElement === screen) document.exitFullscreen().then(open, open);
+  else open();
+}
+
+function notesPrompt() {
+  const lines = [...notes].sort((a, b) => a.time - b.time).map((note, index) => {
+    const chapter = chapterAt(note.time);
+    return `${index + 1}. [${clock(note.time, true)}${chapter ? ` · ${chapter}` : ''}] ${note.message}`;
+  });
+  return `Ești asistentul de producție al animației „${episodeTitle}” din seria Viața Părintelui Cleopa (Școala Evlaviei).
+Mai jos sunt observațiile mele la film, fiecare cu momentul (minut:secundă.zecimi) și capitolul în care apare.
+Pentru fiecare observație: identifică planul, personajul sau obiectul vizat, găsește cauza în sursele din repo (experiments/, scripts/, studio/) și propune sau aplică corecția. Păstrează continuitatea cu planurile vecine și grupează observațiile care au aceeași cauză.
+
+Observații:
+${lines.join('\n')}
+`;
+}
+
+function downloadNotes() {
+  const url = URL.createObjectURL(new Blob([notesPrompt()], { type: 'text/markdown;charset=utf-8' }));
+  const link = Object.assign(document.createElement('a'), { href: url, download: `observatii-${episode}.md` });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const message = form.elements.message.value.trim();
+  if (!message) return;
+  notes.push({ id: crypto.randomUUID(), time: Math.round(markedTime * 100) / 100, message, createdAt: new Date().toISOString() });
+  if (saveNotes()) status.textContent = 'Observația a fost salvată.';
+  renderNotes();
+  dialog.close();
+});
+document.querySelector('#note-cancel').addEventListener('click', () => dialog.close());
+downloadButton.addEventListener('click', downloadNotes);
+clearButton.addEventListener('click', () => {
+  if (!confirm('Ștergi toate observațiile?')) return;
+  notes = [];
+  saveNotes();
+  renderNotes();
+});
+renderNotes();
 
 function toggleFull() {
   if (document.fullscreenElement === screen) return document.exitFullscreen();
@@ -140,7 +244,6 @@ for (const button of jumpButtons) {
   button.addEventListener('click', () => jumpTo(currentTime() + Number(button.dataset.skip)));
 }
 flag.addEventListener('click', flagMoment);
-capture.addEventListener('click', markTime);
 sound.addEventListener('click', () => {
   audio.muted = !audio.muted;
   sound.setAttribute('aria-pressed', String(audio.muted));
@@ -148,7 +251,7 @@ sound.addEventListener('click', () => {
 });
 full.addEventListener('click', () => Promise.resolve(toggleFull()).catch(() => {}));
 document.addEventListener('keydown', (event) => {
-  if (event.target.matches('input, textarea, button, a, summary, [contenteditable]') || event.metaKey || event.ctrlKey || event.altKey) return;
+  if (dialog.open || event.target.matches('input, textarea, button, a, summary, [contenteditable]') || event.metaKey || event.ctrlKey || event.altKey) return;
   switch (event.key.toLowerCase()) {
     case ' ': togglePlayback(); break;
     case 'arrowleft': jumpTo(currentTime() - (event.shiftKey ? 5 : 0.5)); break;
@@ -193,41 +296,11 @@ async function setupFilm() {
 
 void setupFilm();
 
-async function submitFeedback(event) {
-  event.preventDefault();
-  if (submit.disabled) return;
-  const data = new FormData(form);
-  status.removeAttribute('data-error');
-  status.textContent = 'Se trimite…';
-  submit.disabled = true;
-  capture.disabled = true;
-  form.elements.message.readOnly = true;
-  try {
-    const response = await fetch('/api/feedback', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ episode, time: markedTime ?? currentTime(), ...Object.fromEntries(data) }),
-    });
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error);
-    form.reset();
-    markedTime = null;
-    status.textContent = 'Mulțumim! Observația a fost salvată.';
-    updateTime();
-  } catch (error) {
-    status.setAttribute('data-error', '');
-    status.textContent = error.message || 'Încearcă din nou.';
-  } finally {
-    submit.disabled = false;
-    capture.disabled = false;
-    form.elements.message.readOnly = false;
-  }
-}
-form.addEventListener('submit', submitFeedback);
-
 try {
   const response = await fetch('/catalog.json');
   if (!response.ok) throw new Error('Catalog indisponibil');
-  const { episode: listedEpisode, chapters, library } = await response.json();
+  const { episode: listedEpisode, chapters } = await response.json();
+  chapterList = chapters;
   episodeDuration = listedEpisode.duration;
   updateDuration();
   for (const { time, title } of chapters) {
@@ -239,23 +312,6 @@ try {
     button.addEventListener('click', () => jumpTo(time));
     document.querySelector('#chapters').append(button);
   }
-  for (const { group, entries } of library) {
-    const article = document.createElement('article');
-    const heading = document.createElement('h3');
-    heading.textContent = group;
-    const list = document.createElement('ul');
-    for (const { name, link } of entries) {
-      const item = document.createElement('li');
-      const anchor = document.createElement('a');
-      anchor.href = link;
-      anchor.textContent = name;
-      item.append(anchor);
-      list.append(item);
-    }
-    article.append(heading, list);
-    document.querySelector('#library-items').append(article);
-  }
 } catch {
   document.querySelector('#chapters').textContent = 'Momentele nu s-au încărcat.';
-  document.querySelector('#library-items').textContent = 'Biblioteca nu s-a încărcat.';
 }

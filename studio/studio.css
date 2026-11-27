@@ -603,3 +603,164 @@ textarea {
   cursor: pointer;
 }
 #episode-picture:not([data-frame]) { visibility: hidden; }
+
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.notes {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+.notes li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--paper);
+}
+.notes button {
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+  padding: 9px 10px;
+  border-radius: 10px;
+}
+.notes .note-seek {
+  display: grid;
+  gap: 2px;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+.notes .note-seek:hover,
+.notes .note-delete:hover {
+  background: #f5e6cb;
+}
+.note-seek span:first-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+.notes .note-delete {
+  font-size: 1.3rem;
+  line-height: 1;
+  padding-inline: 13px;
+  color: #922b1f;
+}
+.feedback .notes-empty {
+  margin: 0 0 14px;
+}
+.notes-actions {
+  display: grid;
+  gap: 8px;
+}
+.ghost {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 600;
+}
+.ghost:hover:not(:disabled) {
+  background: #f5e6cb;
+}
+.submit:disabled {
+  cursor: not-allowed;
+}
+dialog {
+  width: min(440px, calc(100% - 32px));
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  background: var(--white);
+  color: var(--ink);
+  padding: 22px;
+  box-shadow: 0 20px 60px #2e231a55;
+}
+dialog::backdrop {
+  background: #2e231a66;
+}
+dialog form {
+  display: grid;
+  gap: 12px;
+}
+dialog h3 {
+  font-size: 1.4rem;
+}
+dialog h3 span {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.episode-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.episode-card {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--edge);
+  border-radius: 18px;
+  background: var(--white);
+  color: var(--ink);
+  text-decoration: none;
+}
+.episode-card:hover,
+.episode-card:focus-visible {
+  background: #f5e6cb;
+}
+.episode-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #221e16;
+}
+.episode-text {
+  display: grid;
+  gap: 6px;
+}
+.episode-text small {
+  color: var(--accent);
+  font-weight: 750;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.episode-text strong {
+  font-family: Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+.episode-text span {
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+.episodes + .workshops {
+  margin-top: 46px;
+}
+@media (max-width: 660px) {
+  .episode-card {
+    grid-template-columns: 1fr;
+  }
+}

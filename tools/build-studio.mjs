@@ -63,6 +63,9 @@ fs.cpSync(path.join(ROOT, episodeDir, 'renders', yardLayers), path.join(media, y
 for (const name of ['index.html', 'studio.css']) {
   fs.copyFileSync(path.join(ROOT, 'studio', name), path.join(out, name));
 }
+const episodePage = path.join(out, 'episoade', episode.id);
+fs.mkdirSync(episodePage, { recursive: true });
+fs.copyFileSync(path.join(ROOT, 'studio/episoade', episode.id, 'index.html'), path.join(episodePage, 'index.html'));
 fs.cpSync(path.join(ROOT, 'studio/inspectie'), path.join(out, 'inspectie'), { recursive: true });
 fs.cpSync(path.join(ROOT, 'assets'), path.join(out, 'assets'), { recursive: true });
 const filmAssets = path.join(out, 'assets/film');
@@ -77,8 +80,10 @@ fs.mkdirSync(path.join(filmAssets, 'textures'), { recursive: true });
 for (const name of textures) {
   fs.copyFileSync(path.join(ROOT, episodeDir, 'assets/backgrounds', name), path.join(filmAssets, 'textures', name));
 }
-buildSync({ entryPoints: [path.join(ROOT, 'studio/studio.js')], outfile: path.join(out, 'studio.js'),
-  bundle: true, minify: true, format: 'esm' });
+for (const name of ['studio', 'landing']) {
+  buildSync({ entryPoints: [path.join(ROOT, `studio/${name}.js`)], outfile: path.join(out, `${name}.js`),
+    bundle: true, minify: true, format: 'esm' });
+}
 const assembly = path.join(out, 'asamblare');
 for (const name of ['index.html', 'asamblare.css', 'scenes', 'renders']) {
   const source = path.join(ROOT, 'studio/asamblare', name);
