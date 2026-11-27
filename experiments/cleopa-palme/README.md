@@ -64,3 +64,46 @@ npm test                 # include tests/palme.test.mjs: IK, contactele crucii, 
 npm run build && npm run preview
 npm run check:preview    # deschide și /palme/, așteaptă raportul și verifică derularea
 ```
+
+## În episod: brațe și palme 2.5D
+
+Varianta aleasă este acum în filmul „Pâinea care poate să aștepte”, după [handoff](HANDOFF.md). Faza 1 este Mama, în toate planurile. Faza 2 sunt Costică, Mihai și Tata, în bucătărie.
+
+| Piesă | Unde |
+| --- | --- |
+| Portul Python al `rig.js` și `hands.js`, plus stratul episodului | [`palme25d.py`](../cleopa-painea/scripts/palme25d.py) |
+| Paritatea cu `/palme/`, la 1e-6, pe toate cele 670 de cadre ale testelor | [`tools/palme-fixtures.mjs`](../../tools/palme-fixtures.mjs), [`tests/palme25d_test.py`](../../tests/palme25d_test.py) |
+| Oasele 2D primesc proiecția IK-ului 3D | `arm_key` în [`animate_prayer.py`](../cleopa-blender/scripts/animate_prayer.py) |
+| Contactele (tava, obrazul) și coregrafia | [`build_episode.py`](../cleopa-painea/scripts/build_episode.py) |
+| Palma C, poza A, colțul baticului | [`palme25d_bake.py`](../cleopa-painea/scripts/palme25d_bake.py) |
+| Verificările §5 | `verify_palme25d` în [`verify_episode.py`](../cleopa-painea/scripts/verify_episode.py) |
+| Foile de contact | [`renders/`](renders/): linia de bază, Mama, familia, cadrele dificile |
+
+**Rezultat.** `verify_palme25d` trece pe toate cele 10 mâini. Lungimile sunt fixe (eroare 0). Contactul cu tava și cu obrazul alunecă cel mult 0,002 mm. Tava se mișcă față de degete cel mult 0,003 mm între desene. Nu există pâlpâiri, pliuri sau piese la mai puțin de ε/2. IoU la trecerea C → A este 0,993. `check_overlaps.py --step 1` găsește 0 intervale, ca linia de bază, deci nu e nevoie de excepții.
+
+### Ce diferă de specificație și de ce
+
+- **Mâna din `rig.js` este, anatomic, o mână stângă.** `handQuat` pune degetul mare la −(degete × palmă). Cu palma spre cameră și degetele în sus, degetul mare drept trebuie să fie spre mijlocul corpului, adică în dreapta ecranului. În episod, mâna stângă folosește proxy-ul direct, iar dreapta îl oglindește. Desenele din `hands.py` erau deja corecte. Atelierul `/palme/` și testul lui (`the palm turns`) au rămas neschimbate, ca paritatea să se păstreze. Merită corectate acolo.
+- **Polul cotului** este (−0,45, −0,8, −0,4), nu (−0,6, −0,5, −0,55). În gesturile episodului (tava ținută aproape, mâna la obraz, invitația), polul din `/palme/` ridică cotul la nivelul umărului. Adâncimea încheieturii este cea care lasă cotul cel mai jos, cu ambele segmente proiectate de cel puțin 45 % din lungime.
+- **Mărimea palmei.** Suprapunerea siluetelor pe desenele `rest`, `open` și `cup` dă 0,0655 × `profile["hand"]` pe centimetru. Asta este de 1,3 ori mărimea anatomică, deci factorul 1,3 rămâne. Degetele seriei sunt scurte și groase, iar grosimea care le potrivește este 1,6, nu 1,15 (IoU 0,82–0,87).
+- **Mâneca are două piese suprapuse la cot.** Plasa din `sleeves.py` (rânduri, culori, manșetă, broderie) rămâne aceeași. Plasa continuă se întorcea pe dos în 135 de desene: la cot când antebrațul vine spre obraz, la manșetă când încheietura se îndoaie și la umăr când brațul scurtat se amestecă cu corsajul. Acum piesa brațului se rotește rigid în jurul umărului, sub corsaj. Piesa antebrațului stă în față, iar manșeta urmează antebrațul. Palma se întoarce sub manșetă. Rezultatul este zero triunghiuri întoarse.
+- **Ordinea pieselor.** Memoria din `hands.js` (rang/n × 0,5 cm) pâlpâie când o articulație trece de 40° și se schimbă numărul de piese. În episod, o pereche care tocmai s-a inversat rămâne blocată 3 desene, apoi are histerezis de 1,5 cm încă 3 desene. După aceea contează din nou doar adâncimea. Un simplu histerezis lăsa degetul mare al Tatălui în spatele palmei. Fiecare treaptă de rang are 4 niveluri Z (contur, umplere, detalii, unghie), nu 2. ε este 4e-4 unități de rig, adică 2e-4 în lume.
+- **Tava rămâne C pe tot drumul.** Degetele sunt sub taler, iar degetul mare e în fața lui, pe un nivel propriu între taler și pâine. Un desen A este o singură piesă plată și nu poate fi și în spatele, și în fața talerului.
+- **Poza A la obraz este un desen nou, `cheek`.** Desenul `cup` atingea doar IoU 0,47 cu C. Conform handoff-ului s-a ajustat desenul, nu proxy-ul. `redeseneaza_a.py` trasează silueta C de la începutul pozei, iar desenul are aceeași linie, aceleași culori și linii între degete. Prima atingere a obrazului ține 7 desene, sub pragul de 8, deci rămâne C.
+- **Mâna la față.** Când palma acoperă capul, antebrațul, manșeta și palma trec împreună cu 0,1 în fața părului și a baticului ridicat, printr-un shape key al mânecii. Ordinea manșetă–palmă nu se schimbă.
+- **Întinderea.** Talerul purtat de Mama ajunge până la 99,6 % din lungimea brațului, iar încheietura nu mai este trasă înapoi.
+- **`reach`** are palma în jos și puțin dinspre cameră. Cu palma exact în jos, degetele întinse se văd din muchie și mâna pare un pumn.
+
+### Comenzi
+
+```bash
+node tools/palme-fixtures.mjs && python3 tests/palme25d_test.py     # paritatea cu /palme/
+cd experiments/cleopa-painea
+blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/palme25d_bake.py
+blender -b --factory-startup --python-exit-code 1 --python scripts/verify_episode.py
+# foaia de contact a momentelor (faza 1 sau 2)
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 \
+  --python ../cleopa-palme/scripts/randeaza_momente.py -- --out /tmp/momente --faza 1
+python3 ../cleopa-palme/scripts/foaie.py /tmp/momente ../cleopa-palme/renders/foaie.jpg "Palme 2.5D"
+```

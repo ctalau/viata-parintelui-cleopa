@@ -1,7 +1,9 @@
-"""Hand drawings viewed from the wrist, scaled to each character's proportions."""
-from build_characters import INK, DETAIL
+"""Hand drawings viewed from the wrist, scaled to each character's proportions.
 
-HAND_POSES = ("rest","open","cup","grip","reach","stop")
+The outlines are plain data, so `palme25d.py` reads them without Blender.
+"""
+
+HAND_POSES = ("rest","open","cup","grip","reach","stop","cheek")
 
 # In each pose the wrist stays at y = 0. Thumb, index, middle, ring and little
 # finger keep their relative lengths as the joints extend or curl.
@@ -55,6 +57,29 @@ OUTLINE = {
         "Q -.255 -.839 -.319 -.824 Q -.406 -.796 -.396 -.657 L -.385 -.398 "
         "Q -.35 -.243 -.296 -.118 Q -.259 -.015 -.238 .153 Z"
     ),
+    # The cupped hand held to the cheek. Redrawn after the 2.5D proxy's silhouette
+    # at the start of the hold (experiments/cleopa-palme/scripts/redeseneaza_a.py),
+    # because the `cup` drawing reached only IoU 0.47 there; the handoff adjusts
+    # the A drawing, never the proxy.
+    "cheek": (
+        "M -.159 -.174 Q -.162 -.184 -.170 -.206 Q -.179 -.227 -.174 -.451 Q -.170 -.676 -.166 -.699 "
+        "Q -.162 -.723 -.149 -.744 Q -.136 -.765 -.102 -.784 Q -.068 -.803 -.034 -.848 Q -.001 -.892 .012 -.899 "
+        "Q .025 -.905 .052 -.905 Q .080 -.905 .091 -.920 Q .101 -.935 .125 -.943 Q .148 -.952 .169 -.950 "
+        "Q .190 -.947 .211 -.933 Q .233 -.918 .258 -.916 Q .283 -.914 .339 -.867 Q .394 -.820 .402 -.803 "
+        "Q .411 -.786 .419 -.744 Q .428 -.702 .428 -.646 Q .428 -.591 .423 -.577 Q .419 -.562 .404 -.547 "
+        "Q .389 -.532 .362 -.530 Q .334 -.528 .326 -.532 Q .317 -.536 .324 -.386 Q .330 -.235 .326 -.212 "
+        "Q .322 -.189 .309 -.174 Q .296 -.159 .294 -.151 Q .292 -.142 .260 -.121 Q .228 -.100 .194 -.095 "
+        "Q .161 -.091 .061 -.089 Q -.039 -.087 -.073 -.100 Q -.106 -.112 -.132 -.138 Q -.157 -.163 -.159 -.174 Z"
+    ),
+}
+
+# The contact point of each drawing, in drawing units: the centre of the index
+# fingertip, where the proxy's `contact` is. palme25d_bake.py pins A drawings
+# there, so a held drawing touches what the 3D hand touches.
+CONTACT = {
+    "rest": (.20, -.74), "open": (.22, -.74), "cup": (.19, -.68),
+    "grip": (.24, -.54), "reach": (.18, -.80), "stop": (.24, -.84),
+    "cheek": (.20, -.70),
 }
 
 # Finger creases start near the existing contour and soften towards the palm.
@@ -89,6 +114,12 @@ CREASES = {
         "M -.058 -.917 Q -.088 -.777 -.079 -.677",
         "M -.229 -.831 Q -.243 -.742 -.234 -.660",
     ),
+    "cheek": (
+        "M .053 -.441 Q .089 -.495 .126 -.550",
+        "M .245 -.698 Q .175 -.767 .105 -.837",
+        "M .320 -.680 Q .261 -.762 .201 -.844",
+        "M .354 -.631 Q .313 -.709 .273 -.787",
+    ),
     "stop": (
         "M .304 -.246 Q .163 -.341 .188 -.515",
         "M .163 -.837 L .136 -.581",
@@ -100,11 +131,17 @@ CREASES = {
 
 
 def draw_hand(art, profile, pose):
+    from build_characters import INK, DETAIL
     skin, shadow = profile["skin"], profile["skin_shadow"]
     # The cloth rim closes the shape at the wrist. Keep its skin edge open
     # so the join remains clean as the hand and cuff turn together.
     art.shape(OUTLINE[pose], skin)
     art.line(OUTLINE[pose], INK, .058)
+    if pose == "cheek":
+        # Traced from the proxy: no generic wrist shadow, it would leave the outline.
+        for i,stroke in enumerate(CREASES[pose]):
+            art.line(stroke, DETAIL, .042 if i == 0 else .033)
+        return
     art.shape(
         "M -.231 .101 Q -.149 -.062 -.226 -.235 Q -.281 -.419 -.21 -.574 "
         "Q -.299 -.546 -.33 -.438 Q -.34 -.298 -.287 -.162 Q -.24 -.034 -.231 .101 Z",

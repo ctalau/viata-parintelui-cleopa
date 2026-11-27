@@ -42,13 +42,14 @@ Prima pagină are secțiunea **Ateliere**, cu legături către toate atelierele.
 
 Ne întoarcem la modelul 2.5D, cu animație limitată ca în serialele cu piese plate. Corpul și capul rămân desene. Un schelet 3D primitiv, pe care nu-l vede nimeni, calculează umărul, cotul, încheietura și degetele. Proiecția lui conduce desenul. `/palme/` compară trei abordări pentru palme pe același schelet: substituție de desene, plasă 2D pe oase proiectate și volume proiectate, desenate plat. Le compară în șase teste de stres, cu metrici calculate în browser. Vezi [fișa experimentului](experiments/cleopa-palme/README.md), [specificația variantei alese](experiments/cleopa-palme/SPECIFICATIE.md) și [handoff-ul pentru episod](experiments/cleopa-palme/HANDOFF.md).
 
-## Mama cu brațe volumetrice în film
+## Brațe și palme 2.5D în film
 
-În episod, Mama poartă brațul volumetric din comparația 3D/2D, cu mâneca tubulară, palma și cele cinci degete. Rigul 2.5D păstrează coregrafia. Încheietura rămâne în același loc în imagine, așa că pâinea, baticul și traista se ating ca înainte. Mâna ridicată vine spre cameră, segmentele au lungime fixă, iar cotul atârnă relaxat. Forma se salvează ca shape keys în scenă. Un contur întunecat, ca o coajă puțin mai lată, așezată în spate, păstrează linia desenului. Filmul MP4 și playerul Three.js arată aceeași geometrie.
+În episod, Mama are brațele și palmele 2.5D din [specificație](experiments/cleopa-palme/SPECIFICATIE.md). Coregrafia rămâne cea regizată, iar oasele 2D primesc unghiul și scurtarea segmentelor proiectate ale unui IK 3D cu lungimi fixe. Palma este desenată plat din volumele proxy-ului (C), cu contur, umbre, unghii și liniile palmei. În pozele ținute, desenul de autor (A) se ancorează la punctul de contact. Tava, obrazul și colțul baticului sunt contacte: încheietura se calculează din vârful degetelor. Mâneca rămâne plasa episodului, în două piese suprapuse la cot, ca să nu se plieze. Palmele sunt coapte în shape keys, deci filmul MP4 și playerul Three.js arată aceeași geometrie. `verify_episode.py` verifică lungimile, contactele, ordinea pieselor, pliurile, repausul, lateralitatea și trecerile C ↔ A.
 
 ```bash
 cd experiments/cleopa-painea
-blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/mama_volumetrica.py
+blender -b --factory-startup --python-exit-code 1 --python scripts/build_episode.py
+blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/palme25d_bake.py
 blender -b scenes/painea_care_poate_sa_astepte.blend --python-exit-code 1 --python scripts/export_web_episode.py
 ```
 

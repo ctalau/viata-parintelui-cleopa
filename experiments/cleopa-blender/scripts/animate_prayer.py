@@ -76,9 +76,31 @@ def breathe(rig, start, end, phase, amplitude=.027):
         r.keyframe_insert('location',index=1,frame=frame,group='Breathing')
 
 
-def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None):
+_DEPTHS = {}
+
+
+def arm_key(rig, p, side, frame, wrist, direction, previous=None, seated=False, wrist_limit=None,
+            depth=None, palm=None, held=0):
+    """Key one arm. With `p["palme25d"]`, the bones get the projected 3D IK of
+    `palme25d.solve_arm`; the wrist depth and palm direction are keyed on the
+    hand bone, so the 2.5D hand bake reads the same proxy the bones show."""
     angle=atan2(direction[0],-direction[1])
-    rotations, scales=solve_arm(p,side,wrist,angle,seated)
+    if p.get("palme25d"):
+        import palme25d
+        last=_DEPTHS.get((rig.name,side))
+        before=last[1] if last and 0 < abs(frame-last[0]) <= 1 else None
+        if depth is None:
+            depth=palme25d.default_depth(p,side,wrist,before)
+        rotations, scales, points=palme25d.solve_arm(p,side,wrist,angle,depth)
+        _DEPTHS[rig.name,side]=(frame,depth)
+        hand=rig.pose.bones['hand.'+side]
+        hand['p25_depth']=points['W'][2]
+        hand['p25_palm']=tuple(palm) if palm is not None else (0.,0.,0.)
+        hand['p25_held']=held
+        for name in ('p25_depth','p25_palm','p25_held'):
+            hand.keyframe_insert(f'["{name}"]',frame=frame,group='Arm '+side)
+    else:
+        rotations, scales=solve_arm(p,side,wrist,angle,seated)
     if wrist_limit is None:
         wrist_limit = p.get("wrist_limit")
     if wrist_limit is not None:
