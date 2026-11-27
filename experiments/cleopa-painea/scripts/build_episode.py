@@ -624,10 +624,12 @@ def animate_yard(coll):
                        (line["start"]+12,(-.12,1.00),(.83,.55)),
                        (line["end"]-8,(-.12,1.00),(.83,.55)),
                        (end+15,r,(.03,-1))])
-    arms(brother,"L",[(m0,(.64,.61),(-.96,.24)),(end,(.64,.61),(-.96,.24))],True)
+    # The book rests on the cupped hand under its lower edge (a fist clenched on the cover
+    # read as a punch).
+    arms(brother,"L",[(m0,(.62,.42),(-.96,.24)),(end,(.62,.42),(-.96,.24))],True)
     prop_book(brother)
     blink(brother["rig"],beat_frame("mihai",.57))
-    hand_pose(brother,"L",m0,"grip")
+    hand_pose(brother,"L",m0,"cup")
     hand_pose(brother,"R",line["start"]-4,"open")
     hand_pose(brother,"R",line["end"]+6,"rest")
     voice(brother,cues("mihai","mihai"))
@@ -750,8 +752,8 @@ def animate_kitchen(coll):
     prop(child["rig"],"mouth_pose",BEATS["intai"]["cues"][-1]["start"]+18,4)
     prop(child["rig"],"mouth_pose",end-24,0)
 
-    arms(brother,"L",[(begin,(.47,.61),(-.96,.21)),(end,(.47,.61),(-.96,.21))],True)
-    hand_pose(brother,"L",begin,"grip")
+    arms(brother,"L",[(begin,(.45,.36),(-.96,.21)),(end,(.45,.36),(-.96,.21))],True)
+    hand_pose(brother,"L",begin,"cup")
     blink(brother["rig"],invite["end"]-17)
     for f,tilt in ((begin,.014),(invite["end"],.08),(stop,-.095),(end,.06)):
         head(brother["rig"],f,.02,tilt)
@@ -1019,12 +1021,16 @@ def second_icon(coll,start,end):
 
 def prayer_tableau(coll,start,end):
     second_icon(coll,start,end+1)
-    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1,interior=True)
+    # 2.5D arms: the forearms come toward the camera, so the elbows stay down by the body.
+    father = actor(coll,"father","Tata · rugăciune",(-3.64,-2.16,1.54),1.23,look=-1,interior=True,palme=True)
     mother = actor(coll,"mother","Mama · rugăciune",(-1.24,-2.43,1.49),1.13,look=-1,interior=True)
     brother = actor(coll,"brother_01","Mihai · rugăciune",(1.00,-2.48,1.35),1.10,look=-1,interior=True)
     child = actor(coll,"cleopa","Costică · rugăciune",(3.23,-2.49,1.56),1.09,look=-1,interior=True)
     short_beard(father)
-    book = Art("Carte de rugăciuni deschisă",father["collection"],(-.21,.93),(1,1),z=.62)
+    # The book is held in front of the chest, in front of the hands: the palms support it from
+    # below at its lower corners and the elbows stay down by the body (with the hands above it,
+    # clenched over the pages, the forearms crossed the chest).
+    book = Art("Carte de rugăciuni deschisă",father["collection"],(-.06,.90),(1,1),z=.72)
     book.shape("M -.78 .22 Q -.40 .35 0 .14 Q .40 .35 .78 .22 L .70 -.30 Q .35 -.22 0 -.38 Q -.35 -.22 -.70 -.30 Z",
                "784e40","54372c",.050)
     book.shape("M -.72 .25 Q -.35 .35 0 .16 Q .35 .35 .72 .25 L .65 -.24 Q .29 -.17 0 -.34 Q -.29 -.17 -.65 -.24 Z",
@@ -1034,9 +1040,9 @@ def prayer_tableau(coll,start,end):
         for y in (-.14,-.045,.05,.14):
             book.line([(x*.13,y),(x*.36,y+.07),(x*.55,y+.073)],"b38d66",.013)
     bind(book.finish(),father["rig"],"chest")
-    for side,wrist,direction in (("L",(.44,.68),(-.69,.72)),("R",(-.84,.86),(.85,.52))):
+    for side,wrist,direction in (("L",(.50,.52),(-.30,.95)),("R",(-.62,.52),(.30,.95))):
         arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180)
-        hand_pose(father,side,start,"cup")
+        hand_pose(father,side,start,"open")
     choir = BEATS["la-icoane"]["cues"][-1]
     for index, a in enumerate((father,mother,brother,child)):
         rig = a["rig"]

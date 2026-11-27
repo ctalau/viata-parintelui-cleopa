@@ -188,7 +188,7 @@ def verify_palme25d(beats):
                     fail(f"{actor} {side}: palma C și desenele A se văd deodată sau deloc ({shown})", frame)
                 tip = Vector(h["contact"][:2])
                 # 2–3. Tava urmează mâinile; vârful rămâne sub buza talerului.
-                if loaf and actor.endswith("bucătărie") and frame <= settle and pose == "cup":
+                if loaf and actor == "Mama · bucătărie" and frame <= settle and pose == "cup":
                     here = (loaf.matrix_world.translation.xy-rig.matrix_world.translation.xy)/rig.matrix_world.to_scale().x
                     offset = tip-here
                     if tray_offsets:
@@ -387,7 +387,7 @@ def verify_hands(beats):
     poses = (
         ("Costică · bucătărie","R", beats[9]["start"]+30,"reach"),
         ("Tata · prag","R", beats[8]["cues"][1]["start"]+30,"stop"),
-        ("Mihai · bucătărie","L", beats[8]["start"]+70,"grip"),
+        ("Mihai · bucătărie","L", beats[8]["start"]+70,"cup"),   # cartea stă pe palma căuș
     )
     for actor,side,frame,pose in poses:
         coll = bpy.data.collections[actor]

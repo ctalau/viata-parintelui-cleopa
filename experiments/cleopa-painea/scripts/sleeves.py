@@ -112,7 +112,16 @@ def sleeve(profile, rig, coll, side, sign):
                 index = first+row*columns+column
                 face = (index,index+1,index+columns+1,index+columns)
                 faces.append(face if sign < 0 else face[::-1])
-                if (column in (0,columns-2) or row in (0,len(piece)-2)
+                # The inner side of the upper sleeve lies on the shirt: from the shoulder to
+                # the armpit it has no contour (it is the same cloth), and the shade strip
+                # starts at the elbow. With both from the shoulder, the hanging arms showed a
+                # dark stripe down the body.
+                on_shirt = length < upper*.45
+                if column == 0 and on_shirt:
+                    color_indices.append(1)
+                elif column == 1 and length < upper:
+                    color_indices.append(1)
+                elif (column in (0,columns-2) or row in (0,len(piece)-2)
                         or end-.156 < length < end-.134 or length > end-.017):
                     color_indices.append(0)
                 elif length >= end-.134:
