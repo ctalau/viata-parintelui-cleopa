@@ -43,7 +43,7 @@ nu e nevoie de Blender și nici de un script per episod.
 | `accessories`, `accessories_at` | variante permanente (`beard`, `cap`) și pe intervale (`["scarf", 2593, 2616]`) |
 | `props` | recuzită ținută: `[{ "prop": "carte", "bone": "chest", "at": [x, y], "z": 0.47 }]` |
 | `do` | gesturi din bibliotecă: `{ "gesture", "side", "at", "hold", "palm"? }` (vezi `docs/ENGINE.md`) |
-| `arms` | poze-cheie ale brațului: `{ "side", "keys": [[cadru, [x, y], [dx, dy]]], "palm"?, "limit"? }` (încheietura și direcția degetelor, în spațiul rigului) |
+| `arms` | poze-cheie ale brațului: `{ "side", "keys": [[cadru, [x, y], [dx, dy], adâncime?]], "palm"?, "palmKeys"?, "limit"? }` (încheietura și direcția degetelor, în spațiul rigului). `palmKeys` interpolează normala palmei între chei `[cadru, [nx, ny, nz]]`. |
 | `hands` | poza mâinii: `[cadru, "R"|"L", "rest|open|cup|grip|reach|stop|cheek|cross"]` |
 | `contacts` | vârful degetelor pe o țintă care se mișcă: `{ "side", "from", "to", "target": "prop:paine" | "head", "tip", "dir", "pose", "palm" }` |
 | `head` | `[cadru, aplecare, înclinare]` |
