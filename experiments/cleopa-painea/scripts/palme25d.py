@@ -212,6 +212,9 @@ GESTURES = {
     # Ține cartea de dedesubt (doar în episod, nu în atelier): degete întinse și ușor curbate pe
     # muchia de jos, degetul mare în față. `cupa` (curl ~.6) văzută din față, cu degetele spre
     # centrul cărții, se scurta într-o minge, iar `pumn` (curl 1) arăta ca un pumn.
+    "ofera": {"curl": (.02, .045, .075, .11), "spread": .38, "opp": .18, "tcurl": .10, "pinch": 0},
+    "intinde": {"curl": (.03, .10, .18, .28), "spread": .38, "opp": .28, "tcurl": .16, "pinch": 0},
+    "apuca": {"curl": (.18, .26, .36, .46), "spread": .18, "opp": .7, "tcurl": .42, "pinch": 0},
     "tine": {"curl": (.2, .24, .28, .34), "spread": .12, "opp": .5, "tcurl": .2, "pinch": 0},
 }
 GESTURE_NAMES = tuple(GESTURES)
@@ -261,10 +264,10 @@ def hand_local(g, hand=HAND):
         goal = lerp3(tip, pinch_point, g["pinch"])
         solved = two_bone(m, goal, thumb["len"][1], thumb["len"][2], add(mul(d0, .2), (.4, 0, .6)))
         j, tip = solved["joint"], solved["end"]
-    thumb_dorsal = norm(cross(side, d0))
+    thumb_dorsal = [norm(cross(axis, side)) for axis in (d0, sub(j, m), sub(tip, j))]
     thumb_digit = {"id": thumb["id"], "pts": [thumb["base"], m, j, tip],
                    "r": [thumb["r"]*t for t in hand.taper],
-                   "bends": (0, 30*g["opp"]+b1, b2), "dorsal": [thumb_dorsal]*3}
+                   "bends": (0, 30*g["opp"]+b1, b2), "dorsal": thumb_dorsal}
     if g["pinch"] > .5:
         contact = mul(add(add(digits[0]["pts"][3], digits[1]["pts"][3]), tip), 1/3)
     else:
@@ -565,16 +568,19 @@ def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
             if thumb and k == 0:
                 palm["shapes"].append(shape)
                 continue
-            if cur is None or d["bends"][k] > BEND_SPLIT:
+            if thumb and k == 1 and (h["g"]["opp"] < .4 or (facing(h) < 0 and h["g"]["pinch"] < .5)):
+                cur = palm
+            elif cur is None or d["bends"][k] > BEND_SPLIT:
                 rooted = h["g"]["opp"] < .4 if thumb else (k == 0 and d["bends"][0] <= BEND_SPLIT)
                 cur = {"id": f"{d['id']}{k}", "rooted": rooted, "root": xy(a), "rootR": d["r"][k],
                        "shapes": [], "details": [], "zs": []}
                 groups.append(cur)
             cur["shapes"].append(shape)
-            cur["zs"].append(shape["z"])
+            if cur is not palm:
+                cur["zs"].append(shape["z"])
             # Un vârf strâns în pumn nu arată unghia. Cu palma spre cameră degetul mare se vede
             # din lateral: unghia lui nu e spre cameră, chiar dacă vârful se întoarce puțin.
-            thumb_side = thumb and facing(h) > .35
+            thumb_side = thumb and (facing(h) > -.25 or d["dorsal"][2][2] < .5)
             if details and k == 2 and not thumb_side and d["dorsal"][2][2] > .3 and sum(d["bends"]) < 150:
                 direction = sub2(xy(b), xy(a))
                 along = len2(direction)
@@ -1050,7 +1056,7 @@ def solve_arm(profile, side, wrist, hand_angle, depth=None, prefer=None):
 #   stop  – semnul de oprire: degetele în sus, palma spre cameră;
 #   cheek – mâna căuș pe obraz: palma spre obraz, înăuntru și puțin înapoi.
 POSE_GESTURE = {"rest": "relaxat", "open": "deschis", "cup": "cupa", "grip": "tine",
-                "reach": "deschis", "stop": "deschis", "cheek": "cupa"}
+                "reach": "deschis", "present": "ofera", "extend": "intinde", "gather": "apuca", "stop": "deschis", "cheek": "cupa"}
 
 
 def default_palm(pose, side):
@@ -1062,6 +1068,9 @@ def default_palm(pose, side):
         "grip": norm((0, .3, -1)),
         "cheek": norm(add((0, 0, -.65), mul(inward, .75))),
         "reach": norm((0, -.75, -.66)),
+        "present": norm((0, 1, .72)),
+        "extend": norm((0, -.72, -.69)),
+        "gather": norm((0, -.85, -.52)),
         "stop": (0, 0, 1),
     }[pose]
 

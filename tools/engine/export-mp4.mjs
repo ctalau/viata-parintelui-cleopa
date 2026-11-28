@@ -1,6 +1,6 @@
 // Filmul MP4 randat de același motor Three.js ca playerul (lib/engine/stage.js), în Chromium.
 //   node tools/engine/export-mp4.mjs <episod> [--from 1] [--to N] [--w 1280] [--out film.mp4] [--frames-only]
-// Desenele sunt pe doi timpi (un desen la două cadre, ca în player); fiecare cadru se scrie ca
+// Cadența desenelor vine din descriptor, ca în player. Fiecare cadru se scrie ca
 // JPEG, apoi FFmpeg codează copia compactă (768 × 432, sub 5 MB, două treceri) cu pista audio.
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -9,6 +9,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { chromium } from 'playwright';
 import { ROOT, serve } from './serve.mjs';
+import { drawingFrame } from '../../lib/engine/tracks.js';
 
 const { values, positionals } = parseArgs({ allowPositionals: true, options: {
   from: { type: 'string', default: '1' }, to: { type: 'string' }, w: { type: 'string', default: '1280' },
@@ -43,15 +44,10 @@ try {
   page.on('pageerror', (e) => console.error('pageerror', e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/tools/engine/still.html?ep=${id}&w=${values.w}`);
   await page.waitForFunction(() => window.gata, null, { timeout: 180000 });
-  const held = (f) => {
-    let at = episode.shots[0].at;
-    for (const s of episode.shots) if (s.at <= f) at = s.at;
-    return at + Math.floor((f - at) / 2) * 2;
-  };
   let previous = null;
   for (let f = first; f <= last; f++) {
     const file = path.join(work, `frame_${String(f).padStart(4, '0')}.jpg`);
-    const drawing = held(f);
+    const drawing = drawingFrame(episode, f);
     await rm(file, { force: true });
     if (drawing === previous?.drawing) { await link(previous.file, file); continue; }
     const url = await page.evaluate((t) => window.frameAt(t, 'image/jpeg'), (drawing - 1) / episode.fps);

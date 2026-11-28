@@ -1,6 +1,6 @@
 """Blended cloth from the bodice through the elbow and cuff."""
 from bisect import bisect_right
-from math import ceil
+from math import ceil, cos, pi, sin, sqrt
 
 import bpy
 
@@ -71,11 +71,17 @@ def sleeve(profile, rig, coll, side, sign):
     upper, lower = profile["upper"], profile["lower"]
     end = upper+lower
     width = profile["body"]*.44
-    near, far = (.104,.63) if side=="R" else (.089,.56)
+    # A sleeve is a single opaque layer in front of the embroidered shirt
+    # (last stitch at .206), below the neck (.26) at the shoulder.
+    near, far = (.225,.63) if side=="R" else (.216,.56)
 
-    distances = (-.159,-.136,-.102,-.045,.060,upper*.30,upper*.71,upper,
+    # The crown is a half ellipse. Its inner edge is concentric so the outline
+    # keeps its weight at the apex as well as along the upright sides.
+    crown = width*.78
+    angles = [i*pi/24 for i in range(13)]
+    distances = tuple(-crown*cos(a) for a in angles[:-1]) + (0, upper*.30,upper*.71,upper,
                  upper+lower*.27,upper+lower*.54,end-.15,end-.035,end+.012,end+.027)
-    widths = (.22,.55,.81,.93,.98,1,.92,.83,.87,.83,.73,.69,.62,.44)
+    widths = tuple(.99*sin(a) for a in angles[:-1]) + (.99,1,.92,.83,.87,.83,.73,.71,.70,.68)
     # One piece from the shoulder to the cuff. The elbow is rounded on every drawing by
     # `maneci_bake.py` (an arc outside, a fold inside), so the rows are denser there.
     rows = sorted(set(distances) | {end-.156,end-.134,end-.017})
@@ -87,22 +93,25 @@ def sleeve(profile, rig, coll, side, sign):
         samples.extend(a+(b-a)*i/count for i in range(1,count+1))
 
     vertices, faces, color_indices = [], [], []
-    # The shoulder sits under the bodice. The cuff and wrist stay on the face
-    # side of the sleeve so the hand and book can overlap consistently.
+    # Keep the cuff and hand in front of the upper arm when the elbow folds.
     def depth(distance):
         advance = ease((distance-upper*.37)/(upper*.69))
         body = near+(far-near)*(.95*advance+.05*ease(distance/end))
         return body+.032*ease((distance-end+.054)/.060)
 
-    columns = 5
+    columns = 9
     for piece in (samples,):
         first = len(vertices)
         for distance in piece:
             radius = width*width_at(distance,distances,widths)
             border = min(.021,radius*.28)
-            offsets = (-radius,-radius+border,-radius*.72,radius-border,radius)
-            # Sink the inboard edge into the bodice while the outer edge follows the cap.
-            inward = .09*(1-ease((distance+.10)/(.54*upper)))
+            inner = radius-border
+            if distance < 0:
+                inner = max(0, width*.99-.021)*sqrt(max(0, 1-(distance/(crown-.021))**2))
+                inner = min(radius, inner)
+            offsets = (-radius,-inner,-inner*.76,-inner*.43,0,inner*.43,inner*.76,inner,radius)
+            # Round the cap towards the shoulder pivot.
+            inward = .035*(1-ease((distance+.10)/(.54*upper)))
             for offset in offsets:
                 # A tiny rise along the sleeve keeps the forearm over the upper arm when it folds.
                 vertices.append((x+sign*(offset-inward),top-distance,depth(distance)+.004*distance/end))
@@ -112,21 +121,12 @@ def sleeve(profile, rig, coll, side, sign):
                 index = first+row*columns+column
                 face = (index,index+1,index+columns+1,index+columns)
                 faces.append(face if sign < 0 else face[::-1])
-                # The inner side of the upper sleeve lies on the shirt: from the shoulder to
-                # the armpit it has no contour (it is the same cloth), and the shade strip
-                # starts at the elbow. With both from the shoulder, the hanging arms showed a
-                # dark stripe down the body.
-                on_shirt = length < upper*.45
-                if column == 0 and on_shirt:
-                    color_indices.append(1)
-                elif column == 1 and length < upper:
-                    color_indices.append(1)
-                elif (column in (0,columns-2) or row in (0,len(piece)-2)
+                if (column in (0,columns-2) or row in (0,len(piece)-2)
                         or end-.156 < length < end-.134 or length > end-.017):
                     color_indices.append(0)
                 elif length >= end-.134:
                     color_indices.append(3)
-                elif column == 1:
+                elif column == 1 and length >= upper:
                     color_indices.append(2)
                 else:
                     color_indices.append(1)

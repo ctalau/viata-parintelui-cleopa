@@ -72,11 +72,11 @@ def legs(p, rig, coll):
         hip = sign*p['body']*.48
         length = p['leg']
         a = Art('Trouser · '+side, coll, (hip, 0), (p['body']/.59, length), z=-.05)
-        a.shape('M -.24 .10 Q .01 .16 .25 .09 L .226 -.51 Q .23 -.64 .05 -.65 Q -.21 -.65 -.246 -.56 Z',
+        a.shape('M -.204 .10 Q .01 .16 .205 .09 Q .192 -.23 .160 -.51 Q .16 -.63 .03 -.64 Q -.155 -.64 -.168 -.55 Z',
                 p['shirt'], edge)
-        a.shape('M -.206 -.45 Q -.04 -.57 .19 -.50 L .18 -.577 Q .03 -.63 -.167 -.566 Z', p['shade'])
+        a.shape('M -.164 -.46 Q -.04 -.55 .154 -.50 L .143 -.575 Q .03 -.615 -.154 -.559 Z', p['shade'])
         attach(a, rig, 'thigh.'+side)
-        a = Art('Linen wraps · '+side, coll, (hip, -length*.55), (p['body']/.59, length), z=-.03)
+        a = Art('Linen wraps · '+side, coll, (hip, -length*.55), (p['body']/.59*.83, length), z=-.03)
         a.shape('M -.198 .02 Q 0 -.02 .18 .015 L .15 -.455 Q 0 -.49 -.155 -.446 Z',
                 CREAM if not p.get('beard') else p['shade'], edge)
         for k in range(3):
@@ -108,7 +108,8 @@ def outfit(p, rig, coll):
     sy = p.get('collar_y', p['shoulder_y'])
     shoulder = p['shoulder_x']
     b = p['body']
-    a = Art('Lower tunic and waist', coll, (0, 0), (b, 1), z=.065)
+    waist = b if p.get('scarf') or p.get('beard') else b*.89
+    a = Art('Lower tunic and waist', coll, (0, 0), (waist, 1), z=.065)
     a.shape('M -1.07 .57 Q 0 .65 1.07 .57 L 1.06 -.16 Q .05 -.25 -1.05 -.15 Z', p['shirt'], INK, .042)
     if not p.get('beard'):
         sash = 'a74f38' if p['id']=='cleopa' else p['vest_dark']

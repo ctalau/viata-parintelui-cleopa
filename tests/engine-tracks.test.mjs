@@ -33,12 +33,17 @@ test('Mișcarea trece prin cheia intermediară și rămâne fixă în repaus', (
 
 test('Prima schimbare vizibilă a palmei pornește din repaus', () => {
   const stage = new Stage({});
-  const actor = { spec: { visible: [1, 20], hands: [[5, 'R', 'open'], [9, 'R', 'rest']] } };
-  assert.equal(stage.handAt(actor, 'R', 5).previous.pose, 'rest');
-  assert.equal(stage.handAt(actor, 'R', 7).t, 0.5);
-  assert.equal(stage.handAt(actor, 'R', 9).previous.pose, 'open');
+  const p = JSON.parse(readFileSync(new URL('../assets/characters/mama.json', import.meta.url))).profile;
+  const actor = { p, spec: { visible: [1, 20], hands: [[5, 'R', 'open'], [9, 'R', 'rest']] } };
+  actor.tracks = stage.compileArms(actor);
+  const hand = (f) => stage.armAt(actor, 'R', f).hand;
+  assert.ok(hand(5).previous);
+  assert.equal(hand(7).t, 0.5);
+  assert.equal(hand(9).pose, 'rest');
   actor.spec.visible[0] = 5;
-  assert.deepEqual(stage.handAt(actor, 'R', 5), { pose: 'open', palm: undefined });
+  actor.tracks = stage.compileArms(actor);
+  assert.equal(hand(5).pose, 'open');
+  assert.ok(!hand(5).previous);
 });
 
 test('Semnul crucii pornește din poziția mâinii sprijinite pe masă', () => {
@@ -47,6 +52,7 @@ test('Semnul crucii pornește din poziția mâinii sprijinite pe masă', () => {
     { gesture: 'tableRest', side: 'R', at: 1, hold: 220 },
     { gesture: 'cross', at: 226 },
   ] }, p);
-  const [table, cross] = new Stage({}).compileArms({ spec, p }).R;
-  assert.deepEqual(cross.at(226).points.W, table.at(225).points.W);
+  const motion = new Stage({}).compileArms({ spec, p }).R.motion;
+  const table = new Stage({}).compileArms({ spec: { arms: [spec.arms[0]] }, p }).R.motion;
+  assert.deepEqual(motion.at(226).points.W, table.at(225).points.W);
 });

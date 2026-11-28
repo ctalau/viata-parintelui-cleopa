@@ -12,7 +12,7 @@ audio. Același cod randează playerul web, cadrele de verificare și MP4-ul.
 | `arm25d.js` | brațele 2.5D: IK 3D cu lungimi fixe proiectat pe oasele plate; interpolarea în articulații |
 | `palm25d.js` | palma C: proxy-ul 3D al mâinii, proiecția, volumele, ordinea pieselor |
 | `hand.js` | palma desenată plat pe nivelurile față de manșetă; tranzițiile pozelor mâinii |
-| `sleeve.js` | mâneca dintr-o bucată, cu cotul rotunjit la fiecare cadru |
+| `sleeve.js` | mâneca dintr-o bucată, cu umărul racordat la bust, cotul rotunjit și curbura manșetei proiectată după înclinarea antebrațului |
 | `gestures.js` | biblioteca de gesturi reutilizabile (relative la umăr și la lungimea brațului) |
 | `lipsync.js` | gura după anvelopa vocii și textul replicii (ca `voice()` din Blender) |
 | `overlays.js` | titluri, bule, sigla (atașate camerei, deci și în MP4) |
@@ -33,13 +33,17 @@ poză-cheie a brațului (încheietura și direcția degetelor, în spațiul rigu
 între poze se interpolează unghiurile umărului, cotului și încheieturii și cât vine fiecare segment spre
 cameră. Brațele, capul, deplasarea și tranzițiile palmei folosesc curbe cu accelerare la pornire și
 decelerare spre repaus. Curba păstrează viteza prin cheile intermediare când mișcarea continuă în aceeași
-direcție și ajunge la viteză zero în repaus sau la schimbarea sensului. Palma C se desenează din proxy-ul
+direcție și ajunge la viteză zero în repaus sau la schimbarea sensului. La contact, încheietura și vârful degetelor folosesc aceeași soluție IK. Palma C se desenează din proxy-ul
 mâinii: piesele sub manșetă sau peste ea, degetul mare peste taler, unghiile numai pe dosul degetelor,
 liniile palmei numai pe partea palmei. Mâna la față (semnul crucii, obrazul) și mâinile pe masă trec în
 fața capului, respectiv a mesei, cu antebrațul și manșeta (rampa de adâncime a mânecii).
 
 Paritatea cu Blender e testată: `tests/engine-fk.test.mjs`, `engine-arm25d.test.mjs`, `engine-palm25d.test.mjs`
 (fixture-uri scrise de `tools/engine/*_fixture.py`, toleranța 1e-6).
+
+În gest liber, direcția degetelor urmează și înclinarea antebrațului spre cameră. La schimbarea pozei,
+degetele și rotația palmei trec în 12 cadre din starea atinsă în noua poziție. La un contact se păstrează
+orientarea cerută de țintă. Verificarea `palm_turn` măsoară rotația palmei chiar dacă încheietura stă pe loc.
 
 ## Gesturile
 

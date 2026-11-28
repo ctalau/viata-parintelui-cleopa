@@ -25,6 +25,7 @@ nu e nevoie de Blender și nici de un script per episod.
 
 | cheie | înțeles |
 | --- | --- |
+| `drawingStep` | numărul de cadre pe desen, de la începutul fiecărui plan. Episodul 1 folosește 1 (24 de desene pe secundă). Valoarea implicită este 2. Playerul și MP4-ul folosesc aceeași cadență. |
 | `timeline` | `timeline.json`: capitolele (`beats` cu `start`, `end`, `title`) și replicile (`cues`: `file`, `speaker`, `text`, `start`, `end`), scrise de `prepare_timeline.py` din lungimile vocilor |
 | `audio.mix` | pista redată de player și pusă în MP4; vocile și muzica rămân separate la editare |
 | `audio.envelopes` | anvelopele vocilor pentru gură (`tools/engine/envelopes.py`) |
@@ -43,8 +44,9 @@ nu e nevoie de Blender și nici de un script per episod.
 | `accessories`, `accessories_at` | variante permanente (`beard`, `cap`) și pe intervale (`["scarf", 2593, 2616]`) |
 | `props` | recuzită ținută: `[{ "prop": "carte", "bone": "chest", "at": [x, y], "z": 0.47 }]` |
 | `do` | gesturi din bibliotecă: `{ "gesture", "side", "at", "hold", "palm"? }` (vezi `docs/ENGINE.md`) |
-| `arms` | poze-cheie ale brațului: `{ "side", "keys": [[cadru, [x, y], [dx, dy], adâncime?]], "palm"?, "palmKeys"?, "limit"? }` (încheietura și direcția degetelor, în spațiul rigului). `palmKeys` interpolează normala palmei între chei `[cadru, [nx, ny, nz]]`. |
-| `hands` | poza mâinii: `[cadru, "R"|"L", "rest|open|cup|grip|reach|stop|cheek|cross"]` |
+| `arms` | poze-cheie ale brațului: `{ "side", "keys": [[cadru, [x, y], [dx, dy], z?, cot?]], "palm"?, "palmKeys"?, "limit"? }` (încheietura și direcția degetelor, în spațiul rigului). Opțional, `z` fixează adâncimea încheieturii și `cot` este un vector 3D din umăr care orientează planul îndoirii. `palmKeys` interpolează normala palmei între perechi `[cadru, [nx, ny, nz]]` |
+| `arms[].strokes` | Fiecare interval `[primaPoză, ultimaPoză, plecare, sosire]` leagă pozele într-o singură mișcare. Încheietura urmează arcul proiectat cu viteza maximă la 40% din timpul de deplasare. Capetele traseului se țin până la plecare și după sosire. |
+| `hands` | poza mâinii: `[cadru, "R"|"L", "rest|open|cup|grip|reach|extend|gather|present|prayer|point|touch|stop|cheek|cross"]` |
 | `contacts` | vârful degetelor pe o țintă care se mișcă: `{ "side", "from", "to", "target": "prop:paine" | "head", "tip", "dir", "pose", "palm" }` |
 | `head` | `[cadru, aplecare, înclinare]` |
 | `blinks`, `face` | clipitul; chei pentru `eye_pose` și `mouth_pose` |

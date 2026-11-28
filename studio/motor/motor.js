@@ -27,8 +27,6 @@ for (const beat of timeline.beats) {
 }
 const time = () => Math.min(audio.currentTime || 0, duration);
 async function draw() {
-  const { width, height } = canvas.getBoundingClientRect();
-  film.fit(width, height, Math.min(devicePixelRatio || 1, 2));
   await film.draw(time());
   seek.value = String(time());
   $('#clock').textContent = `${clock(time())} / ${clock(duration)}`;
@@ -39,6 +37,11 @@ play.onclick = async () => { if (audio.paused) { await audio.play(); play.textCo
 seek.oninput = () => jump(Number(seek.value));
 audio.onended = () => { play.textContent = 'Redă'; };
 $('#full').onclick = () => $('#stage').requestFullscreen?.();
-new ResizeObserver(() => void draw()).observe(canvas);
+function resize() {
+  const { width, height } = canvas.getBoundingClientRect();
+  film.fit(width, height, Math.min(devicePixelRatio || 1, 2));
+  return draw();
+}
+new ResizeObserver(() => void resize()).observe(canvas);
 window.motor = film;
-await draw();
+await resize();
