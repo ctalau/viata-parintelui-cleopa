@@ -572,8 +572,10 @@ def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
                 groups.append(cur)
             cur["shapes"].append(shape)
             cur["zs"].append(shape["z"])
-            # Un vârf strâns în pumn nu arată unghia.
-            if details and k == 2 and d["dorsal"][2][2] > .3 and sum(d["bends"]) < 150:
+            # Un vârf strâns în pumn nu arată unghia. Cu palma spre cameră degetul mare se vede
+            # din lateral: unghia lui nu e spre cameră, chiar dacă vârful se întoarce puțin.
+            thumb_side = thumb and facing(h) > .35
+            if details and k == 2 and not thumb_side and d["dorsal"][2][2] > .3 and sum(d["bends"]) < 150:
                 direction = sub2(xy(b), xy(a))
                 along = len2(direction)
                 if along > d["r"][2]*.6:

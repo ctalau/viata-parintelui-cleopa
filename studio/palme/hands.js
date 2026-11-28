@@ -59,8 +59,10 @@ export function buildVolume(h, { details = true, memory = null } = {}) {
       }
       cur.shapes.push(shape);
       cur.zs.push(shape.z);
-      // A tip tucked into the fist shows no nail.
-      if (details && k === 2 && d.dorsal[2][2] > 0.3 && d.bends[0] + d.bends[1] + d.bends[2] < 150) {
+      // A tip tucked into the fist shows no nail. With the palm toward the lens the thumb is
+      // seen from the side: its nail does not face the camera even when the tip turns a little.
+      const thumbSide = thumb && facing(h) > 0.35;
+      if (details && k === 2 && !thumbSide && d.dorsal[2][2] > 0.3 && d.bends[0] + d.bends[1] + d.bends[2] < 150) {
         const dir = sub2(xy(b), xy(a));
         const along = len2(dir);
         if (along > d.r[2] * 0.6) {
