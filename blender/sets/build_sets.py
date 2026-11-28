@@ -103,6 +103,13 @@ def build_set(id_):
         # Pâinea pe taler e recuzită, nu decor.
         for obj in tree(loaf):
             bpy.data.objects.remove(obj, do_unlink=True)
+        # A doua icoană (Maica Domnului cu Pruncul) apare doar la rugăciune: parte comutată din regie.
+        before = set(coll.all_objects)
+        E.second_icon(coll, 1, 2)
+        for obj in set(coll.all_objects)-before:
+            obj.animation_data_clear()
+            obj["part"] = "icon2"
+        meta["parts"]["icon2"] = "a doua icoană, vizibilă la rugăciune"
         meta.update(width=18.8, label="Bucătăria în zori")
     objects = [obj for obj in coll.all_objects]
     export(SETS/f"{id_}.glb", objects)
@@ -142,6 +149,33 @@ def build_prop(id_):
         art.finish()
         empty("grip", coll, (0, -.45, 0))
         meta.update(label="Cartea lui Mihai", grip="muchia de jos", note="lățime ~0,8 la scara 1")
+    elif id_ == "carte-deschisa":
+        art = Art("Carte de rugăciuni deschisă", coll, (0, 0), (1, 1))
+        art.shape("M -.78 .22 Q -.40 .35 0 .14 Q .40 .35 .78 .22 L .70 -.30 Q .35 -.22 0 -.38 Q -.35 -.22 -.70 -.30 Z",
+                  "784e40", "54372c", .050)
+        art.shape("M -.72 .25 Q -.35 .35 0 .16 Q .35 .35 .72 .25 L .65 -.24 Q .29 -.17 0 -.34 Q -.29 -.17 -.65 -.24 Z",
+                  "eed5a9", "ac7c57", .034)
+        art.line([(0, .16), (0, -.34)], "a77552", .023)
+        for x in (-1, 1):
+            for y in (-.14, -.045, .05, .14):
+                art.line([(x*.13, y), (x*.36, y+.07), (x*.55, y+.073)], "b38d66", .013)
+        art.finish()
+        empty("grip.L", coll, (.62, -.27, 0))
+        empty("grip.R", coll, (-.62, -.27, 0))
+        meta.update(label="Cartea de rugăciuni, deschisă", hands=2)
+    elif id_ == "randunica":
+        art = Art("Aripi de rândunică", coll)
+        art.line("M -.14 .016 Q -.057 .088 0 .025 Q .061 .100 .14 .031", "617e78", .035)
+        art.finish()
+        meta.update(label="Rândunică (zbor: lib/engine/ambient.js)")
+    elif id_ == "aroma":
+        aroma = Art("Miros auriu", coll, (0, 0), (1, 1))
+        aroma.line("M -.53 -.205 Q -.90 .38 -.38 .68 Q .31 1.133 1.021 .67 Q 1.223 .533 1.333 .797", "eac98f", .073)
+        aroma.line("M -.261 -.227 Q .023 .06 -.195 .273 Q -.422 .678 .220 .691 Q .621 .778 .863 .543", "f6d79d", .057)
+        for x, y, sc in ((-.53, .38, .044), (.45, .96, .058), (.93, .78, .043), (.22, .41, .035)):
+            aroma.diamond(x, y, sc, sc*1.32, "f2d19a")
+        aroma.finish()
+        meta.update(label="Norul auriu al mirosului de pâine")
     elif id_ == "purcel":
         parts = pig(coll, dawn=True)
         parts = {k: v for k, v in parts.items() if isinstance(v, bpy.types.Object)}
@@ -167,5 +201,5 @@ if __name__ == "__main__":
     args = sys.argv[sys.argv.index("--")+1:] if "--" in sys.argv else []
     for id_ in args or ["sat", "ograda", "ograda-zori", "dormitor", "bucatarie"]:
         build_set(id_)
-    for id_ in ([] if args else ["paine", "abur", "carte", "purcel", "cocos", "troaca"]):
+    for id_ in ([] if args else ["paine", "abur", "carte", "carte-deschisa", "randunica", "aroma", "purcel", "cocos", "troaca"]):
         build_prop(id_)

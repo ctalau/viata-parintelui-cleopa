@@ -49,8 +49,14 @@
   }
  },
  "parts": {
-  "flame": "flacăra cuptorului: tremur (lib/engine/ambient.js)"
+  "flame": "flacăra cuptorului: tremur (lib/engine/ambient.js)",
+  "icon2": "a doua icoană, vizibilă la rugăciune"
  },
  "width": 18.8,
- "label": "Bucătăria în zori"
+ "label": "Bucătăria în zori",
+ "table": {
+  "edge": -2.37,
+  "front": 3.22,
+  "note": "muchia din spate a blatului (y) și fața ștergarului (z), în coordonatele decorului: mâinile de pe masă trec în fața ei"
+ }
 }

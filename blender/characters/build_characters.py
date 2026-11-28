@@ -26,7 +26,7 @@ OUT = ROOT/"assets"/"characters"
 # id stabil → design Blender, direcția privirii în repaus (1 = spre dreapta ecranului).
 CAST = {
     "costica": {"design": "cleopa", "label": "Costică", "look": -1, "extras": ("cap",)},
-    "mama": {"design": "mother", "label": "Mama", "look": 1, "extras": ()},
+    "mama": {"design": "mother", "label": "Mama", "look": 1, "extras": ("scarf",)},
     "mihai": {"design": "brother_01", "label": "Mihai", "look": -1, "extras": ()},
     "tata": {"design": "father", "label": "Tata", "look": -1, "extras": ("beard",)},
 }
@@ -76,6 +76,14 @@ def build(id_, spec):
         E.wool_cap(p, rig, coll)
         for obj in set(coll.objects)-before:
             obj["variant"] = "accessory=cap"
+    if "scarf" in spec["extras"]:
+        # Colțul baticului ridicat (build_episode.scarf_fold), ca accesoriu ales din regie.
+        before = set(coll.objects)
+        E.scarf_fold(actor, 1, 2)
+        for obj in set(coll.objects)-before:
+            obj.animation_data_clear()
+            obj.hide_render = obj.hide_viewport = False
+            obj["variant"] = "accessory=scarf"
     if "beard" in spec["extras"]:
         E.short_beard(actor)
     tag_variants(rig, coll)
