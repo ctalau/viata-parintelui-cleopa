@@ -15,6 +15,6 @@ renderer.setClearColor(0x000000);
 const stage = new Stage({ loader: new GLTFLoader() });
 await stage.load(`/episodes/${q.get('ep')}/episode.json`);
 window.stage = stage;
-window.frameAt = (t) => { stage.setTime(t); renderer.render(stage.scene, stage.camera); return canvas.toDataURL('image/png'); };
+window.frameAt = (t, type = 'image/png') => { stage.setTime(t); renderer.render(stage.scene, stage.camera); return canvas.toDataURL(type, 0.92); };
 window.gata = true;
 </script>

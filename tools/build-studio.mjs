@@ -7,7 +7,8 @@ import { chaptersFrom, episode } from '../studio/episode.mjs';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const episodeDir = 'experiments/cleopa-painea';
 const first = 'experiments/cleopa-blender';
-const mp4 = path.join(ROOT, episodeDir, 'renders', episode.file);
+// MP4-ul de descărcat e randat de motorul Three.js (tools/engine/export-mp4.mjs), ca playerul.
+const mp4 = path.join(ROOT, 'episodes/001-painea-care-poate-sa-astepte/film.mp4');
 const timeline = JSON.parse(fs.readFileSync(path.join(ROOT, episodeDir, 'timeline.json'), 'utf8'));
 if (fs.statSync(mp4).size >= 5_000_000) throw new Error('Copia MP4 trebuie să aibă sub 5 MB.');
 const gitHub = 'https://github.com/ctalau/viata-parintelui-cleopa';
