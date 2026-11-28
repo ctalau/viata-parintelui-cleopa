@@ -629,7 +629,7 @@ def animate_yard(coll):
     arms(brother,"L",[(m0,(.62,.42),(-.96,.24)),(end,(.62,.42),(-.96,.24))],True)
     prop_book(brother)
     blink(brother["rig"],beat_frame("mihai",.57))
-    hand_pose(brother,"L",m0,"cup")
+    hand_pose(brother,"L",m0,"grip")
     hand_pose(brother,"R",line["start"]-4,"open")
     hand_pose(brother,"R",line["end"]+6,"rest")
     voice(brother,cues("mihai","mihai"))
@@ -753,7 +753,7 @@ def animate_kitchen(coll):
     prop(child["rig"],"mouth_pose",end-24,0)
 
     arms(brother,"L",[(begin,(.45,.36),(-.96,.21)),(end,(.45,.36),(-.96,.21))],True)
-    hand_pose(brother,"L",begin,"cup")
+    hand_pose(brother,"L",begin,"grip")
     blink(brother["rig"],invite["end"]-17)
     for f,tilt in ((begin,.014),(invite["end"],.08),(stop,-.095),(end,.06)):
         head(brother["rig"],f,.02,tilt)
@@ -879,7 +879,7 @@ def kitchen_replies(mother, child, brother, father, start):
     rig = father["rig"]
     rest = relax_wrist(father,"R")
     chin = (-.27,1.67)
-    down = (-.87,.62)
+    down = (-1.0,.62)
     up = (-.92,1.56)
     duration = lesson["end"] - lesson["start"]
     down_at = lesson["start"] + round(duration*.55)
@@ -895,10 +895,19 @@ def kitchen_replies(mother, child, brother, father, start):
         (up_at,up,(-.12,.99)),(lesson["end"]-9,up,(-.12,.99)),
         (lesson["end"]+12,(-.91,1.01),(-.61,.55)),
         (lesson_reaction+35,rest,(.03,-1)),
-        (joke["start"]-8,rest,(.03,-1)),(joke["start"]+14,(-.81,.78),(-.40,-.92)),
-        (joke["end"]-3,(-.81,.78),(-.40,-.92)),
-        (laugh+22,rest,(.03,-1)),(prayer_start-1,rest,(.03,-1)),
     ],wrist_limit=wrist_limit)
+    # „Amin": brațul aproape întins pe lângă corp, palma deschisă spre exterior și camera.
+    # Palma se dă explicit, perpendicular pe degete (cu palma paralelă cu degetele, regula
+    # din `orientation` o răstoarnă spre cameră și mâna se desprinde de manșetă), iar
+    # încheietura rămâne departe de umăr: sub el, cotul ieșea în afară și antebrațul
+    # revenea spre corp. Fratele stă imediat în stânga lui Tata: gestul nu iese lateral.
+    amen = (-.98,.30)
+    arms(father,"R",[
+        (lesson_reaction+35,rest,(.03,-1)),
+        (joke["start"]-8,rest,(.03,-1)),(joke["start"]+14,amen,(-.30,-.95)),
+        (joke["end"]-3,amen,(-.30,-.95)),
+        (laugh+22,rest,(.03,-1)),(prayer_start-1,rest,(.03,-1)),
+    ],wrist_limit=wrist_limit,palm=(-.55,.1,.83))
     for f, pose in ((lesson["start"]-7,"cup"),(lesson["start"]+30,"reach"),
                     (lesson_reaction+15,"rest"),(joke["start"]+4,"open"),(laugh+12,"rest")):
         hand_pose(father,"R",f,pose)
@@ -1043,8 +1052,10 @@ def prayer_tableau(coll,start,end):
     # Palms up under the lower edge, fingers pointing inward along it (with the fingers up and
     # the palms toward the chest, the hands looked like they pushed the book, not held it).
     for side,wrist,direction in (("L",(.68,.50),(-.97,.24)),("R",(-.82,.50),(.97,.24))):
-        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,1,0))
-        hand_pose(father,side,start,"open")
+        # Palma doar în sus se vedea din profil, ca o fâșie sub carte, pe vestă. Înclinată spre
+        # cameră, degetele și degetul mare se văd pe marginea de jos a paginilor.
+        arm_key(father["rig"],father["p"],side,start,wrist,direction,wrist_limit=72*pi/180,palm=(0,.6,.8))
+        hand_pose(father,side,start,"grip")
     choir = BEATS["la-icoane"]["cues"][-1]
     for index, a in enumerate((father,mother,brother,child)):
         rig = a["rig"]
