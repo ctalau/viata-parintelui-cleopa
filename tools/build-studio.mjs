@@ -74,7 +74,7 @@ for (const id of fs.readdirSync(path.join(ROOT, 'episodes'))) {
   const source = path.join(ROOT, 'episodes', id);
   const target = path.join(out, 'episodes', id);
   fs.mkdirSync(target, { recursive: true });
-  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp']) {
+  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp', 'film.mp4']) {
     if (fs.existsSync(path.join(source, name))) fs.cpSync(path.join(source, name), path.join(target, name), { recursive: true });
   }
 }
@@ -152,5 +152,8 @@ buildSync({
   outfile: path.join(palms, 'palme.js'),
   bundle: true, minify: true, format: 'esm',
 });
+fs.mkdirSync(path.join(out, 'motor'), { recursive: true });
+fs.copyFileSync(path.join(ROOT, 'studio/motor/index.html'), path.join(out, 'motor/index.html'));
+buildSync({ entryPoints: [path.join(ROOT, 'studio/motor/motor.js')], outfile: path.join(out, 'motor.js'), bundle: true, minify: true, format: 'esm' });
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
 console.log('Atelier pregătit în dist/.');

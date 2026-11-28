@@ -67,7 +67,8 @@ if (values['frames-only']) process.exit(0);
 
 const out = values.out ?? path.join(dir, 'renders', `${id}.mp4`);
 const duration = (last - first + 1) / episode.fps;
-const bitrate = Math.floor(4_700_000 * 8 / duration / 1000 - 64);
+// Sub 5 MB cu tot cu sunetul; un film scurt nu are nevoie de mai mult de 1,5 Mbit/s.
+const bitrate = Math.min(1500, Math.floor(4_700_000 * 8 / duration / 1000 - 64));
 const input = ['-framerate', String(episode.fps), '-start_number', String(first), '-i', path.join(work, 'frame_%04d.jpg')];
 const options = ['-vf', 'scale=768:432:flags=lanczos', '-c:v', 'libx264', '-preset', 'medium', '-b:v', `${bitrate}k`, '-pix_fmt', 'yuv420p',
   '-passlogfile', path.join(work, 'x264')];
