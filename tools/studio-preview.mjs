@@ -4,13 +4,14 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { receiveFeedback } from '../studio/feedback.mjs';
+import vercelConfig from '../vercel.json' with { type: 'json' };
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(ROOT, 'dist');
 const feedbackDir = path.resolve(process.env.CLEOPA_FEEDBACK_DIR || path.join(ROOT, '.feedback'));
 const types = {
   '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4',
+  '.mjs': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.m4a': 'audio/mp4', '.mp3': 'audio/mpeg', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg',
   '.glb': 'model/gltf-binary', '.woff2': 'font/woff2',
 };
@@ -39,6 +40,10 @@ async function respond(req, res) {
   if (!['GET', 'HEAD'].includes(req.method)) {
     res.writeHead(405, { Allow: 'GET, HEAD' }).end();
     return;
+  }
+  const redirect = vercelConfig.redirects.find(({ source }) => source === url.pathname.replace(/\/$/, ''));
+  if (redirect) {
+    return res.writeHead(redirect.permanent ? 308 : 307, { Location: redirect.destination + url.search }).end();
   }
   let file = path.resolve(dist, `.${decodeURIComponent(url.pathname)}`);
   if (file !== dist && !file.startsWith(dist + path.sep)) return res.writeHead(404).end();

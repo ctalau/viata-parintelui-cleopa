@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
-import { episode } from '../studio/episode.mjs';
+import { DEFAULT_EPISODE_ID, episode } from '../studio/episode.mjs';
 
 const args = process.argv.slice(2);
 const address = args.find((arg) => !arg.startsWith('--')) || 'http://127.0.0.1:4173';
@@ -12,18 +12,26 @@ const browser = await chromium.launch({
 try {
   const page = await browser.newPage({ viewport: { width: 1360, height: 960 } });
   const errors = [];
+  const mp4Requests = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.endsWith('.mp4')) mp4Requests.push(request.url());
+  });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(address);
   await page.waitForFunction(() => document.querySelectorAll('#library-items article').length === 4);
-  assert.equal(await page.locator('.episode-card').count(), 1);
+  assert.equal(await page.locator('#episode-select').inputValue(), DEFAULT_EPISODE_ID);
+  await page.getByRole('heading', { name: episode.title, exact: true }).waitFor();
+  assert.equal(await page.locator('canvas#episode-picture').count(), 1);
   const workshopLinks = await page.locator('#ateliere a.workshop').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
   for (const href of ['/palme/', '/volum/', '/volum/?test=episod', '/comparatie-maini/', '/articulatii/?set=gesturi',
-    '/articulatii/', '/asamblare/', '/asamblare/?mod=recuzita', '/inspectie/', `/episoade/${episode.id}/#cadru-2`]) {
+    '/articulatii/', '/asamblare/', '/inspectie/', '/#cadru-2']) {
     assert.ok(workshopLinks.includes(href), `Lipsește atelierul ${href} de pe prima pagină`);
   }
-  const catalogResponse = page.waitForResponse((response) => new URL(response.url()).pathname === '/catalog.json');
-  await page.locator('.episode-card').click();
-  const { chapters: expectedChapters } = await (await catalogResponse).json();
+  const timeline = await (await page.request.get(new URL(`/episodes/${DEFAULT_EPISODE_ID}/timeline.json`, address).href)).json();
+  const lastChapterTime = (timeline.beats.at(-1).start - 1) / timeline.fps;
+  for (const pathname of [`/episodes/${DEFAULT_EPISODE_ID}/film.mp4`, '/media/painea_care_poate_sa_astepte.mp4', '/assets/film/index.json']) {
+    assert.equal((await page.request.get(new URL(pathname, address).href)).status(), 404);
+  }
   await page.waitForFunction(
     (duration) => Math.abs(document.querySelector('#episode')?.duration - duration) < 0.05,
     episode.duration,
@@ -59,7 +67,7 @@ try {
   await chapters.last().click();
   await page.waitForFunction(
     (time) => Math.abs(document.querySelector('#episode').currentTime - time) < 0.05,
-    expectedChapters.at(-1).time,
+    lastChapterTime,
   );
   const markedTime = await videoTime();
   await page.getByRole('button', { name: 'Marchează o observație' }).click();
@@ -102,11 +110,27 @@ try {
   assert.equal(await yard.locator('[name="fence-y"]').inputValue(), '0');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  const demo = '002-semnul-crucii';
+  await page.locator('#episode-select').selectOption(demo);
+  await page.waitForURL(new URL(`/?ep=${demo}`, address).href);
+  await page.getByRole('heading', { name: 'Semnul crucii', exact: true }).waitFor();
+  await page.waitForFunction(() => document.querySelector('#episode-picture').dataset.frame === '1' &&
+    !document.querySelector('#seek').disabled);
+  assert.equal(await page.locator('#chapters button').count(), 4);
+  assert.equal(await page.locator('#cadru-2').isVisible(), false);
+  assert.equal(await page.locator('#notes li').count(), 0);
+  await page.getByRole('button', { name: 'Redă filmul' }).click();
+  await page.waitForFunction(() => Number(document.querySelector('#episode-picture').dataset.frame) > 5);
+  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
+  await page.goto(new URL(`/motor/?ep=${demo}`, address).href);
+  assert.equal(page.url(), new URL(`/?ep=${demo}`, address).href);
+  await page.goto(new URL(`/episoade/${episode.id}/#cadru-2`, address).href);
+  assert.equal(page.url(), new URL('/#cadru-2', address).href);
+  await yard.locator('#yard-landscape').waitFor({ state: 'visible' });
   await page.goto(new URL('/inspectie/', address).href);
   await page.getByRole('heading', { name: 'Inspector de scenă' }).waitFor();
   await page.waitForFunction(() => {
-    const video = document.querySelector('#shot');
-    return video?.readyState >= 2 && !video.seeking && video.currentTime > 50;
+    return Number(document.querySelector('#shot').dataset.frame) > 1353;
   });
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
@@ -147,12 +171,6 @@ try {
   await page.getByText('Ce rol au .blend, Python, SVG și Three.js', { exact: true }).click();
   await page.getByRole('link', { name: 'Asamblează scene în Three.js' }).click();
   await page.getByRole('heading', { name: 'Asamblare de scene' }).waitFor();
-  await page.getByRole('img', { name: 'Planul episodului randat în Three.js' }).waitFor();
-  await page.getByLabel('Plan din episod').selectOption('plan-17');
-  // A chosen shot plays at once from its first drawing.
-  await page.waitForFunction(() => Number(document.querySelector('#film-plan').dataset.frame) > 2885);
-  await page.getByRole('button', { name: 'Pauză', exact: true }).click();
-  await page.getByRole('link', { name: 'Scene de probă cu GLB' }).click();
   const assemblyTime = page.getByRole('slider', { name: 'Momentul din clip' });
   await assemblyTime.waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
@@ -191,7 +209,7 @@ try {
   assert.ok(!(await canvas.screenshot()).equals(rest), 'Rigul lui Mihai trebuie să se miște și în izolare');
   await assemblyTime.press('Home');
   assert.ok((await canvas.screenshot()).equals(rest), 'Un salt înapoi trebuie să refacă poza inițială');
-  for (const label of ['Cadru PNG', 'Clip MP4', 'Scena JSON']) {
+  for (const label of ['Cadru PNG', 'Scena JSON']) {
     const link = await page.getByRole('link', { name: label, exact: true }).getAttribute('href');
     const status = await page.evaluate(async (href) => (await fetch(href, { method: 'HEAD' })).status, link);
     assert.equal(status, 200);
@@ -337,6 +355,7 @@ try {
   assert.equal(await page.locator('#report-rows tr').count(), 6);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   assert.deepEqual(errors, []);
+  assert.deepEqual(mp4Requests, []);
   console.log('PREVIEW_OK', address);
 } finally {
   await browser.close();

@@ -4,5 +4,9 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "regions": ["fra1"]
+  "regions": ["fra1"],
+  "redirects": [
+    { "source": "/motor", "destination": "/", "permanent": true },
+    { "source": "/episoade/painea-care-poate-sa-astepte", "destination": "/", "permanent": true }
+  ]
 }

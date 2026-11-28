@@ -2,15 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSync } from 'esbuild';
-import { chaptersFrom, episode } from '../studio/episode.mjs';
+import { DEFAULT_EPISODE_ID } from '../studio/episode.mjs';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const episodeDir = 'experiments/cleopa-painea';
 const first = 'experiments/cleopa-blender';
-// MP4-ul de descărcat e randat de motorul Three.js (tools/engine/export-mp4.mjs), ca playerul.
-const mp4 = path.join(ROOT, 'episodes/001-painea-care-poate-sa-astepte/film.mp4');
-const timeline = JSON.parse(fs.readFileSync(path.join(ROOT, episodeDir, 'timeline.json'), 'utf8'));
-if (fs.statSync(mp4).size >= 5_000_000) throw new Error('Copia MP4 trebuie să aibă sub 5 MB.');
 const gitHub = 'https://github.com/ctalau/viata-parintelui-cleopa';
 
 function group(title, paths) {
@@ -48,7 +44,7 @@ const library = [
   group('Scene', [
     ['Casa familiei', `${first}/assets/backgrounds/farmhouse.blend`],
     ['Rugăciunea la masă', `${first}/scenes/prayer_at_table.blend`],
-    ['Episodul editabil', `${episodeDir}/scenes/painea_care_poate_sa_astepte.blend`],
+    ['Scena Blender de referință', `${episodeDir}/scenes/painea_care_poate_sa_astepte.blend`],
     ['Inspectorul scenei', '/inspectie/'],
   ]),
 ];
@@ -57,48 +53,47 @@ const out = path.join(ROOT, 'dist');
 fs.rmSync(out, { recursive: true, force: true });
 const media = path.join(out, 'media');
 fs.mkdirSync(media, { recursive: true });
-fs.copyFileSync(mp4, path.join(media, episode.file));
 fs.copyFileSync(path.join(ROOT, 'studio/episod.webp'), path.join(media, 'episod.webp'));
 const yardLayers = 'ograda-straturi';
 fs.cpSync(path.join(ROOT, episodeDir, 'renders', yardLayers), path.join(media, yardLayers), { recursive: true });
 for (const name of ['index.html', 'studio.css']) {
   fs.copyFileSync(path.join(ROOT, 'studio', name), path.join(out, name));
 }
-const episodePage = path.join(out, 'episoade', episode.id);
-fs.mkdirSync(episodePage, { recursive: true });
-fs.copyFileSync(path.join(ROOT, 'studio/episoade', episode.id, 'index.html'), path.join(episodePage, 'index.html'));
-fs.cpSync(path.join(ROOT, 'studio/inspectie'), path.join(out, 'inspectie'), { recursive: true });
-fs.cpSync(path.join(ROOT, 'assets'), path.join(out, 'assets'), { recursive: true });
-// Motorul nou: descriptorii episoadelor și pistele lor audio (GLB-urile sunt în assets/).
-for (const id of fs.readdirSync(path.join(ROOT, 'episodes'))) {
+const isWebAsset = (file) => path.extname(file).toLowerCase() !== '.mp4';
+const inspector = path.join(out, 'inspectie');
+fs.cpSync(path.join(ROOT, 'studio/inspectie'), inspector, {
+  recursive: true,
+  filter: (file) => path.basename(file) !== 'inspectie.js',
+});
+fs.cpSync(path.join(ROOT, 'assets'), path.join(out, 'assets'), {
+  recursive: true,
+  filter: (file) => file !== path.join(ROOT, 'assets/film') && isWebAsset(file),
+});
+const episodes = [];
+for (const id of fs.readdirSync(path.join(ROOT, 'episodes')).sort()) {
   const source = path.join(ROOT, 'episodes', id);
+  if (!fs.existsSync(path.join(source, 'episode.json'))) continue;
+  const { title, displayTitle, summary } = JSON.parse(fs.readFileSync(path.join(source, 'episode.json'), 'utf8'));
+  episodes.push({ id, title: displayTitle ?? title, summary });
   const target = path.join(out, 'episodes', id);
   fs.mkdirSync(target, { recursive: true });
-  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp', 'film.mp4']) {
-    if (fs.existsSync(path.join(source, name))) fs.cpSync(path.join(source, name), path.join(target, name), { recursive: true });
+  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp']) {
+    if (fs.existsSync(path.join(source, name))) {
+      fs.cpSync(path.join(source, name), path.join(target, name), { recursive: true, filter: isWebAsset });
+    }
   }
 }
-const filmAssets = path.join(out, 'assets/film');
-const textures = new Set();
-for (const { id } of JSON.parse(fs.readFileSync(path.join(filmAssets, 'index.json'))).shots) {
-  const { objects } = JSON.parse(fs.readFileSync(path.join(filmAssets, `${id}.json`)));
-  for (const { materials } of objects) {
-    for (const { image } of materials) if (image) textures.add(image);
-  }
-}
-fs.mkdirSync(path.join(filmAssets, 'textures'), { recursive: true });
-for (const name of textures) {
-  fs.copyFileSync(path.join(ROOT, episodeDir, 'assets/backgrounds', name), path.join(filmAssets, 'textures', name));
-}
-for (const name of ['studio', 'landing']) {
-  buildSync({ entryPoints: [path.join(ROOT, `studio/${name}.js`)], outfile: path.join(out, `${name}.js`),
+if (!episodes.some(({ id }) => id === DEFAULT_EPISODE_ID)) throw new Error('Episodul principal lipsește.');
+
+for (const entry of ['studio.js', 'inspectie/inspectie.js']) {
+  buildSync({ entryPoints: [path.join(ROOT, 'studio', entry)], outfile: path.join(out, entry),
     bundle: true, minify: true, format: 'esm' });
 }
 const assembly = path.join(out, 'asamblare');
 for (const name of ['index.html', 'asamblare.css', 'scenes', 'renders']) {
   const source = path.join(ROOT, 'studio/asamblare', name);
   if (name === 'renders' && !fs.existsSync(source)) continue;
-  fs.cpSync(source, path.join(assembly, name), { recursive: true });
+  fs.cpSync(source, path.join(assembly, name), { recursive: true, filter: isWebAsset });
 }
 const scenesDir = path.join(assembly, 'scenes');
 const clips = fs.readdirSync(scenesDir).filter((file) => file.endsWith('.json')).map((file) => {
@@ -109,12 +104,11 @@ const clips = fs.readdirSync(scenesDir).filter((file) => file.endsWith('.json'))
   return {
     id, title, category,
     png: fs.existsSync(path.join(assembly, 'renders', `${id}.png`)),
-    mp4: fs.existsSync(path.join(assembly, 'renders', `${id}.mp4`)),
   };
 });
 fs.writeFileSync(path.join(assembly, 'clips.json'), JSON.stringify(clips));
 buildSync({
-  entryPoints: [path.join(ROOT, 'studio/asamblare/entry.js')],
+  entryPoints: [path.join(ROOT, 'studio/asamblare/asamblare.js')],
   outfile: path.join(assembly, 'asamblare.js'),
   bundle: true,
   minify: true,
@@ -137,8 +131,6 @@ fs.mkdirSync(volume, { recursive: true });
 for (const name of ['index.html', 'volum.css', 'teste.json', 'foi']) {
   fs.cpSync(path.join(ROOT, 'studio/volum', name), path.join(volume, name), { recursive: true });
 }
-const volumeRenders = path.join(ROOT, 'studio/volum/renders');
-if (fs.existsSync(volumeRenders)) fs.cpSync(volumeRenders, path.join(volume, 'renders'), { recursive: true });
 buildSync({
   entryPoints: [path.join(ROOT, 'studio/volum/volum.js')],
   outfile: path.join(volume, 'volum.js'),
@@ -152,8 +144,5 @@ buildSync({
   outfile: path.join(palms, 'palme.js'),
   bundle: true, minify: true, format: 'esm',
 });
-fs.mkdirSync(path.join(out, 'motor'), { recursive: true });
-fs.copyFileSync(path.join(ROOT, 'studio/motor/index.html'), path.join(out, 'motor/index.html'));
-buildSync({ entryPoints: [path.join(ROOT, 'studio/motor/motor.js')], outfile: path.join(out, 'motor.js'), bundle: true, minify: true, format: 'esm' });
-fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
+fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ defaultEpisode: DEFAULT_EPISODE_ID, episodes, library }));
 console.log('Atelier pregătit în dist/.');

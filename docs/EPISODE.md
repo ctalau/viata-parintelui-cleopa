@@ -25,6 +25,7 @@ nu e nevoie de Blender și nici de un script per episod.
 
 | cheie | înțeles |
 | --- | --- |
+| `title`, `displayTitle`, `summary` | Selectorul și playerul folosesc `displayTitle` dacă există, altfel `title`. Rezumatul este opțional. |
 | `drawingStep` | numărul de cadre pe desen, de la începutul fiecărui plan. Episodul 1 folosește 1 (24 de desene pe secundă). Valoarea implicită este 2. Playerul și MP4-ul folosesc aceeași cadență. |
 | `timeline` | `timeline.json`: capitolele (`beats` cu `start`, `end`, `title`) și replicile (`cues`: `file`, `speaker`, `text`, `start`, `end`), scrise de `prepare_timeline.py` din lungimile vocilor |
 | `audio.mix` | pista redată de player și pusă în MP4; vocile și muzica rămân separate la editare |
@@ -61,5 +62,6 @@ nu e nevoie de Blender și nici de un script per episod.
 ```bash
 npm run stills -- <id> 1,200,400            # cadre de lucru
 npm run check:engine -- <id>                # verificările; excepțiile motivate în episodes/<id>/allow.json
-npm run export:mp4 -- <id> --jobs 3         # episodes/<id>/renders/<id>.mp4, apoi film.mp4
 ```
+
+La cererea explicită a utilizatorului, `npm run export:mp4 -- <episod> --jobs 3` generează fișierul local în `episodes/<episod>/renders/`. Playerul principal este disponibil la `/?ep=<id>`.

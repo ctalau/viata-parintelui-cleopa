@@ -5,6 +5,7 @@
     {
       "page": 1,
       "id": "sat",
+      "title": "Satul în zori",
       "start": 1,
       "end": 253,
       "cues": [
@@ -20,6 +21,7 @@
     {
       "page": 2,
       "id": "trezire",
+      "title": "Trezirea",
       "start": 253,
       "end": 505,
       "cues": [
@@ -42,6 +44,7 @@
     {
       "page": 3,
       "id": "burtica",
+      "title": "Burtica",
       "start": 505,
       "end": 591,
       "cues": [
@@ -57,6 +60,7 @@
     {
       "page": 4,
       "id": "troaca",
+      "title": "La troacă",
       "start": 591,
       "end": 787,
       "cues": [
@@ -79,6 +83,7 @@
     {
       "page": 5,
       "id": "mihai",
+      "title": "Mihai și cartea",
       "start": 787,
       "end": 1011,
       "cues": [
@@ -101,6 +106,7 @@
     {
       "page": 6,
       "id": "cuptor",
+      "title": "Pâinea caldă",
       "start": 1011,
       "end": 1211,
       "cues": [
@@ -116,6 +122,7 @@
     {
       "page": 7,
       "id": "traista",
+      "title": "Drumul spre școală",
       "start": 1211,
       "end": 1353,
       "cues": [
@@ -131,6 +138,7 @@
     {
       "page": 8,
       "id": "aproape",
+      "title": "Încă puțin…",
       "start": 1353,
       "end": 1617,
       "cues": [
@@ -153,6 +161,7 @@
     {
       "page": 9,
       "id": "prag",
+      "title": "Tata în prag",
       "start": 1617,
       "end": 1843,
       "cues": [
@@ -175,6 +184,7 @@
     {
       "page": 10,
       "id": "intai",
+      "title": "Întâi ne rugăm",
       "start": 1843,
       "end": 2091,
       "cues": [

@@ -1,4 +1,4 @@
-import './yard-editor.js';
+import { renderLibrary } from './landing.js';
 import { createFilm } from './film/engine.js';
 
 const audio = document.querySelector('#episode');
@@ -22,13 +22,15 @@ const sound = document.querySelector('#sound');
 const full = document.querySelector('#full');
 const jumpButtons = [...document.querySelectorAll('[data-skip]')];
 const episodeLength = document.querySelector('#episode-length');
-const episode = 'painea-care-poate-sa-astepte';
+const title = document.querySelector('#title');
+const description = document.querySelector('#episode-description');
+let episodeTitle;
+let notesKey;
+let notesFilename;
+let notes = [];
 let episodeDuration;
-const notesKey = `cleopa-observatii-v1:${episode}`;
-const episodeTitle = document.querySelector('h1').textContent.replace(/\s+/g, ' ').trim();
 let chapterList = [];
 let markedTime = 0;
-let notes = loadNotes();
 let film;
 let tick;
 
@@ -38,7 +40,7 @@ async function renderFilm() {
     await film.draw(currentTime());
   } catch (error) {
     audio.pause();
-    playbackStatus.textContent = 'Nu s-a putut încărca planul. Poți descărca filmul MP4.';
+    playbackStatus.textContent = 'Planul nu s-a putut încărca. Reîncarcă pagina.';
     playbackStatus.hidden = false;
     console.error(error);
   }
@@ -77,6 +79,7 @@ function updateDuration() {
   seek.disabled = !film || audio.readyState === 0;
   play.disabled = !film || audio.readyState === 0;
   seek.max = seek.disabled ? 0 : duration();
+  flag.disabled = seek.disabled;
   for (const button of jumpButtons) button.disabled = seek.disabled;
   updateTime();
 }
@@ -93,6 +96,7 @@ function jumpTo(time) {
 }
 
 async function togglePlayback() {
+  if (play.disabled) return;
   if (!audio.paused) {
     audio.pause();
     return;
@@ -102,7 +106,7 @@ async function togglePlayback() {
     playbackStatus.hidden = true;
   } catch {
     playbackStatus.hidden = false;
-    playbackStatus.textContent = 'Filmul nu s-a putut porni. Folosește linkul de descărcare.';
+    playbackStatus.textContent = 'Redarea nu a pornit. Încearcă din nou.';
   }
 }
 
@@ -162,6 +166,7 @@ function renderNotes() {
 }
 
 function flagMoment() {
+  if (flag.disabled) return;
   audio.pause();
   markedTime = currentTime();
   dialogTime.textContent = clock(markedTime, true);
@@ -183,7 +188,7 @@ function notesPrompt() {
   });
   return `Ești asistentul de producție al animației „${episodeTitle}” din seria Viața Părintelui Cleopa (Școala Evlaviei).
 Mai jos sunt observațiile mele la film, fiecare cu momentul (minut:secundă.zecimi) și capitolul în care apare.
-Pentru fiecare observație: identifică planul, personajul sau obiectul vizat, găsește cauza în sursele din repo (experiments/, scripts/, studio/) și propune sau aplică corecția. Păstrează continuitatea cu planurile vecine și grupează observațiile care au aceeași cauză.
+Pentru fiecare observație: identifică planul, personajul sau obiectul vizat, găsește cauza în sursele din repo (episodes/, lib/engine/, assets/) și propune sau aplică corecția. Păstrează continuitatea cu planurile vecine și grupează observațiile care au aceeași cauză.
 
 Observații:
 ${lines.join('\n')}
@@ -192,7 +197,7 @@ ${lines.join('\n')}
 
 function downloadNotes() {
   const url = URL.createObjectURL(new Blob([notesPrompt()], { type: 'text/markdown;charset=utf-8' }));
-  const link = Object.assign(document.createElement('a'), { href: url, download: `observatii-${episode}.md` });
+  const link = Object.assign(document.createElement('a'), { href: url, download: `observatii-${notesFilename}.md` });
   document.body.append(link);
   link.click();
   link.remove();
@@ -225,6 +230,11 @@ function toggleFull() {
 
 audio.addEventListener('timeupdate', updateTime);
 audio.addEventListener('loadedmetadata', updateDuration);
+audio.addEventListener('error', () => {
+  updateDuration();
+  playbackStatus.textContent = 'Pista audio nu s-a încărcat. Reîncarcă pagina.';
+  playbackStatus.hidden = false;
+});
 audio.addEventListener('seeking', renderFilm);
 audio.addEventListener('seeked', renderFilm);
 audio.addEventListener('play', () => {
@@ -265,53 +275,74 @@ document.addEventListener('keydown', (event) => {
 controls.hidden = false;
 updateDuration();
 
-async function setupFilm() {
-  try {
-    film = await createFilm(canvas);
-    const preview = new ResizeObserver(() => {
-      const { width, height } = canvas.getBoundingClientRect();
-      film.fit(width, height, Math.min(devicePixelRatio || 1, 2));
-      void renderFilm();
-    });
-    if (new URLSearchParams(location.search).has('export')) {
-      window.captureEpisode = {
-        fps: film.info.fps, end: film.info.end,
-        async png(frame, width, height) {
-          film.fit(width, height);
-          await film.draw((frame-1)/film.info.fps);
-          return canvas.toDataURL('image/png');
-        },
-      };
-    } else {
-      preview.observe(canvas);
-      await renderFilm();
-    }
-    updateDuration();
-  } catch (error) {
-    playbackStatus.textContent = 'Randarea Three.js nu este disponibilă. Poți descărca filmul MP4.';
-    playbackStatus.hidden = false;
-    console.error(error);
-  }
-}
-
-void setupFilm();
-
-try {
-  const response = await fetch('/catalog.json');
-  if (!response.ok) throw new Error('Catalog indisponibil');
-  const { episode: listedEpisode, chapters } = await response.json();
-  chapterList = chapters;
-  episodeDuration = listedEpisode.duration;
-  updateDuration();
-  for (const { time, title } of chapters) {
+function showChapters(timeline) {
+  chapterList = timeline.beats.map(({ id, title, start }) => ({
+    title: title ?? id,
+    time: (start - 1) / timeline.fps,
+  }));
+  const chapters = document.querySelector('#chapters');
+  for (const { time, title } of chapterList) {
     const button = document.createElement('button');
     button.type = 'button';
     const timestamp = document.createElement('span');
     timestamp.textContent = clock(time);
     button.append(timestamp, title);
     button.addEventListener('click', () => jumpTo(time));
-    document.querySelector('#chapters').append(button);
+    chapters.append(button);
   }
-} catch {
-  document.querySelector('#chapters').textContent = 'Momentele nu s-au încărcat.';
 }
+
+async function setupFilm() {
+  const response = await fetch('/catalog.json');
+  if (!response.ok) throw new Error('Catalog indisponibil');
+  const { defaultEpisode, episodes, library } = await response.json();
+  const requested = new URLSearchParams(location.search).get('ep');
+  const selected = episodes.find(({ id }) => id === requested) ?? episodes.find(({ id }) => id === defaultEpisode);
+  const picker = document.querySelector('#episode-select');
+  picker.replaceChildren(...episodes.map(({ id, title }) => new Option(title, id)));
+  picker.value = selected.id;
+  picker.addEventListener('change', () => picker.form.submit());
+  picker.form.hidden = false;
+  renderLibrary(library);
+
+  episodeTitle = selected.title;
+  title.textContent = episodeTitle;
+  document.title = `${episodeTitle} · Școala Evlaviei`;
+  canvas.setAttribute('aria-label', `${episodeTitle}, randare Three.js`);
+  description.textContent = selected.summary ?? '';
+  description.hidden = !selected.summary;
+
+  // Episodul 1 păstrează cheia folosită înainte de mutarea playerului pe pagina principală.
+  const isBreadEpisode = selected.id === '001-painea-care-poate-sa-astepte';
+  notesFilename = isBreadEpisode ? 'painea-care-poate-sa-astepte' : selected.id;
+  notesKey = `cleopa-observatii-v1:${notesFilename}`;
+  notes = loadNotes();
+  renderNotes();
+  if (isBreadEpisode) {
+    document.querySelector('#episode-stage').classList.add('bread-poster');
+    document.querySelector('#yard-link').hidden = false;
+    document.querySelector('#cadru-2').hidden = false;
+    await import('./yard-editor.js');
+  }
+
+  const base = `/episodes/${selected.id}/`;
+  film = await createFilm(canvas, base + 'episode.json');
+  episodeDuration = film.info.end / film.info.fps;
+  showChapters(film.stage.timeline);
+  function redraw() {
+    const { width, height } = canvas.getBoundingClientRect();
+    film.fit(width, height, Math.min(devicePixelRatio || 1, 2));
+    void renderFilm();
+  }
+  redraw();
+  new ResizeObserver(redraw).observe(canvas);
+  playbackStatus.hidden = true;
+  audio.src = base + film.stage.episode.audio.mix;
+  updateDuration();
+}
+
+setupFilm().catch((error) => {
+  playbackStatus.textContent = 'Episodul nu s-a încărcat. Verifică dacă browserul acceptă WebGL 2 și reîncarcă pagina.';
+  playbackStatus.hidden = false;
+  console.error(error);
+});

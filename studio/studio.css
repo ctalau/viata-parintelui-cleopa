@@ -437,9 +437,6 @@ textarea {
   .top {
     height: 68px;
   }
-  .desktop-break {
-    display: none;
-  }
   .feedback {
     padding: 20px;
   }
@@ -592,7 +589,7 @@ textarea {
 
 #episode-stage {
   display: grid;
-  background: #242424 url('/media/episod.webp') center / contain no-repeat;
+  background: #242424;
   aspect-ratio: 16 / 9;
 }
 #episode-picture {
@@ -706,61 +703,35 @@ dialog h3 span {
   justify-content: flex-end;
   gap: 8px;
 }
-.episode-list {
-  list-style: none;
-  margin: 18px 0 0;
-  padding: 0;
-  display: grid;
-  gap: 16px;
+.episode-hero {
+  padding: clamp(20px, 4vw, 40px) 0 22px;
 }
-.episode-card {
-  display: grid;
-  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
-  gap: 20px;
+.episode-hero h1 {
+  font-size: clamp(2.2rem, 5.5vw, 4.4rem);
+}
+.episode-hero .description {
+  margin-block-start: 12px;
+}
+.episode-picker:not([hidden]) {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  padding: 14px;
-  border: 1px solid var(--edge);
-  border-radius: 18px;
-  background: var(--white);
-  color: var(--ink);
-  text-decoration: none;
-}
-.episode-card:hover,
-.episode-card:focus-visible {
-  background: #f5e6cb;
-}
-.episode-card img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16/9;
-  object-fit: cover;
-  border-radius: 10px;
-  background: #221e16;
-}
-.episode-text {
-  display: grid;
-  gap: 6px;
-}
-.episode-text small {
-  color: var(--accent);
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.episode-text strong {
-  font-family: Georgia, serif;
-  font-size: 1.7rem;
-  font-weight: 500;
-}
-.episode-text span {
+  gap: 8px 12px;
+  margin-block-end: 12px;
   color: var(--muted);
-  font-size: 0.94rem;
 }
-.episodes + .workshops {
-  margin-top: 46px;
+.episode-picker select {
+  max-width: 100%;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
 }
-@media (max-width: 660px) {
-  .episode-card {
-    grid-template-columns: 1fr;
-  }
+#episode-stage.bread-poster {
+  background-image: url('/media/episod.webp');
+  background-position: center;
+  background-size: cover;
 }

@@ -7,7 +7,7 @@
   <meta name="description" content="Episoadele din Viața Părintelui Cleopa și atelierele în care le construim.">
   <link rel="icon" href="/assets/branding/logo-scoala-mic.webp">
   <link rel="stylesheet" href="/studio.css">
-  <script src="/landing.js" type="module"></script>
+  <script src="/studio.js" type="module"></script>
 </head>
 <body>
   <header class="top shell">
@@ -15,37 +15,118 @@
     <nav aria-label="Atelier"><a href="#episoade">Episoade</a><a href="#ateliere">Ateliere</a><a href="#biblioteca">Bibliotecă</a></nav>
   </header>
   <main class="shell">
-    <section class="hero" aria-labelledby="title">
-      <p class="series">Școala Evlaviei</p>
-      <h1 id="title">Viața Părintelui<br class="desktop-break"> Cleopa</h1>
-      <p class="description">Episoadele seriei și atelierele în care le construim. Deschide un episod ca să-l vezi și să lași observații la momentele din film.</p>
+    <section class="hero episode-hero" id="film" aria-labelledby="title">
+      <form action="/" class="episode-picker" id="episoade" hidden>
+        <label for="episode-select">Episod</label>
+        <select id="episode-select" name="ep"></select>
+      </form>
+      <h1 id="title">Pâinea care poate să aștepte</h1>
+      <p class="description" id="episode-description" hidden></p>
     </section>
-    <section class="episodes" id="episoade" aria-labelledby="episodes-heading">
-      <div class="library-head"><h2 id="episodes-heading">Episoade</h2></div>
-      <ul class="episode-list">
-        <li>
-          <a class="episode-card" href="/episoade/painea-care-poate-sa-astepte/">
-            <img src="/media/episod.webp" alt="" width="640" height="360" loading="lazy">
-            <span class="episode-text"><small>Episodul 1</small><strong>Pâinea care poate să aștepte</strong><span>Pentru Costică, într-o dimineață de sat, nimic nu miroase mai bine decât pâinea scoasă din cuptor. Dar la masă, familia mai are ceva de făcut.</span></span>
-          </a>
-        </li>
-      </ul>
+    <section class="atelier" aria-label="Redare și observații">
+      <div class="watch">
+        <div id="screen">
+          <div id="episode-stage">
+            <canvas id="episode-picture" role="img" aria-label="Episodul randat în Three.js"></canvas>
+          </div>
+          <audio id="episode" preload="metadata" hidden></audio>
+          <div id="player-controls" hidden>
+            <div class="transport">
+              <button class="play-control" id="play" type="button" aria-label="Redă filmul" title="Redă / pauză (Spațiu)"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path class="play-icon" d="M8 5v14l11-7Z" fill="currentColor"/><path class="pause-icon" d="M8 5h3v14H8zm5 0h3v14h-3z" fill="currentColor"/></svg></button>
+              <input id="seek" type="range" min="0" max="0" value="0" step="0.01" aria-label="Poziție în film">
+              <output id="play-time" for="seek">0:00.0</output>
+              <button class="flag-control" id="flag" type="button" aria-label="Marchează o observație" title="Marchează o observație (R)">
+                <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path d="M5 20V4m0 0h12l-3 4 3 4H5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="sound" type="button" aria-label="Oprește sunetul" title="Sunet">
+                <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M4 9h4l4-4v14l-4-4H4zM16 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <button id="full" type="button" aria-label="Ecran complet" title="Ecran complet (F)">
+                <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path d="M4 9V4h5m6 0h5v5m0 6v5h-5m-6 0H4v-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="jumps" role="group" aria-label="Salt în timp">
+              <button type="button" data-skip="-5" aria-label="Înapoi 5 secunde">−5 s</button>
+              <button type="button" data-skip="-0.5" aria-label="Înapoi 0,5 secunde">−0,5 s</button>
+              <button type="button" data-skip="0.5" aria-label="Înainte 0,5 secunde">+0,5 s</button>
+              <button type="button" data-skip="5" aria-label="Înainte 5 secunde">+5 s</button>
+            </div>
+            <p id="play-status" role="status">Se încarcă episodul…</p>
+          </div>
+        </div>
+        <div class="watch-meta">
+          <span id="episode-length"></span>
+          <a id="yard-link" href="#cadru-2" hidden>Editează straturile cadrului 2</a>
+        </div>
+        <details class="chapters"><summary>Momente din episod</summary><div class="chapter-list" id="chapters"></div></details>
+      </div>
+      <aside class="feedback" aria-labelledby="feedback-heading">
+        <h2 id="feedback-heading">Observațiile mele</h2>
+        <p>Apasă pe steag în timpul filmului ca să adaugi o notă. Notele rămân în acest browser.</p>
+        <ol id="notes" class="notes"></ol>
+        <p id="notes-empty" class="notes-empty">Nicio observație încă.</p>
+        <div class="notes-actions">
+          <button class="submit" type="button" id="download-notes" disabled>Descarcă prompt pentru AI</button>
+          <button class="ghost" type="button" id="clear-notes" disabled>Șterge toate</button>
+        </div>
+        <p id="feedback-status" role="status"></p>
+      </aside>
+      <dialog id="note-dialog" aria-labelledby="note-dialog-title">
+        <form method="dialog" id="note-form">
+          <h3 id="note-dialog-title">Observație la <span id="note-time">0:00.0</span></h3>
+          <label for="note" class="sr">Observația ta</label>
+          <textarea id="note" name="message" required maxlength="1200" rows="4" placeholder="De exemplu, gestul din pragul casei…"></textarea>
+          <div class="dialog-actions">
+            <button class="ghost" type="button" id="note-cancel">Anulează</button>
+            <button class="submit" type="submit">Salvează</button>
+          </div>
+        </form>
+      </dialog>
     </section>
+    <details class="yard-editor" id="cadru-2" hidden>
+      <summary>Cadrul 2 · Ograda în zori</summary>
+      <div class="yard-layout">
+        <div class="yard-stage" role="img" aria-label="Cocoșul și Grăsuțu în ogradă">
+          <img id="yard-landscape" src="/media/ograda-straturi/peisaj.png" alt="" width="1280" height="720" loading="lazy">
+          <img id="yard-fence" src="/media/ograda-straturi/gard-magazie.png" alt="" width="1280" height="720" loading="lazy">
+          <img src="/media/ograda-straturi/animale.png" alt="" width="1280" height="720" loading="lazy">
+        </div>
+        <form id="yard-controls" aria-label="Straturile ograzii">
+          <fieldset data-yard-image="yard-landscape">
+            <legend>Peisaj și vegetație</legend>
+            <label><input type="checkbox" name="landscape-visible" checked> Vizibil</label>
+            <label>Orizontal <input type="range" name="landscape-x" min="-25" max="25" value="0"><output>0%</output></label>
+            <label>Vertical <input type="range" name="landscape-y" min="-25" max="25" value="0"><output>0%</output></label>
+            <a href="/media/ograda-straturi/peisaj.png" download="ograda-peisaj.png">Descarcă peisajul</a>
+          </fieldset>
+          <fieldset data-yard-image="yard-fence">
+            <legend>Gard și magazie</legend>
+            <label><input type="checkbox" name="fence-visible" checked> Vizibil</label>
+            <label>Orizontal <input type="range" name="fence-x" min="-25" max="25" value="0"><output>0%</output></label>
+            <label>Vertical <input type="range" name="fence-y" min="-25" max="25" value="0"><output>0%</output></label>
+            <a href="/media/ograda-straturi/gard-magazie.png" download="ograda-gard-magazie.png">Descarcă gardul și magazia</a>
+          </fieldset>
+          <div class="yard-actions">
+            <button type="reset">Resetează straturile</button>
+            <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/painea_care_poate_sa_astepte.blend">Scena Blender</a>
+            <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/assets/backgrounds/README.md">Ghid de ilustrație</a>
+          </div>
+          <p>Ajustările se păstrează în acest browser.</p>
+        </form>
+      </div>
+    </details>
     <section class="workshops" id="ateliere" aria-labelledby="workshops-heading">
       <div class="library-head"><h2 id="workshops-heading">Ateliere</h2><p>Testele pornesc singure și se reiau în buclă.</p></div>
       <div class="workshop-grid">
-        <a class="workshop" href="/motor/?ep=002-semnul-crucii"><strong>Semnul crucii · episod demonstrativ</strong><span>Scris doar ca descriptor peste biblioteca de personaje, decoruri și gesturi; fără Blender.</span></a>
-        <a class="workshop" href="/motor/?ep=001-painea-care-poate-sa-astepte"><strong>Motorul Three.js</strong><span>Episodul 1 construit în browser din GLB-uri reutilizabile și episode.json.</span></a>
         <a class="workshop" href="/palme/"><strong>Palme 2.5D</strong><span>Trei abordări pentru palme, conduse de același schelet 3D: substituție, plasă 2D și volume desenate plat.</span></a>
         <a class="workshop" href="/volum/"><strong>Corp volumetric</strong><span>Mama cu tot corpul în 3D: mers din profil, spre cameră, întoarcere, aplecare și atingeri.</span></a>
         <a class="workshop" href="/volum/?test=episod"><strong>Drumul la troiță</strong><span>Episodul de probă care pune corpul volumetric la încercare, plan după plan.</span></a>
         <a class="workshop" href="/comparatie-maini/"><strong>Mâini în 3D și 2D</strong><span>Aceleași șapte gesturi, cu brațul volumetric și cu desenul articulat.</span></a>
         <a class="workshop" href="/articulatii/?set=gesturi"><strong>Gesturile Mamei</strong><span>Semnul crucii, cana, râsul, mustrarea, pâinea, baticul și traista.</span></a>
         <a class="workshop" href="/articulatii/"><strong>Teste de articulații</strong><span>Palma, cotul și umărul Mamei în flexie maximă.</span></a>
-        <a class="workshop" href="/asamblare/"><strong>Planurile episodului</strong><span>Fiecare plan din film, redat în Three.js din datele Blender.</span></a>
-        <a class="workshop" href="/asamblare/?mod=recuzita"><strong>Scene de probă cu GLB</strong><span>Personaje și recuzită refolosite în scene scurte.</span></a>
+        <a class="workshop" href="/asamblare/"><strong>Scene de probă cu GLB</strong><span>Personaje și recuzită refolosite în scene scurte.</span></a>
         <a class="workshop" href="/inspectie/"><strong>Inspector de scenă</strong><span>Oasele, mâneca și straturile planului „Încă puțin”.</span></a>
-        <a class="workshop" href="/episoade/painea-care-poate-sa-astepte/#cadru-2"><strong>Straturile cadrului 2</strong><span>Ograda în zori, cu peisajul și gardul ajustabile.</span></a>
+        <a class="workshop" href="/#cadru-2"><strong>Straturile cadrului 2</strong><span>Ograda în zori, cu peisajul și gardul ajustabile.</span></a>
       </div>
     </section>
     <section class="library" id="biblioteca" aria-labelledby="library-heading">

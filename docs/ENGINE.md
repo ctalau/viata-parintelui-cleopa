@@ -78,9 +78,10 @@ npm run assets                                  # personajele, decorurile și re
 npm run stills -- <episod> 1172,1748            # cadre din motor → episodes/<episod>/renders/stills/
 npm run check:engine -- <episod>                # verificările (iese cu 1 la probleme nepermise)
 npm run compare -- <episod> <film-vechi.mp4>    # foaie comparativă pe planuri (motor | referință)
-npm run export:mp4 -- <episod> --jobs 3         # MP4-ul compact (768 × 432, < 5 MB) din același motor
 npm run cadru -- <cadre>                        # (vechi) cadre din scena Blender a episodului 1
 ```
+
+La cererea explicită a utilizatorului, `npm run export:mp4 -- <episod> --jobs 3` generează fișierul local în `episodes/<episod>/renders/`. Playerul principal este disponibil la `/?ep=<id>`.
 
 ## Limitări rămase
 

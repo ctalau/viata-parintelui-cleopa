@@ -85,7 +85,7 @@
   .transport-row { column-gap: 5px; }
   .transport-row button { padding-inline: 8px; }
 }
-.stage.zoomed > :is(video, svg) {
+.stage.zoomed > :is(canvas, svg) {
   transform-origin: 53% 74%;
   transform: scale(2.2);
 }

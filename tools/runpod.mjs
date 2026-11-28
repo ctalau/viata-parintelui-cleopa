@@ -1,19 +1,16 @@
-// Render the episode on a cheap RunPod GPU pod, driven from here over HTTPS (adapted from ctalau/lego-shorts).
+// RunPod CLI pentru probele Blender de referință, adaptat din ctalau/lego-shorts.
 //
 //   npm run runpod -- gpus                              # GPU prices ≤ --max-price, in stock first
-//   npm run runpod -- render [--workers 6] [--to 400]   # frames + MP4 + contact sheet, then the pod is terminated
+//   npm run runpod -- render --to 241 [--workers 6] [--keep]   # cadre PNG pe pod
 //   npm run runpod -- up | status | down                # manual control (state in .runpod/pod.json)
 //   npm run runpod -- push <path…>                      # upload paths (relative to the repo) to /work/repo
 //   npm run runpod -- exec "nvidia-smi"                 # run a command on the pod, stream its log
 //   npm run runpod -- pull <remote> <local>
 //   npm run runpod -- spend                             # RunPod spend recorded in costs/runpod.jsonl
 //
-// `render` uploads the packed episode .blend, the scripts, the audio and the timeline, renders the drawings with
-// Blender's Workbench on the pod's GPU (EGL) in parallel workers, encodes the MP4 there with export_episode.py and
-// downloads only the MP4 and the contact sheet (the PNG frames are 1.8 GB, too much for the RunPod proxy).
 import fs from 'node:fs';
 import path from 'node:path';
-import { ROOT, parseArgs, up, down, push, pull, pullTree, exec, waitSetup, agent, podInfo, gpuCandidates, balance,
+import { ROOT, parseArgs, up, down, push, pull, exec, waitSetup, agent, podInfo, gpuCandidates, balance,
   loadState, saveState, fmt, now } from './runpod/pod.mjs';
 
 const args = parseArgs();
@@ -21,7 +18,6 @@ const cmd = args._[0];
 const EPISODE = args.episode || 'experiments/cleopa-painea';
 const SCENE = args.scene || 'scenes/painea_care_poate_sa_astepte.blend';
 const UPLOAD = [SCENE, 'scripts', 'audio', 'timeline.json', 'scenariu.json', 'fonts'].map((p) => `${EPISODE}/${p}`);
-const RESULTS = ['renders/painea_care_poate_sa_astepte.mp4', 'renders/foaie_contact.jpg'].map((p) => `${EPISODE}/${p}`);
 
 // Workbench draws with OpenGL: render a tiny frame, then print the renderer Blender got (NVIDIA, not llvmpipe).
 const GL_PROBE = ["import bpy, gpu", "s = bpy.context.scene", "s.render.engine = 'BLENDER_WORKBENCH'",
@@ -42,11 +38,15 @@ function ranges(end, workers, to) {
 
 async function render() {
   const timeline = JSON.parse(fs.readFileSync(path.join(ROOT, EPISODE, 'timeline.json'), 'utf8'));
-  const workers = parseInt(args.workers || '6');
-  const parts = ranges(timeline.end, workers, args.to && parseInt(args.to));
+  const workers = Number(args.workers || '6');
+  const to = Number(args.to);
+  if (!Number.isSafeInteger(to) || to < 1 || !Number.isSafeInteger(workers) || workers < 1) {
+    throw new Error('Utilizare: npm run runpod -- render --to CADRU [--workers N] [--keep]');
+  }
+  const parts = ranges(timeline.end, workers, to);
   const T = { start: now() };
   const st = await up();
-  st.what = `render ${path.basename(EPISODE)}${args.to ? ` to ${args.to}` : ''}`;
+  st.what = `render ${path.basename(EPISODE)} to ${to}`;
   saveState(st);
   T.ready = now();
   let ok = false;
@@ -63,24 +63,16 @@ async function render() {
       'nvidia-smi -L',
       // Workbench must render on the GPU: print the GL renderer Blender gets in background mode
       `blender -b --factory-startup --python-expr "${GL_PROBE}" 2>&1 | grep 'GL renderer'`,
-      // the mixed soundtrack (audio/mix.wav) is generated, not committed
-      'python3 scripts/prepare_timeline.py > /dev/null',
       'mkdir -p renders/frames && rm -f renders/frames/*.png',
       't0=$(date +%s)',
       blender,
       'wait',
       'echo "frames: $(ls renders/frames | wc -l) in $(( $(date +%s) - t0 ))s"',
-      ...(args.to ? [] : ['python3 scripts/export_episode.py']),
     ].join('\n');
     const t0 = now();
     console.log(`-- render: ${parts.length} Blender workers ${parts.map(([s, e]) => `${s}–${e}`).join(', ')}`);
     await exec(st, script);
     T.render = now() - t0;
-    if (!args.to) {
-      const t1 = now();
-      await pullTree(st, RESULTS.map((p) => p));
-      T.pull = now() - t1;
-    }
     ok = true;
   } finally {
     if (!args.keep || !ok) {
@@ -90,8 +82,7 @@ async function render() {
       console.log(`GPU:            ${st.gpu} @ $${st.costPerHr}/h (${(st.cloud || 'community').toLowerCase()} cloud)`);
       console.log(`pod start:      ${fmt(T.ready - T.start)}  (create + image pull + agent)`);
       if (T.setup) console.log(`setup:          ${fmt(T.setup - T.ready)}  (upload + ffmpeg/python/blender install)`);
-      if (T.render) console.log(`render:         ${fmt(T.render)}  (${parts.length} Blender workers${args.to ? '' : ' + encode'})`);
-      if (T.pull) console.log(`download:       ${fmt(T.pull)}`);
+      if (T.render) console.log(`render:         ${fmt(T.render)}  (${parts.length} Blender workers)`);
       console.log(`total billed:   ${fmt(d.secs)}  ≈ $${d.est.toFixed(4)}`);
       if (bal1 != null) console.log(`balance:        $${st.bal0.toFixed(4)} → $${bal1.toFixed(4)} (billing may lag a few minutes)`);
     } else console.log(`Pod kept running: ${st.id} — remember "npm run runpod -- down"`);

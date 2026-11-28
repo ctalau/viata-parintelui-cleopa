@@ -104,7 +104,7 @@ function showObjects(catalog) {
   }
 }
 
-async function openClip({ id, png, mp4 }, catalog) {
+async function openClip({ id, png }, catalog) {
   const latest = ++selection;
   stop();
   status.textContent = 'Se încarcă scena…';
@@ -112,11 +112,9 @@ async function openClip({ id, png, mp4 }, catalog) {
   $('assembly-controls').hidden = true;
   list.disabled = true;
   $('clip-source').href = clipURL(id);
-  for (const [extension, available] of [['png', png], ['mp4', mp4]]) {
-    const link = $(`clip-${extension}`);
-    link.href = `/asamblare/renders/${id}.${extension}`;
-    link.hidden = !available;
-  }
+  const preview = $('clip-png');
+  preview.href = `/asamblare/renders/${id}.png`;
+  preview.hidden = !png;
   if (picker instanceof HTMLSelectElement) picker.value = id;
   else for (const button of picker.children) button.setAttribute('aria-pressed', button.value === id);
   try {

@@ -19,7 +19,7 @@
     <section class="intro">
       <p class="series">Pâinea care poate să aștepte</p>
       <h1>Inspector de scenă</h1>
-      <p class="description">În „Încă puțin”, Costică întinde mâna spre pâine. Explorează piesele decorului, urmărește oasele peste film și vezi cum se îndoaie mâneca la cot.</p>
+      <p class="description">În „Încă puțin”, Costică întinde mâna spre pâine. Explorează piesele decorului, urmărește scena redată în Three.js și consultă măsurătorile de referință din Blender.</p>
     </section>
 
     <p id="loading" role="status">Se încarcă datele din Blender…</p>
@@ -31,7 +31,7 @@
           <button type="button" data-mode="joint" aria-pressed="true">Articulații</button>
         </div>
         <div class="stage">
-          <video id="shot" playsinline muted preload="metadata" src="/media/painea_care_poate_sa_astepte.mp4" aria-label="Scena din episod"></video>
+          <canvas id="shot" role="img" aria-label="Scena din episod randată în Three.js"></canvas>
           <img id="layer-preview" alt="" hidden>
           <svg id="overlay" viewBox="0 0 768 432" aria-hidden="true"></svg>
         </div>
@@ -46,7 +46,7 @@
           <label id="zoom-option"><input type="checkbox" id="zoom"> Mărește zona brațului</label>
         </div>
         <p id="snapshot-note" hidden></p>
-        <p id="video-status" role="status" hidden></p>
+        <p id="shot-status" role="status" hidden></p>
       </div>
       <div class="panel">
         <section id="layers-panel" hidden>
@@ -84,7 +84,7 @@
       <h2 id="source-heading">Cum e construită scena</h2>
       <details open>
         <summary>De la poziția mâinii la mișcare</summary>
-        <p>Scriptul definește poziții-țintă pentru încheietură și direcția palmei. Între ținte aplică o curbă de accelerare și frânare. Un solver plan cu două oase calculează unghiurile brațului și antebrațului, apoi le scrie ca chei de rotație. Mâna, ochii și gura folosesc desene alternative, schimbate la cadre precise. Filmul se redă la 24 fps, cu un desen la două cadre.</p>
+        <p>Descriptorul definește țintele încheieturii și orientarea palmei. Motorul Three.js accelerează și frânează de-a lungul traseului și calculează poziția brațului în trei dimensiuni. Inspectorul afișează oasele și grila mânecii din scena Blender de referință, eșantionate la fiecare două cadre.</p>
         <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scripts/build_episode.py">Scena și mișcarea în Python</a>
       </details>
       <details>
@@ -94,7 +94,7 @@
       <details>
         <summary>Ce rol au .blend, Python, SVG și Three.js</summary>
         <p><strong>Python și <code>bpy</code></strong> descriu construcția decorurilor, rigurile, gesturile și sincronizarea. Cu scripturile și resursele din repo, poți regenera proiectul Blender. <strong>Fișierul <code>.blend</code></strong> salvează rezultatul editabil cu geometrie, riguri, camere, chei și piste audio. Îl poți deschide direct pentru a regla o poziție sau o tăietură.</p>
-        <p><strong>SVG</strong> poate descrie siluetele și traseele 2D. Inspectorul folosește SVG pentru a afișa oasele și grila mânecii din datele evaluate în Blender. <strong>Three.js</strong> ar putea reda scena în timp real din geometrii, materiale și animații exportate. Ar trebui reproduse și ordinea straturilor, schimburile de desene, tăieturile de cameră și sunetul, ca să obții același film.</p>
+        <p><strong>SVG</strong> poate descrie siluetele și traseele 2D. Inspectorul folosește SVG pentru a afișa oasele și grila mânecii din datele evaluate în Blender. <strong>Three.js</strong> redă scena curentă din regia episodului și modelele GLB reutilizabile. Pagina principală include și pista audio sincronizată.</p>
         <div class="source-links">
           <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scenes/painea_care_poate_sa_astepte.blend">Scena .blend</a>
           <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/experiments/cleopa-painea/scripts/sleeves.py">Ponderile în Python</a>

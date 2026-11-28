@@ -16,6 +16,4 @@ flags=(-b --factory-startup --python-exit-code 1)
   "$blender_bin" "${flags[@]}" scenes/painea_care_poate_sa_astepte.blend \
     --python scripts/check_overlaps.py -- --step 1 "$@"
   "$blender_bin" "${flags[@]}" --python "$root/experiments/cleopa-volum/scripts/build_volum.py" -- --verifica
-  ffprobe -v error -show_entries format=duration,size -of default=noprint_wrappers=1 \
-    "$root/experiments/cleopa-painea/renders/painea_care_poate_sa_astepte.mp4"
 )
