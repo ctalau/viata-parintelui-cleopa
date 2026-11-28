@@ -67,8 +67,9 @@ Gesturile care pornesc din repaus preiau poziția ținută de braț la sfârșit
 | `pray` | mâinile împreunate la piept, capul plecat |
 | `nod`, `bow`, `shakeHead`, `laugh` | capul (și fața, la râs) |
 
-Un gest nou: adaugă pozele în `POSES` și secvența în `LIBRARY`, apoi verifică-l pe toate personajele cu
-`npm run stills` și `npm run check:engine`.
+Pentru un gest nou, adaugă pozele relative în `POSES` și secvența în `LIBRARY`. Marchează o poză de trecere cu al treilea element `'via'`, ca în `[10, 'offerMid', 'via']`. Generatorul unește pozele de trecere într-o singură cursă și păstrează ținerea indicată de `hold`. Pentru întinderi în profunzime, o poză poate include adâncimea încheieturii ca fracție din lungimea brațului și direcția cotului față de umăr. Ambele se adaptează personajului și mâinii alese.
+
+Rulează `npm run check:gestures` ca să verifici accelerarea, frânarea și rotația palmei pe rigurile seriei. Verifică gestul în planul episodului cu `npm run stills` și `npm run check:engine`.
 
 ## Comenzi
 

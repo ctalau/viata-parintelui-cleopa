@@ -45,7 +45,7 @@ nu e nevoie de Blender și nici de un script per episod.
 | `props` | recuzită ținută: `[{ "prop": "carte", "bone": "chest", "at": [x, y], "z": 0.47 }]` |
 | `do` | gesturi din bibliotecă: `{ "gesture", "side", "at", "hold", "palm"? }` (vezi `docs/ENGINE.md`) |
 | `arms` | poze-cheie ale brațului: `{ "side", "keys": [[cadru, [x, y], [dx, dy], z?, cot?]], "palm"?, "palmKeys"?, "limit"? }` (încheietura și direcția degetelor, în spațiul rigului). Opțional, `z` fixează adâncimea încheieturii și `cot` este un vector 3D din umăr care orientează planul îndoirii. `palmKeys` interpolează normala palmei între perechi `[cadru, [nx, ny, nz]]` |
-| `arms[].strokes` | Fiecare interval `[primaPoză, ultimaPoză, plecare, sosire]` leagă pozele într-o singură mișcare. Încheietura urmează arcul proiectat cu viteza maximă la 40% din timpul de deplasare. Capetele traseului se țin până la plecare și după sosire. |
+| `arms[].strokes` | Forma scurtă `[primaPoză, ultimaPoză]` folosește întregul interval pentru deplasare. Forma `[primaPoză, ultimaPoză, plecare, sosire]` leagă pozele într-o singură mișcare. Încheietura urmează arcul proiectat cu viteza maximă la 40% din timpul de deplasare. Capetele traseului se țin până la plecare și după sosire. |
 | `hands` | poza mâinii: `[cadru, "R"|"L", "rest|open|cup|grip|reach|extend|gather|present|prayer|point|touch|stop|cheek|cross"]` |
 | `contacts` | vârful degetelor pe o țintă care se mișcă: `{ "side", "from", "to", "target": "prop:paine" | "head", "tip", "dir", "pose", "palm" }` |
 | `head` | `[cadru, aplecare, înclinare]` |
