@@ -41,6 +41,15 @@ SCARF = "Colțul baticului ridicat"
 FACE_LIFT = .10
 LIFT_KEY = "Mâna la față · antebraț în fața capului"
 HEAD_PARTS = ("Face", "Front hair", "Hair silhouette", SCARF)
+# Mâna pe masă: Mama stă în spatele mesei, dar își ține palmele pe blat (și sub talerul pe
+# care îl așază). Cât mâna coboară sub muchia din spate a blatului, antebrațul, manșeta și
+# palma trec în fața ștergarului și rămân în spatele talerului. Camera e ortografică, deci
+# ridicarea în adâncime nu mută nimic pe ecran. Doar Mama din bucătărie stă la masă.
+TABLE = "Table back and plank top"
+CLOTH = "Embroidered linen tablecloth"
+AT_TABLE = ("Mama · bucătărie",)
+TABLE_GAP = .08          # unități ale rigului peste ștergar
+TABLE_KEY = "Mâna pe masă · antebraț în fața mesei"
 
 
 def ease(t):
@@ -107,6 +116,24 @@ class Levels:
         else:
             self.tray_world = None
         self.rig = rig
+        table, cloth = bpy.data.objects.get(TABLE), bpy.data.objects.get(CLOTH)
+        self.table_lift = 0.
+        if table and cloth and coll.name in AT_TABLE:
+            m = rig.matrix_world
+            self.table_edge = max((table.matrix_world @ v.co).y for v in table.data.vertices)
+            front = max((cloth.matrix_world @ v.co).z for v in cloth.data.vertices)
+            self.table_lift = (front-m.translation.z)/m.to_scale().z+TABLE_GAP-self.values["base"]
+            assert self.table_lift < 10, "ridicarea pe masă depășește valoarea maximă a cheii"
+            if self.tray_world is not None:
+                tray = (self.tray_world-m.translation.z)/m.to_scale().z
+                assert self.values["top"]+self.table_lift+.03 < tray, "mâna de pe masă nu încape sub taler"
+
+    def on_table(self, verts):
+        """Mâna coboară sub muchia din spate a blatului (vârfurile, în lume)."""
+        if not self.table_lift:
+            return False
+        m = self.rig.matrix_world
+        return min((m @ Vector((v[0], v[1], 0))).y for v in verts) < self.table_edge
 
     def at(self, frame, over_tray, lift=0.):
         values = {k: v+lift for k, v in self.values.items()}
@@ -364,21 +391,30 @@ def lift_parts(coll, side):
 
 
 def add_lift(sleeve, rig, p, side):
+    """Două chei pe mânecă, fiecare cu o deplasare de o unitate; valoarea cheii e ridicarea.
+
+    La față ridicarea începe după jumătatea brațului (umărul rămâne sub corsaj). Pe masă
+    trece în față doar antebrațul, de la cot: ridicat de la jumătatea brațului, marginea
+    interioară a mânecii ieșea peste cămașă și desena o cută neagră la subraț."""
     keys = sleeve.data.shape_keys
-    if keys and LIFT_KEY in keys.key_blocks:
-        sleeve.shape_key_remove(keys.key_blocks[LIFT_KEY])
-        if len(sleeve.data.shape_keys.key_blocks) == 1:
-            sleeve.shape_key_remove(sleeve.data.shape_keys.key_blocks[0])
+    for name in (LIFT_KEY, TABLE_KEY):
+        if keys and name in keys.key_blocks:
+            sleeve.shape_key_remove(keys.key_blocks[name])
+    if sleeve.data.shape_keys and len(sleeve.data.shape_keys.key_blocks) == 1:
+        sleeve.shape_key_remove(sleeve.data.shape_keys.key_blocks[0])
     if not sleeve.data.shape_keys:
         sleeve.shape_key_add(name="Basis")
-    key = sleeve.shape_key_add(name=LIFT_KEY)
     top, upper = p["shoulder_y"], p["upper"]
-    for vertex, point in zip(sleeve.data.vertices, key.data):
-        # Umărul rămâne sub corsaj; ridicarea începe după jumătatea brațului.
-        t = ease((top-vertex.co.y-.45*upper)/(.40*upper))
-        point.co = vertex.co+Vector((0, 0, FACE_LIFT*t))
-    key.value = 0
-    return key
+    made = []
+    for name, start, span in ((LIFT_KEY, .45, .40), (TABLE_KEY, .88, .20)):
+        key = sleeve.shape_key_add(name=name)
+        key.slider_max = 10.    # Blender limitează valoarea la 10; pe masă ridicarea e ~6
+        for vertex, point in zip(sleeve.data.vertices, key.data):
+            t = ease((top-vertex.co.y-start*upper)/(span*upper))
+            point.co = vertex.co+Vector((0, 0, t))
+        key.value = 0
+        made.append(key)
+    return made
 
 
 def remove_previous(coll, rig):
@@ -403,7 +439,7 @@ def bake_actor(scene, rig, report):
         gesture_source(rig, side)
         levels = Levels(coll, rig, side)
         sleeve, stitches = lift_parts(coll, side)
-        lift_key = add_lift(sleeve, rig, p, side)
+        face_key, table_key = add_lift(sleeve, rig, p, side)
         state, memory = {}, {"__stable__": P.ORDER_HYSTERESIS}
         samples, info = [], {}
         for frame in frames:
@@ -415,18 +451,24 @@ def bake_actor(scene, rig, report):
             probe = P.layered_vertices(built, levels.at(frame, over_tray), level_rule(h, over_tray, data))
             lifted = overlaps_head(probe, head_box(coll, rig))
             lift = FACE_LIFT if lifted else 0.
+            table = levels.on_table(probe)
+            if table:
+                lifted, lift = True, levels.table_lift
             verts = P.layered_vertices(built, levels.at(frame, over_tray, lift), level_rule(h, over_tray, data)) \
                 if lifted else probe
             samples.append((frame, verts))
-            info[frame] = {"data": data, "h": h, "built": built, "verts": verts, "lift": lift}
+            info[frame] = {"data": data, "h": h, "built": built, "verts": verts, "lift": lift,
+                           "table": table}
         previous = None
         for frame in frames:
-            value = 1. if info[frame]["lift"] else 0.
+            value = info[frame]["lift"]
             if value != previous:
-                lift_key.value = value
-                lift_key.keyframe_insert("value", frame=frame)
+                on_table = info[frame]["table"]
+                for key, amount in ((face_key, 0. if on_table else value), (table_key, value if on_table else 0.)):
+                    key.value = amount
+                    key.keyframe_insert("value", frame=frame)
                 for obj in stitches:
-                    obj.delta_location.z = FACE_LIFT*value
+                    obj.delta_location.z = value
                     obj.keyframe_insert("delta_location", index=2, frame=frame, group="Mâna la față")
                 previous = value
         for owner in [sleeve.data.shape_keys]+stitches:

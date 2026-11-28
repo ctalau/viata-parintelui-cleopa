@@ -204,11 +204,13 @@ def check_rigid(scene, sleeve, frame):
     rigid, _, _ = sleeve.rigid()
     lift = np.zeros(len(rigid))
     keys = sleeve.obj.data.shape_keys
-    if keys and B.LIFT_KEY in keys.key_blocks:
-        block = keys.key_blocks[B.LIFT_KEY]
+    for name in (B.LIFT_KEY, B.TABLE_KEY):
+        if not (keys and name in keys.key_blocks):
+            continue
+        block = keys.key_blocks[name]
         lifted = np.zeros(len(rigid)*3)
         block.data.foreach_get("co", lifted)
-        lift = (lifted.reshape(-1, 3)[:, 2]-sleeve.co[:, 2])*block.value
+        lift = lift+(lifted.reshape(-1, 3)[:, 2]-sleeve.co[:, 2])*block.value
     error = np.abs(co.reshape(-1, 3)-rigid-np.c_[np.zeros((len(rigid), 2)), lift]).max()
     assert error < 1e-4, (sleeve.obj.name, frame, error)
 

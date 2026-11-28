@@ -75,8 +75,12 @@ export function buildVolume(h, { details = true, memory = null } = {}) {
   for (const g of groups.slice(1)) {
     g.z = g.zs.reduce((s, z) => s + z, 0) / g.zs.length;
     // A finger rooted in the palm sits in front of it unless it clearly goes behind.
+    // Seen from the back, a rooted finger continues the back of the hand even when it curls
+    // toward the palm: drawn behind it, the palm's outline crossed the knuckles like the
+    // crease that only shows on the palm side.
     const finger = !g.id.startsWith('mare');
-    if (g.rooted && finger && g.z > h.palmZ - 1.2 * h.k) g.z = Math.max(g.z, h.palmZ + 0.01);
+    const back = facing(h) < 0;
+    if (g.rooted && finger && (back || g.z > h.palmZ - 1.2 * h.k)) g.z = Math.max(g.z, h.palmZ + 0.01);
     if (g.z < h.palmZ - 0.3 * h.k && !g.rooted) g.fill = COLORS.shade;
     if (g.rooted) g.details.unshift({ t: 'patch', clip: palmPoly, c: g.root, r: g.rootR * 1.45, color: COLORS.skin });
   }
