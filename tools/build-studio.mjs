@@ -68,6 +68,15 @@ fs.mkdirSync(episodePage, { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'studio/episoade', episode.id, 'index.html'), path.join(episodePage, 'index.html'));
 fs.cpSync(path.join(ROOT, 'studio/inspectie'), path.join(out, 'inspectie'), { recursive: true });
 fs.cpSync(path.join(ROOT, 'assets'), path.join(out, 'assets'), { recursive: true });
+// Motorul nou: descriptorii episoadelor și pistele lor audio (GLB-urile sunt în assets/).
+for (const id of fs.readdirSync(path.join(ROOT, 'episodes'))) {
+  const source = path.join(ROOT, 'episodes', id);
+  const target = path.join(out, 'episodes', id);
+  fs.mkdirSync(target, { recursive: true });
+  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp']) {
+    if (fs.existsSync(path.join(source, name))) fs.cpSync(path.join(source, name), path.join(target, name), { recursive: true });
+  }
+}
 const filmAssets = path.join(out, 'assets/film');
 const textures = new Set();
 for (const { id } of JSON.parse(fs.readFileSync(path.join(filmAssets, 'index.json'))).shots) {

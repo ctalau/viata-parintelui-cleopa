@@ -126,7 +126,7 @@ props = {
     "flacara": {"scene": "bucatarie", "part": "flame", "ambient": {"kind": "flicker"}},
     "icoana": {"scene": "bucatarie", "part": "icon2", "visible": next([e["start"], e["end"]] for e in record if e["op"] == "icon")},
 }
-for zone, suffix, perch, ground, scale in (("ograda", "", (2.76, .637, -2.73), (-1.81, -2.42, -.05), (-1.30, 1.30, 1)),
+for zone, suffix, perch, ground, scale in (("ograda", "", (4.52, .509, -2.73), (-2.78, -2.99, -.05), (-.96, .96, 1)),
                                            ("ograda-zori", ".001", (2.76, .637, -2.73), (-1.81, -2.42, -.05), (-1.30, 1.30, 1))):
     from_late = zone == "ograda"
     if from_late:
@@ -136,10 +136,10 @@ for zone, suffix, perch, ground, scale in (("ograda", "", (2.76, .637, -2.73), (
     hidden = {e["who"].replace(suffix, "") if suffix else e["who"]: e["keys"] for e in record
               if e["op"] == "hidden" and (e["who"].endswith(suffix) if suffix else not e["who"].endswith(".001"))
               and e["who"].startswith(("Grăsuțu", "Cocoș"))}
-    props[f"cocos-{zone}"] = {"scene": zone, "asset": "cocos", "anchor": "gard", "scale": list(scale),
+    props[f"cocos-{zone}"] = {"scene": zone, "asset": "cocos", "pos": list(perch), "scale": list(scale),
                               "parts": {"head": {"turn": [[f, t] for f, t, *_ in keys("Cocoș · gât și cap")]},
                                         "beak": {"hidden": hidden.get("Cocoș · cioc deschis")}}}
-    props[f"purcel-{zone}"] = {"scene": zone, "asset": "purcel", "anchor": "troaca", "scale": [1.17, 1.17, 1],
+    props[f"purcel-{zone}"] = {"scene": zone, "asset": "purcel", "pos": list(ground), "scale": [1.17, 1.17, 1],
                                "parts": {"head": {"turn": [[f, t] for f, t, *_ in keys("Grăsuțu · cap") if t is not None],
                                                   "position": [[f, p] for f, _, p, _ in keys("Grăsuțu · cap") if p]},
                                          "chew": {"scale": [[f, s] for f, _, _, s in keys("Grăsuțu · mestecat") if s]},
