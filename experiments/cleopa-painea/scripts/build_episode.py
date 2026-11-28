@@ -787,9 +787,9 @@ def animate_kitchen(coll):
                       (warns["end"]+7,(-.82,.80),(-.50,-.87)),
                       (BEATS["intai"]["start"]+14,ra,(.03,-1)),(end,ra,(.03,-1))])
     hand_pose(father,"R",warns["start"]+9,"stop")
-    # The palm turns back to rest while the hand is still level: the joint-space path lowers it
-    # sooner, and a palm still facing the camera with the fingers down shows the thumb inside.
-    hand_pose(father,"R",warns["end"]+3,"rest")
+    # The palm turns back to rest (toward the thigh) as the hand starts to drop: a palm still
+    # facing the camera with the fingers down shows the thumb inside.
+    hand_pose(father,"R",warns["end"]-2,"rest")
     for f,bow,tilt in ((door,0,-.04),(arrival,.06,.10),(warns["start"],0,.07),(end,.04,.08)):
         head(father["rig"],f,bow,tilt)
     voice(father,cues("prag","tata")+cues("intai","tata"))
