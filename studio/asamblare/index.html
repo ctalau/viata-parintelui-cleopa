@@ -19,20 +19,8 @@
     <section class="assembly-intro">
       <p class="series">Atelierul de animație</p>
       <h1>Asamblare de scene</h1>
-      <p class="description">În planurile episodului, Three.js folosește camera, pozițiile obiectelor și desenele evaluate în Blender.</p>
-      <div class="assembly-links"><a href="/asamblare/">Planuri din episod</a><a href="/asamblare/?mod=recuzita">Scene de probă cu GLB</a><a href="/articulatii/">Testează articulațiile Mamei</a><a href="/comparatie-maini/">Compară 3D și 2D</a></div>
-    </section>
-    <section class="view film-workbench" id="film-workbench" hidden>
-      <label class="plan-picker">Plan din episod <select id="film-cut"></select></label>
-      <div class="assembly-stage">
-        <canvas id="film-plan" role="img" aria-label="Planul episodului randat în Three.js" hidden></canvas>
-        <p id="film-load" role="status">Se încarcă planul…</p>
-      </div>
-      <div class="play-row">
-        <button type="button" id="film-play">Redă planul</button>
-        <input id="film-frame" type="range" aria-label="Cadru Blender">
-        <output id="film-readout" for="film-frame"></output>
-      </div>
+      <p class="description">Testează pozițiile personajelor, obiectelor și camerei în scene scurte cu GLB.</p>
+      <div class="assembly-links"><a href="/#film">Episodul</a><a href="/articulatii/">Testează articulațiile Mamei</a><a href="/comparatie-maini/">Compară 3D și 2D</a></div>
     </section>
     <div class="assembly" id="assembly-workbench">
       <section class="view" aria-label="Scenă interactivă">
@@ -58,7 +46,6 @@
         </fieldset>
         <div class="assembly-links">
           <a id="clip-png" hidden download>Cadru PNG</a>
-          <a id="clip-mp4" hidden>Clip MP4</a>
           <a id="clip-source" href="/asamblare/scenes/painea-pe-masa.json">Scena JSON</a>
           <a href="/assets/recuzita/catalog.json">Catalogul de obiecte</a>
           <a href="https://github.com/ctalau/viata-parintelui-cleopa/blob/main/studio/asamblare/scene.js">Asamblarea în JavaScript</a>

@@ -1,13 +1,11 @@
-// Playerul episodului pe motorul nou (lib/engine): aceeași interfață ca vechiul player
-// (createFilm → info, draw(t), fit), dar scena se construiește din GLB-uri reutilizabile și
-// episode.json, nu din geometria precalculată a planurilor (assets/film/plan-*.bin).
+// Renderer Three.js pentru playerul principal și inspector.
 import { WebGLRenderer } from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Stage } from '../../lib/engine/stage.js';
 
-export const EPISODE_URL = '/episodes/001-painea-care-poate-sa-astepte/episode.json';
+import { drawingFrame } from '../../lib/engine/tracks.js';
 
-export async function createFilm(canvas, url = EPISODE_URL) {
+export async function createFilm(canvas, url) {
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true });
   renderer.setClearColor('#292929');
   const stage = await new Stage({ loader: new GLTFLoader() }).load(url);
@@ -22,10 +20,7 @@ export async function createFilm(canvas, url = EPISODE_URL) {
   }
 
   async function draw(time) {
-    // Desen pe doi timpi, ca filmul Blender (un desen la două cadre).
-    const frame = frameAt(time);
-    const shot = stage.shotAt(frame).shot;
-    const held = shot.at + Math.floor((frame - shot.at) / 2) * 2;
+    const held = drawingFrame(stage.episode, frameAt(time));
     if (held === drawn) return held;
     stage.setTime((held - 1) / info.fps);
     renderer.render(stage.scene, stage.camera);

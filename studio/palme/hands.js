@@ -52,16 +52,20 @@ export function buildVolume(h, { details = true, memory = null } = {}) {
       const a = d.pts[k], b = d.pts[k + 1];
       const shape = { t: 'cap', a: xy(a), b: xy(b), ra: d.r[k], rb: d.r[Math.min(2, k + 1)] * 0.97, z: (a[2] + b[2]) / 2 };
       if (thumb && k === 0) { palm.shapes.push(shape); continue; }
-      if (!cur || d.bends[k] > BEND_SPLIT) {
+      // The thumb web and first phalanx share one silhouette when the thumb is open
+      // or seen across the back of the hand. A tightly folded tip still overlaps it.
+      if (thumb && k === 1 && (h.g.opp < 0.4 || (facing(h) < 0 && h.g.pinch < 0.5))) {
+        cur = palm;
+      } else if (!cur || d.bends[k] > BEND_SPLIT) {
         const rooted = thumb ? h.g.opp < 0.4 : k === 0 && d.bends[0] <= BEND_SPLIT;
         cur = { id: `${d.id}${k}`, rooted, root: xy(a), rootR: d.r[k], shapes: [], details: [], zs: [] };
         groups.push(cur);
       }
       cur.shapes.push(shape);
-      cur.zs.push(shape.z);
+      if (cur !== palm) cur.zs.push(shape.z);
       // A tip tucked into the fist shows no nail. With the palm toward the lens the thumb is
       // seen from the side: its nail does not face the camera even when the tip turns a little.
-      const thumbSide = thumb && facing(h) > 0.35;
+      const thumbSide = thumb && (facing(h) > -0.25 || d.dorsal[2][2] < 0.5);
       if (details && k === 2 && !thumbSide && d.dorsal[2][2] > 0.3 && d.bends[0] + d.bends[1] + d.bends[2] < 150) {
         const dir = sub2(xy(b), xy(a));
         const along = len2(dir);

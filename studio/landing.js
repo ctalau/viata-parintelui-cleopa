@@ -1,7 +1,4 @@
-try {
-  const response = await fetch('/catalog.json');
-  if (!response.ok) throw new Error('Catalog indisponibil');
-  const { library } = await response.json();
+export function renderLibrary(library) {
   for (const { group, entries } of library) {
     const article = document.createElement('article');
     const heading = document.createElement('h3');
@@ -18,6 +15,4 @@ try {
     article.append(heading, list);
     document.querySelector('#library-items').append(article);
   }
-} catch {
-  document.querySelector('#library-items').textContent = 'Biblioteca nu s-a încărcat.';
 }

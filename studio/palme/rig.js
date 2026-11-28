@@ -164,10 +164,10 @@ export function handLocal(g) {
     const solved = twoBone(m, goal, thumb.len[1], thumb.len[2], add(mul(d0, 0.2), [0.4, 0, 0.6]));
     j = solved.joint; tip = solved.end;
   }
-  const thumbDorsal = norm(cross(side, d0));
+  const thumbDorsal = [d0, sub(j, m), sub(tip, j)].map((axis) => norm(cross(axis, side)));
   const thumbDigit = {
     id: thumb.id, pts: [thumb.base, m, j, tip], r: HAND.taper.map((t) => thumb.r * t),
-    bends: [0, 30 * g.opp + b1, b2], dorsal: [thumbDorsal, thumbDorsal, thumbDorsal],
+    bends: [0, 30 * g.opp + b1, b2], dorsal: thumbDorsal,
   };
   const contact = g.pinch > 0.5
     ? mul(add(add(digits[0].pts[3], digits[1].pts[3]), tip), 1 / 3)

@@ -20,6 +20,7 @@
     "cadru": "node tools/cadru.mjs",
     "assets": "blender -b --factory-startup --python-exit-code 1 --python blender/characters/build_characters.py && blender -b --factory-startup --python-exit-code 1 --python blender/sets/build_sets.py",
     "stills": "node tools/engine/stills.mjs",
+    "check:gestures": "node --test tests/engine-gestures.test.mjs",
     "check:engine": "node tools/engine/check.mjs",
     "compare": "python3 tools/engine/compare.py",
     "export:mp4": "node tools/engine/export-mp4.mjs"

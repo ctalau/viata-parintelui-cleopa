@@ -40,5 +40,5 @@ Din rădăcina repo-ului, cu Blender 4.5 LTS, Python 3 cu Pillow și FFmpeg:
 npm run build:volum              # model, acțiuni, verificări, GLB, .blend și foi de cadre
 blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-volum/scripts/build_volum.py -- --verifica
 npm run build
-npm run render:volum -- episod --width 768   # MP4 din Three.js: studio/volum/renders/episod.mp4
+npm run render:volum -- episod --width 768   # cadru PNG din atelierul Three.js
 ```

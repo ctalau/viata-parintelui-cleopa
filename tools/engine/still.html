@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Stage } from '/lib/engine/stage.js';
+import { drawingFrame } from '/lib/engine/tracks.js';
 const q = new URLSearchParams(location.search);
 const width = Number(q.get('w') ?? 1280), height = Math.round(width * 9 / 16);
 const canvas = document.getElementById('c');
@@ -16,6 +17,11 @@ const stage = new Stage({ loader: new GLTFLoader() });
 await stage.load(`/episodes/${q.get('ep')}/episode.json`);
 window.stage = stage;
 window.renderer = renderer;
-window.frameAt = (t, type = 'image/png') => { stage.setTime(t); renderer.render(stage.scene, stage.camera); return canvas.toDataURL(type, 0.92); };
+window.frameAt = (time, type = 'image/png') => {
+  const frame = Math.min(stage.frames, Math.max(1, Math.floor(time * stage.fps + 0.00001) + 1));
+  stage.setTime(q.has('playback') ? (drawingFrame(stage.episode, frame) - 1) / stage.fps : time);
+  renderer.render(stage.scene, stage.camera);
+  return canvas.toDataURL(type, 0.92);
+};
 window.gata = true;
 </script>

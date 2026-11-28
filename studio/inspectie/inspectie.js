@@ -1,3 +1,5 @@
+import { createFilm } from '../film/engine.js';
+
 const $ = (id) => document.getElementById(id);
 const colors = ['#dca753', '#986cb6', '#5f8bd0', '#3fa389', '#cc6867'];
 const formatDepth = new Intl.NumberFormat('ro', { maximumFractionDigits: 2 });
@@ -28,16 +30,17 @@ function drawWeights({ weights }) {
   });
 }
 
-function setup(data) {
-  const video = $('shot');
+async function setup(data) {
+  const canvas = $('shot');
+  const film = await createFilm(canvas, '/episodes/001-painea-care-poate-sa-astepte/episode.json');
   const slider = $('frame');
   const overlay = $('overlay');
   const stage = overlay.parentElement;
   const layerPreview = $('layer-preview');
   const select = $('bone');
   const last = data.frames.length - 1;
-  const startTime = (data.start - 1) / data.fps;
-  const endTime = data.end / data.fps;
+  const play = $('play-shot');
+  let animation;
   let mode = 'joint';
   let actor = 'costica';
   let layer = 'all';
@@ -53,6 +56,12 @@ function setup(data) {
     const frame = data.start + index * data.step;
     slider.value = frame;
     $('frame-readout').textContent = `Cadru ${frame}`;
+    void film.draw(timestamp(index)).catch((error) => {
+      stop();
+      $('shot-status').textContent = 'Scena nu s-a putut încărca. Reîncarcă pagina.';
+      $('shot-status').hidden = false;
+      console.error(error);
+    });
     const sample = data.frames[index];
     overlay.replaceChildren();
     if (mode === 'layers') return;
@@ -80,27 +89,19 @@ function setup(data) {
   }
 
   function seek(index) {
-    const next = Math.min(last, Math.max(0, index));
-    draw(next);
-    if (video.readyState > 0) video.currentTime = timestamp(next);
+    draw(Math.min(last, Math.max(0, index)));
   }
 
-  function sync(mediaTime) {
-    if (mode === 'layers') return;
-    if (mediaTime >= endTime) {
-      video.pause();
-      seek(last);
-      return;
-    }
-    const index = Math.floor((mediaTime - startTime + 0.0001) * data.fps / data.step);
-    const next = Math.max(0, Math.min(last, index));
-    if (next !== current) draw(next);
+  function stop() {
+    cancelAnimationFrame(animation);
+    animation = undefined;
+    play.textContent = 'Redă scena';
   }
 
   function setLayer(id) {
     layer = id;
     const item = data.layers.find((entry) => entry.id === id);
-    video.hidden = Boolean(item);
+    canvas.hidden = Boolean(item);
     layerPreview.hidden = !item;
     if (item) {
       layerPreview.src = `/inspectie/${id}.webp`;
@@ -154,7 +155,7 @@ function setup(data) {
   }
 
   function setMode(next) {
-    video.pause();
+    stop();
     mode = next;
     for (const button of document.querySelectorAll('[data-mode]')) {
       button.setAttribute('aria-pressed', button.dataset.mode === mode);
@@ -169,7 +170,7 @@ function setup(data) {
       seek((data.snapshot - data.start) / data.step);
       setLayer(layer);
     } else {
-      video.hidden = false;
+      canvas.hidden = false;
       layerPreview.hidden = true;
       draw(current);
     }
@@ -181,43 +182,32 @@ function setup(data) {
   $('zoom').addEventListener('change', updateZoom);
   select.addEventListener('change', updateBone);
   slider.addEventListener('input', () => {
-    video.pause();
+    stop();
     seek((Number(slider.value) - data.start) / data.step);
   });
   for (const [id, offset] of [['previous', -1], ['next', 1]]) {
     $(id).addEventListener('click', () => {
-      video.pause();
+      stop();
       seek(current + offset);
     });
   }
-  $('play-shot').addEventListener('click', async () => {
-    if (!video.paused) {
-      video.pause();
+  play.addEventListener('click', () => {
+    if (animation !== undefined) {
+      stop();
       return;
     }
     if (current === last) seek(0);
-    try {
-      await video.play();
-      $('video-status').hidden = true;
-    } catch {
-      $('video-status').textContent = 'Scena nu a putut fi redată. Încearcă din nou.';
-      $('video-status').hidden = false;
+    const started = performance.now();
+    const first = current;
+    play.textContent = 'Pauză';
+    function advance(now) {
+      const next = Math.min(last, first + Math.floor((now - started) * data.fps / (1000 * data.step)));
+      if (next !== current) seek(next);
+      if (next === last) stop();
+      else animation = requestAnimationFrame(advance);
     }
+    animation = requestAnimationFrame(advance);
   });
-  video.addEventListener('play', () => { $('play-shot').textContent = 'Pauză'; });
-  video.addEventListener('pause', () => { $('play-shot').textContent = 'Redă scena'; });
-  video.addEventListener('loadedmetadata', () => seek(current));
-  if ('requestVideoFrameCallback' in video) {
-    const update = (_, metadata) => {
-      if (!video.paused && !video.seeking) sync(metadata.mediaTime);
-      video.requestVideoFrameCallback(update);
-    };
-    video.requestVideoFrameCallback(update);
-  } else {
-    video.addEventListener('timeupdate', () => {
-      if (!video.paused && !video.seeking) sync(video.currentTime);
-    });
-  }
 
   drawWeights(data.sleeve);
   setActor(actor);
@@ -225,12 +215,16 @@ function setup(data) {
   seek(current);
   $('loading').hidden = true;
   $('workbench').hidden = false;
+  new ResizeObserver(([{ contentRect }]) => {
+    film.fit(contentRect.width, contentRect.height, Math.min(devicePixelRatio || 1, 2));
+    draw(current);
+  }).observe(stage);
 }
 
 try {
   const response = await fetch('/inspectie/scene.json');
   if (!response.ok) throw new Error('Date indisponibile');
-  setup(await response.json());
+  await setup(await response.json());
 } catch (error) {
   $('loading').textContent = 'Datele inspectorului nu s-au încărcat. Reîncarcă pagina.';
   console.error(error);
