@@ -1,0 +1,30 @@
+<!doctype html><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<body style="margin:0;background:#fff"><canvas id="c" width="1200" height="800"></canvas>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Character } from '/lib/engine/character.js';
+const loader = new GLTFLoader();
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true });
+renderer.setClearColor(0xf3e6cf);
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-6, 6, 4, -4, -100, 100);
+camera.position.set(0, 0.6, 50);
+const ids = ['costica', 'mama', 'mihai', 'tata'];
+let x = -4.5;
+for (const id of ids) {
+  const [gltf, meta] = await Promise.all([loader.loadAsync(`/assets/characters/${id}.glb`), fetch(`/assets/characters/${id}.json`).then((r) => r.json())]);
+  const c = new Character(gltf, meta, { interior: true });
+  c.root.position.set(x, 0, 0); c.root.scale.set(1, 1, 0.5);
+  scene.add(c.root);
+  // Test: brațul drept ridicat, antebrațul îndoit și scurtat; gura deschisă.
+  c.pose['upper_arm.R'].rot = -1.2; c.pose['forearm.R'].rot = -1.0; c.pose['forearm.R'].len = 0.7;
+  c.pose['head'].rot = 0.12;
+  c.select('mouth_pose', 'A');
+  c.apply();
+  x += 3;
+}
+renderer.render(scene, camera);
+window.gata = true;
+</script>

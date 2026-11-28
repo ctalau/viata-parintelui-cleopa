@@ -1,0 +1,9 @@
+{
+ "id": "cocos",
+ "parts": {
+  "root": "nod animat",
+  "head": "nod animat",
+  "beak": "nod animat"
+ },
+ "label": "Cocoșul"
+}

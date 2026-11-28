@@ -1,0 +1,24 @@
+{
+ "id": "ograda",
+ "anchors": {
+  "troaca": {
+   "pos": [
+    2.63,
+    -1.49,
+    0.21
+   ],
+   "size": 1.16
+  },
+  "sura": {
+   "pos": [
+    -0.38,
+    -1.48,
+    -4.0
+   ],
+   "size": 1.13
+  }
+ },
+ "parts": {},
+ "width": 12.4,
+ "label": "Ograda de dimineață"
+}
