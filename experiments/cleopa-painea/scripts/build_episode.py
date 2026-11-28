@@ -898,7 +898,7 @@ def kitchen_replies(mother, child, brother, father, start):
     down = (-1.0,.62)
     # „Sus": mâna se ridică deasupra umărului, pe lângă cap. Cu încheietura la nivelul umărului
     # (−.92, 1.56) antebrațul se plia la 165–176° peste braț, iar cotul făcea colț.
-    up = (-1.08,2.00)
+    up = (-.94,2.08)
     duration = lesson["end"] - lesson["start"]
     down_at = lesson["start"] + round(duration*.55)
     up_at = lesson["start"] + round(duration*.78)
