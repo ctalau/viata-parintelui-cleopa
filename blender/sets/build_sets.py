@@ -61,9 +61,12 @@ def write(path, data):
 # sau poate pune personajele oriunde, cu coordonate.
 ANCHORS = {
     "sat": {"drum": {"pos": [.10, -1.97, .19], "size": .96}},
-    "ograda": {"troaca": {"pos": [2.63, -1.49, .21], "size": 1.16},
-               "sura": {"pos": [-.38, -1.48, E.LATE_BROTHER_DEPTH], "size": 1.13}},
-    "ograda-zori": {"gard": {"pos": [2.76, .637, -2.73], "size": 1.30}, "troaca": {"pos": [-1.81, -2.42, -.05], "size": 1.17}},
+    "ograda": {"costica": {"pos": [2.63, -1.49, .21], "size": 1.16},
+               "mihai": {"pos": [-.38, -1.48, E.LATE_BROTHER_DEPTH], "size": 1.13},
+               "cocos": {"pos": [4.52, .509, -2.73], "size": .96}, "purcel": {"pos": [-2.78, -2.99, -.05], "size": 1.17},
+               "troaca": {"pos": [-1.54, -2.62, 0]}},
+    "ograda-zori": {"cocos": {"pos": [2.76, .637, -2.73], "size": 1.30}, "purcel": {"pos": [-1.81, -2.42, -.05], "size": 1.17},
+                    "troaca": {"pos": [-.57, -2.05, 0]}},
     "dormitor": {"pat": {"pos": [1.70, -1.94, .43], "size": 1.17}},
     "bucatarie": {
         "mama": {"pos": [-1.72, -2.37, .08], "size": 1.22},
