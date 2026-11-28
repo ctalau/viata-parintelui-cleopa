@@ -6,6 +6,20 @@ Atelierul de animație al Școlii Evlaviei. Include episodul **Pâinea care poat
 
 ![Școala Evlaviei](assets/branding/badge-scoala.png)
 
+## Arhitectura
+
+Blender creează actorii, decorurile și repertoriul de gesturi. JavaScript regizează filmul. Three.js îl animează și îl randează.
+
+| Parte | Unde |
+| --- | --- |
+| Personaje, decoruri, recuzită (GLB reutilizabile) | [`assets/characters/`](assets/characters/), [`assets/sets/`](assets/sets/), [`assets/props/`](assets/props/) · [contractul](assets/CONTRACT.md) · construite de [`blender/`](blender/) (`npm run assets`) |
+| Motorul (încărcare, regie, brațe și palme 2.5D, mâneci, gesturi, gură, camere, titluri, verificări) | [`lib/engine/`](lib/engine/) · [documentația](docs/ENGINE.md) |
+| Episoadele (descriptorul, cronologia, audio, MP4) | [`episodes/`](episodes/) · [formatul descriptorului](docs/EPISODE.md) |
+| Episodul 1, construit integral pe motor | [`episodes/001-painea-care-poate-sa-astepte/episode.json`](episodes/001-painea-care-poate-sa-astepte/episode.json) |
+| Episod demonstrativ, scris doar ca descriptor | [`episodes/002-semnul-crucii/episode.json`](episodes/002-semnul-crucii/episode.json) · `/motor/?ep=002-semnul-crucii` |
+
+Playerul episodului, cadrele de verificare (`npm run stills`, `npm run check:engine`) și MP4-ul (`npm run export:mp4`) folosesc același motor și aceeași funcție `stage.setTime(t)`. Playerul nu mai descarcă geometria precalculată a planurilor (`assets/film/plan-*`, păstrată ca referință). Pipeline-ul Blender al episodului 1 (`experiments/cleopa-painea/`) rămâne referința vizuală; regia lui a fost migrată o singură dată cu `tools/migrate/`.
+
 ## Pornire
 
 Cu Node.js 24 și Git instalate, rulează comenzile de mai jos. Pentru randare instalează și FFmpeg, care include FFprobe.
@@ -17,7 +31,7 @@ cd viata-parintelui-cleopa
 npm run preview
 ```
 
-Deschide [atelierul local](http://127.0.0.1:4173). Playerul redă cele 17 planuri ale episodului în Three.js, sincronizate cu pista audio originală. Filmul MP4 randat în Blender este disponibil pentru descărcare și comparație. Prima pagină listează episoadele și atelierele; episodul se deschide la `/episoade/<id>/`. Playerul JavaScript are steag, bară de redare și salturi de ±5 s și ±0,5 s. Steagul pune pauză și deschide un dialog pentru o notă la momentul curent. Notele se păstrează în `localStorage`, se pot șterge individual, un click pe notă derulează filmul la momentul ei, iar „Descarcă prompt pentru AI” exportă lista ca fișier Markdown. Endpointul `/api/feedback` rămâne disponibil, dar pagina nu îl mai folosește. În preview-ul local, `npm run feedback:export -- --local` citește notele din `.feedback/`.
+Deschide [atelierul local](http://127.0.0.1:4173). Playerul construiește cele 17 planuri ale episodului în Three.js din GLB-uri reutilizabile și `episode.json`, sincronizate cu pista audio originală. Filmul MP4 de descărcat e randat de același motor. Prima pagină listează episoadele și atelierele; episodul se deschide la `/episoade/<id>/`. Playerul JavaScript are steag, bară de redare și salturi de ±5 s și ±0,5 s. Steagul pune pauză și deschide un dialog pentru o notă la momentul curent. Notele se păstrează în `localStorage`, se pot șterge individual, un click pe notă derulează filmul la momentul ei, iar „Descarcă prompt pentru AI” exportă lista ca fișier Markdown. Endpointul `/api/feedback` rămâne disponibil, dar pagina nu îl mai folosește. În preview-ul local, `npm run feedback:export -- --local` citește notele din `.feedback/`.
 
 Pentru producția de animație, instalează Blender 4.3.2 sau 4.5 LTS, Python 3 cu `venv`, FFmpeg, FFprobe și fonturile DejaVu. `./setup.sh --animation` creează mediul virtual cu pachetele Python folosite la export. `source .venv/bin/activate` activează mediul. `./setup.sh` pregătește și Chromium pentru randare. Poți folosi un Chromium existent cu `export CHROMIUM_BIN=/cale/către/chromium`. Pe un Linux minimal, instalează și bibliotecile de sistem pentru Chromium prin managerul distribuției sau cu `npx playwright install-deps chromium`. `./setup.sh --site` pregătește doar site-ul.
 

@@ -1,0 +1,378 @@
+{
+ "id": "002-semnul-crucii",
+ "title": "Semnul crucii",
+ "subtitle": "Episod demonstrativ · doar descriptor și biblioteca existentă",
+ "series": "Viața Părintelui Cleopa · Micuțul Cleopa",
+ "fps": 24,
+ "frames": 408,
+ "format": [
+  1280,
+  720
+ ],
+ "timeline": "timeline.json",
+ "audio": {
+  "mix": "audio/mix.m4a"
+ },
+ "note": "Episod creat numai din descriptor: personajele, decorul și recuzita sunt GLB-urile din assets/, gesturile vin din lib/engine/gestures.js (do: gesture, side, at, hold). Timpii sunt cadre la 24 fps.",
+ "sets": {
+  "bucatarie": {
+   "asset": "bucatarie"
+  }
+ },
+ "shots": [
+  {
+   "name": "Înainte de masă",
+   "at": 1,
+   "set": "bucatarie",
+   "center": [
+    2.6,
+    -0.4
+   ],
+   "width": 11.2,
+   "glide": [
+    0.08,
+    0.02,
+    -0.25
+   ]
+  },
+  {
+   "name": "Costică își face cruce",
+   "at": 121,
+   "set": "bucatarie",
+   "center": [
+    2.3,
+    -0.75
+   ],
+   "width": 6.4,
+   "glide": [
+    0.04,
+    0.0,
+    -0.12
+   ]
+  },
+  {
+   "name": "Și Mama",
+   "at": 221,
+   "set": "bucatarie",
+   "center": [
+    -1.3,
+    -0.35
+   ],
+   "width": 7.2,
+   "glide": [
+    0.05,
+    0.02,
+    -0.15
+   ]
+  },
+  {
+   "name": "Rugăciunea",
+   "at": 311,
+   "set": "bucatarie",
+   "center": [
+    1.2,
+    -0.45
+   ],
+   "width": 13.0,
+   "glide": [
+    0.1,
+    0.03,
+    -0.3
+   ]
+  }
+ ],
+ "cast": {
+  "mama": {
+   "scene": "bucatarie",
+   "character": "mama",
+   "pos": [
+    -1.72,
+    -2.37,
+    0.08
+   ],
+   "size": 1.22,
+   "look": 1,
+   "interior": true,
+   "atTable": true,
+   "accessories": [],
+   "breathe": [
+    [
+     1,
+     408,
+     0.3
+    ]
+   ],
+   "blinks": [
+    40,
+    150,
+    260,
+    380
+   ],
+   "head": [
+    [
+     1,
+     0.02,
+     -0.02
+    ],
+    [
+     100,
+     0.03,
+     0.06
+    ],
+    [
+     220,
+     0.02,
+     0.0
+    ]
+   ],
+   "do": [
+    {
+     "gesture": "tableRest",
+     "side": "R",
+     "at": 1,
+     "hold": 220
+    },
+    {
+     "gesture": "tableRest",
+     "side": "L",
+     "at": 1,
+     "hold": 400
+    },
+    {
+     "gesture": "cross",
+     "at": 226
+    },
+    {
+     "gesture": "nod",
+     "at": 330
+    }
+   ]
+  },
+  "costica": {
+   "scene": "bucatarie",
+   "character": "costica",
+   "pos": [
+    2.22,
+    -2.47,
+    1.14
+   ],
+   "size": 1.15,
+   "interior": true,
+   "breathe": [
+    [
+     1,
+     408,
+     0.7
+    ]
+   ],
+   "blinks": [
+    70,
+    200,
+    300
+   ],
+   "head": [
+    [
+     1,
+     0.0,
+     0.03
+    ],
+    [
+     110,
+     0.03,
+     0.1
+    ]
+   ],
+   "do": [
+    {
+     "gesture": "cross",
+     "at": 130
+    },
+    {
+     "gesture": "pray",
+     "at": 318,
+     "hold": 50
+    }
+   ]
+  },
+  "mihai": {
+   "scene": "bucatarie",
+   "character": "mihai",
+   "pos": [
+    4.23,
+    -2.4,
+    0.61
+   ],
+   "size": 1.13,
+   "look": -1,
+   "interior": true,
+   "breathe": [
+    [
+     1,
+     408,
+     0.4
+    ]
+   ],
+   "blinks": [
+    55,
+    180,
+    330
+   ],
+   "props": [
+    {
+     "prop": "carte",
+     "bone": "chest",
+     "at": [
+      0.32,
+      0.78
+     ],
+     "z": 0.47
+    }
+   ],
+   "do": [
+    {
+     "gesture": "holdBook",
+     "side": "L",
+     "at": 1,
+     "hold": 406
+    },
+    {
+     "gesture": "nod",
+     "at": 190
+    }
+   ]
+  },
+  "tata": {
+   "scene": "bucatarie",
+   "character": "tata",
+   "pos": [
+    7.0,
+    -2.62,
+    1.67
+   ],
+   "size": 1.3,
+   "look": -1,
+   "interior": true,
+   "accessories": [
+    "beard"
+   ],
+   "breathe": [
+    [
+     1,
+     408,
+     6.6
+    ]
+   ],
+   "blinks": [
+    30,
+    170,
+    290
+   ],
+   "head": [
+    [
+     1,
+     0.04,
+     0.08
+    ],
+    [
+     60,
+     0.0,
+     -0.05
+    ],
+    [
+     120,
+     0.05,
+     0.1
+    ]
+   ],
+   "do": [
+    {
+     "gesture": "pointUp",
+     "side": "R",
+     "at": 20,
+     "hold": 50
+    },
+    {
+     "gesture": "pray",
+     "at": 318,
+     "hold": 50
+    }
+   ]
+  }
+ },
+ "props": {
+  "paine": {
+   "scene": "bucatarie",
+   "asset": "paine",
+   "keys": [
+    [
+     1,
+     [
+      -0.12,
+      -2.56,
+      0
+     ]
+    ]
+   ]
+  },
+  "abur": {
+   "scene": "bucatarie",
+   "asset": "abur",
+   "ambient": {
+    "kind": "steam",
+    "follow": "paine",
+    "from": 1
+   }
+  },
+  "flacara": {
+   "scene": "bucatarie",
+   "part": "flame",
+   "ambient": {
+    "kind": "flicker"
+   }
+  },
+  "icoana": {
+   "scene": "bucatarie",
+   "part": "icon2",
+   "visible": [
+    1,
+    409
+   ]
+  }
+ },
+ "overlays": [
+  {
+   "kind": "title",
+   "shot": 0,
+   "from": 1,
+   "to": 70,
+   "at": [
+    -1.75,
+    1.95
+   ],
+   "title": "Semnul crucii",
+   "subtitle": "Înainte de masă",
+   "pop": [
+    [
+     1,
+     0.96
+    ],
+    [
+     14,
+     1
+    ],
+    [
+     -9,
+     1
+    ],
+    [
+     -1,
+     0.95
+    ]
+   ]
+  }
+ ],
+ "logo": {
+  "file": "/assets/branding/logo-scoala-mic.webp",
+  "corner": "top-left"
+ }
+}

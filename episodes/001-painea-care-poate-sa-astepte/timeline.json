@@ -1,0 +1,344 @@
+{
+  "fps": 24,
+  "end": 3370,
+  "beats": [
+    {
+      "page": 1,
+      "id": "sat",
+      "start": 1,
+      "end": 253,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Pe dealurile Botoșanilor trăia un băiețel pe nume Costică. Era vesel, curios și mereu flămând.",
+          "file": "01-01.wav",
+          "start": 59,
+          "end": 241
+        }
+      ]
+    },
+    {
+      "page": 2,
+      "id": "trezire",
+      "start": 253,
+      "end": 505,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Dimineața, cocoșul cânta primul. Apoi se trezea purcelușul Grăsuțu.",
+          "file": "02-01.wav",
+          "start": 265,
+          "end": 415
+        },
+        {
+          "speaker": "povestitor",
+          "text": "Și burtica lui Costică se trezea.",
+          "file": "02-02.wav",
+          "start": 425,
+          "end": 495
+        }
+      ]
+    },
+    {
+      "page": 3,
+      "id": "burtica",
+      "start": 505,
+      "end": 591,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Șșș… Să nu te audă tata!",
+          "file": "03-01.wav",
+          "start": 521,
+          "end": 579
+        }
+      ]
+    },
+    {
+      "page": 4,
+      "id": "troaca",
+      "start": 591,
+      "end": 787,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "În ogradă, purcelușul Grăsuțu mânca deja din troacă.",
+          "file": "04-01.wav",
+          "start": 599,
+          "end": 705
+        },
+        {
+          "speaker": "costica",
+          "text": "Grăsuțule, ce noroc ai!",
+          "file": "04-02.wav",
+          "start": 711,
+          "end": 771
+        }
+      ]
+    },
+    {
+      "page": 5,
+      "id": "mihai",
+      "start": 787,
+      "end": 1011,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Din spatele șurii ieși Mihai, fratele mai mare. Avea o carte groasă sub braț.",
+          "file": "05-01.wav",
+          "start": 795,
+          "end": 959
+        },
+        {
+          "speaker": "mihai",
+          "text": "Hai, tata ne așteaptă!",
+          "file": "05-02.wav",
+          "start": 965,
+          "end": 999
+        }
+      ]
+    },
+    {
+      "page": 6,
+      "id": "cuptor",
+      "start": 1011,
+      "end": 1211,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "În casă mirosea a pâine caldă. Mama scosese din cuptor o pâine mare și rumenă.",
+          "file": "06-01.wav",
+          "start": 1019,
+          "end": 1199
+        }
+      ]
+    },
+    {
+      "page": 7,
+      "id": "traista",
+      "start": 1211,
+      "end": 1353,
+      "cues": [
+        {
+          "speaker": "mama",
+          "text": "Copii, rupeți câte o bucată și puneți și în traistă. Aveți drum lung până la școală.",
+          "file": "07-01.wav",
+          "start": 1219,
+          "end": 1341
+        }
+      ]
+    },
+    {
+      "page": 8,
+      "id": "aproape",
+      "start": 1353,
+      "end": 1617,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Costică întinse mâna spre pâine. Mirosul îl învăluia ca un nor auriu.",
+          "file": "08-01.wav",
+          "start": 1359,
+          "end": 1511
+        },
+        {
+          "speaker": "costica",
+          "text": "Mai e puțin… Doar încă puțin…",
+          "file": "08-02.wav",
+          "start": 1521,
+          "end": 1599
+        }
+      ]
+    },
+    {
+      "page": 9,
+      "id": "prag",
+      "start": 1617,
+      "end": 1843,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Atunci intră tata. Era înalt cât ușa și avea o mustață brună.",
+          "file": "09-01.wav",
+          "start": 1625,
+          "end": 1767
+        },
+        {
+          "speaker": "tata",
+          "text": "O clipă, copii. Lăsați pâinea să aștepte.",
+          "file": "09-02.wav",
+          "start": 1773,
+          "end": 1833
+        }
+      ]
+    },
+    {
+      "page": 10,
+      "id": "intai",
+      "start": 1843,
+      "end": 2091,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Mâna lui Costică îngheță în aer, chiar lângă pâine.",
+          "file": "10-01.wav",
+          "start": 1851,
+          "end": 1957
+        },
+        {
+          "speaker": "tata",
+          "text": "Întâi ne rugăm. Ziua începe cu Dumnezeu.",
+          "file": "10-02.wav",
+          "start": 1967,
+          "end": 2041
+        }
+      ]
+    },
+    {
+      "page": 11,
+      "id": "farfuria",
+      "start": 2091,
+      "end": 2201,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Dar Grăsuțu a început-o cu farfuria…",
+          "file": "11-01.wav",
+          "start": 2097,
+          "end": 2163
+        },
+        {
+          "speaker": "tata",
+          "text": "Ce-ai zis, Costică?",
+          "file": "11-02.wav",
+          "start": 2169,
+          "end": 2193
+        }
+      ],
+      "title": "Dar Grăsuțu a început-o…"
+    },
+    {
+      "page": 12,
+      "id": "grasutu",
+      "start": 2201,
+      "end": 2323,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Că… Grăsuțu mănâncă de dimineață. Și el e foarte fericit.",
+          "file": "12-01.wav",
+          "start": 2207,
+          "end": 2313
+        }
+      ],
+      "title": "Grăsuțu e fericit"
+    },
+    {
+      "page": 13,
+      "id": "porcul-si-omul",
+      "start": 2323,
+      "end": 2605,
+      "cues": [
+        {
+          "speaker": "tata",
+          "text": "Apoi tu nu ești porc să mănânci de dimineață, băiete. Porcul mănâncă și se uită în jos, la troacă. Omul se roagă și se uită în sus, la Dumnezeu.",
+          "file": "13-01.wav",
+          "start": 2335,
+          "end": 2581
+        }
+      ],
+      "title": "Porcul și omul"
+    },
+    {
+      "page": 14,
+      "id": "un-ceas",
+      "start": 2605,
+      "end": 2759,
+      "cues": [
+        {
+          "speaker": "costica",
+          "text": "Bine, tată… dar cât ne rugăm?",
+          "file": "14-01.wav",
+          "start": 2609,
+          "end": 2677
+        },
+        {
+          "speaker": "tata",
+          "text": "Un ceas.",
+          "file": "14-02.wav",
+          "start": 2683,
+          "end": 2697
+        },
+        {
+          "speaker": "costica",
+          "text": "Un ceas întreg?!",
+          "file": "14-03.wav",
+          "start": 2703,
+          "end": 2751
+        }
+      ],
+      "title": "Un ceas întreg?!"
+    },
+    {
+      "page": 15,
+      "id": "amin",
+      "start": 2759,
+      "end": 2879,
+      "cues": [
+        {
+          "speaker": "tata",
+          "text": "Vezi? Și burta ta zice „Amin”.",
+          "file": "15-01.wav",
+          "start": 2783,
+          "end": 2849
+        }
+      ],
+      "title": "Și burta zice Amin"
+    },
+    {
+      "page": 16,
+      "id": "la-icoane",
+      "start": 2879,
+      "end": 3371,
+      "cues": [
+        {
+          "speaker": "povestitor",
+          "text": "Și așa, în fiecare dimineață, familia lui Costică stătea înaintea icoanelor. Tata citea rugăciunile cu glas gros, mama șoptea, iar copiii se străduiau să nu se uite la pâine.",
+          "file": "16-01.wav",
+          "start": 2891,
+          "end": 3217
+        },
+        {
+          "speaker": "cor",
+          "text": "Pâinea noastră cea de toate zilele dă-ne-o nouă astăzi.",
+          "file": "16-02.wav",
+          "start": 3223,
+          "end": 3327
+        }
+      ],
+      "title": "La icoane"
+    }
+  ],
+  "effects": [
+    {
+      "file": "cocos.wav",
+      "start": 257,
+      "end": 273
+    },
+    {
+      "file": "burta.wav",
+      "start": 506,
+      "end": 522
+    },
+    {
+      "file": "grohait.wav",
+      "start": 773,
+      "end": 785
+    },
+    {
+      "file": "burta.wav",
+      "start": 2764,
+      "end": 2780
+    }
+  ]
+}

@@ -467,6 +467,15 @@ def relax_wrist(a,side):
     return (sign*(p["shoulder_x"]+.08),p["shoulder_y"]-p["upper"]-p["lower"]+.085)
 
 
+def table_rest(a, side):
+    """Mama la masă, în bucătărie: palma stă pe blat lângă ea, cu încheietura chiar deasupra
+    muchiei din spate a mesei și degetele pe blat, spre cameră. Brațul relaxat (`relax_wrist`)
+    cădea în spatele mesei și mâinile dispăreau după ce așeza pâinea. Cât stă pe blat, mâna,
+    manșeta și antebrațul se desenează în fața mesei (`palme25d_bake.TABLE_LIFT`)."""
+    sign = 1 if side == "L" else -1
+    return (sign*(a["p"]["shoulder_x"]-.10), .10), (-sign*.12, -1)
+
+
 def animate_village(coll):
     village(coll)
     # Feet sit on the wide foreground lane, clear of both fences.
@@ -609,7 +618,9 @@ def animate_yard(coll):
     hand_pose(child,"R",speech["start"]+8,"open")
     hand_pose(child,"R",speech["end"]+7,"rest")
 
-    brother=actor(coll,"brother_01","Mihai · ogradă",(-.38,-1.48,LATE_BROTHER_DEPTH),1.13,look=1)
+    # Palmele 2.5D, ca în bucătărie: cu desenul vechi `grip`, mâna de pe carte era un pumn
+    # cu degetul mare în jos și palma spre cameră.
+    brother=actor(coll,"brother_01","Mihai · ogradă",(-.38,-1.48,LATE_BROTHER_DEPTH),1.13,look=1,palme=True)
     m0=BEATS["mihai"]["start"]
     walk_end=m0+67
     position_paths(brother,mihai_entrance(m0,end))
@@ -624,8 +635,8 @@ def animate_yard(coll):
                        (line["start"]+12,(-.12,1.00),(.83,.55)),
                        (line["end"]-8,(-.12,1.00),(.83,.55)),
                        (end+15,r,(.03,-1))])
-    # The book rests on the cupped hand under its lower edge (a fist clenched on the cover
-    # read as a punch).
+    # The hand holds the book against the chest: palm on the cover, toward the book, thumb up
+    # (`grip` in palme25d.default_palm; a fist clenched on the cover read as a punch).
     arms(brother,"L",[(m0,(.62,.42),(-.96,.24)),(end,(.62,.42),(-.96,.24))],True)
     prop_book(brother)
     blink(brother["rig"],beat_frame("mihai",.57))
@@ -691,19 +702,20 @@ def animate_kitchen(coll):
             tip=(tip0[0]+moved.x,tip0[1]+moved.y,tip0[2])
             previous,last,_=tip_key(mother,side,f,tip,aim_at(f),"cup",palm,previous)
         hand_pose(mother,side,begin,"cup")
-        rest=relax_wrist(mother,side)
+        # După ce lasă talerul, mâinile alunecă înapoi pe blat și rămân acolo, în fața mesei.
+        rest,down=table_rest(mother,side)
         f=settle+21
-        arms(mother,side,[(settle,tuple(last),tuple(aim_at(settle))),(f,rest,(0,-1))],skip_first=True)
-        hand_pose(mother,side,f,"rest")
+        arms(mother,side,[(settle,tuple(last),tuple(aim_at(settle))),(f,rest,down)],skip_first=True)
+        hand_pose(mother,side,settle+6,"reach")
         if side=="L":
-            arms(mother,side,[(f,rest,(0,-1)),(invite["start"]+3,rest,(0,-1)),
+            arms(mother,side,[(f,rest,down),(invite["start"]+3,rest,down),
                              (invite["start"]+28,(.925,.793),(-.102,-.995)),
                              (invite["start"]+43,(1.25,.85),(.95,.28)),
                              (invite["end"]-23,(1.25,.85),(.95,.28)),
                              (invite["end"]-4,(.925,.793),(-.102,-.995)),
-                             (invite["end"]+15,rest,(0,-1)),(end,rest,(0,-1))])
+                             (invite["end"]+15,rest,down),(end,rest,down)])
             hand_pose(mother,"L",invite["start"]+25,"open")
-            hand_pose(mother,"L",invite["end"],"rest")
+            hand_pose(mother,"L",invite["end"],"reach")
     for f,bow,tilt in ((begin,.06,-.086),(settle,.13,-.095),(invite["start"],.016,.043),(invite["end"],.026,.075),(end,.02,-.014)):
         head(mother["rig"],f,bow,tilt)
     blink(mother["rig"],settle+10)
@@ -768,12 +780,16 @@ def animate_kitchen(coll):
                       (warns["start"]+6,(-.71,.541),(.944,-.329)),
                       (warns["start"]+23,(-.46,1.17),(-.20,.98)),
                       (warns["end"]-13,(-.46,1.17),(-.20,.98)),
-                      (warns["end"]+5,(-.71,.541),(.944,-.329)),
+                      # La coborâre brațul cade pe lângă corp, iar degetele rămân în prelungirea
+                      # antebrațului și coboară prin exterior. Prin poza de la ridicare (degetele
+                      # orizontal, spre corp, peste curea) palma se răsucea și antebrațul se
+                      # scurta la 45 %.
+                      (warns["end"]+7,(-.82,.80),(-.50,-.87)),
                       (BEATS["intai"]["start"]+14,ra,(.03,-1)),(end,ra,(.03,-1))])
     hand_pose(father,"R",warns["start"]+9,"stop")
-    # The palm turns back to rest while the hand is still level: the joint-space path lowers it
-    # sooner, and a palm still facing the camera with the fingers down shows the thumb inside.
-    hand_pose(father,"R",warns["end"]+3,"rest")
+    # The palm turns back to rest (toward the thigh) as the hand starts to drop: a palm still
+    # facing the camera with the fingers down shows the thumb inside.
+    hand_pose(father,"R",warns["end"]-2,"rest")
     for f,bow,tilt in ((door,0,-.04),(arrival,.06,.10),(warns["start"],0,.07),(end,.04,.08)):
         head(father["rig"],f,bow,tilt)
     voice(father,cues("prag","tata")+cues("intai","tata"))
@@ -880,22 +896,40 @@ def kitchen_replies(mother, child, brother, father, start):
     rest = relax_wrist(father,"R")
     chin = (-.27,1.67)
     down = (-1.0,.62)
-    up = (-.92,1.56)
+    # „Sus": mâna se ridică deasupra umărului, pe lângă cap. Cu încheietura la nivelul umărului
+    # (−.92, 1.56) antebrațul se plia la 165–176° peste braț, iar cotul făcea colț.
+    up = (-.94,2.08)
     duration = lesson["end"] - lesson["start"]
     down_at = lesson["start"] + round(duration*.55)
     up_at = lesson["start"] + round(duration*.78)
+    # Tata se gândește cu mâna la barbă cât rostește prima frază: palma spre barbă (înăuntru
+    # și înapoi, spre față), cu dosul mâinii spre cameră. Palma implicită a pozei `cup` (în
+    # sus) se vedea spre cameră, întoarsă cu 180°.
+    beard_palm = (.40,.25,-.88)
+    stroke = down_at-30
     arms(father,"R",[
         (start,rest,(.03,-1)),(lesson["start"]-32,rest,(.03,-1)),
         (lesson["start"]+2,chin,(.32,.95)),
         (lesson["start"]+15,(-.22,1.61),(.36,.93)),
         (lesson["start"]+28,(-.34,1.53),(.28,.96)),
-        (down_at-21,(-.81,1.09),(-.68,-.72)),
+        (lesson["start"]+46,(-.23,1.62),(.34,.94)),
+        (lesson["start"]+64,(-.31,1.56),(.30,.95)),
+        (stroke,(-.27,1.60),(.32,.95)),
+    ],wrist_limit=wrist_limit,palm=beard_palm)
+    # De la barbă mâna coboară direct spre troacă, fără poze intermediare: între ele
+    # antebrațul stătea ridicat 86 de cadre, iar încheietura, cu degetele deja în jos, se
+    # îndoia până la limita de 72°. Încheietura lui Tata rămâne în 50° în tot gestul.
+    lesson_limit = 50*pi/180
+    arms(father,"R",[
+        (stroke,(-.27,1.60),(.32,.95)),
         (down_at,down,(-.26,-.97)),(down_at+12,down,(-.26,-.97)),
+        # Spre „sus" degetele urcă prin exterior, nu orizontal peste burtă; antebrațul vine
+        # spre cameră (prin lateral, mâna ar trece peste capul lui Mihai, din stânga lui Tata).
         (up_at-13,(-.93,1.02),(-.80,.60)),
         (up_at,up,(-.12,.99)),(lesson["end"]-9,up,(-.12,.99)),
         (lesson["end"]+12,(-.91,1.01),(-.61,.55)),
         (lesson_reaction+35,rest,(.03,-1)),
-    ],wrist_limit=wrist_limit)
+    ],wrist_limit=lesson_limit,skip_first=True)
     # „Amin": brațul aproape întins pe lângă corp, palma deschisă spre exterior și camera.
     # Palma se dă explicit, perpendicular pe degete (cu palma paralelă cu degetele, regula
     # din `orientation` o răstoarnă spre cameră și mâna se desprinde de manșetă), iar
@@ -908,7 +942,7 @@ def kitchen_replies(mother, child, brother, father, start):
         (joke["end"]-3,amen,(-.30,-.95)),
         (laugh+22,rest,(.03,-1)),(prayer_start-1,rest,(.03,-1)),
     ],wrist_limit=wrist_limit,palm=(-.55,.1,.83))
-    for f, pose in ((lesson["start"]-7,"cup"),(lesson["start"]+30,"reach"),
+    for f, pose in ((lesson["start"]-7,"cup"),(stroke+1,"reach"),
                     (lesson_reaction+15,"rest"),(joke["start"]+4,"open"),(laugh+12,"rest")):
         hand_pose(father,"R",f,pose)
     for f,bow,tilt in (
@@ -928,7 +962,7 @@ def kitchen_replies(mother, child, brother, father, start):
     for f,bow,tilt in ((start,.02,-.014),(lesson_reaction+10,.13,-.13),(ask["start"]+16,.025,-.05)):
         head(rig,f,bow,tilt)
     laugh_reaction(mother,laugh+4,prayer_start-1,.17)
-    rest = relax_wrist(mother,"R")
+    rest, down = table_rest(mother,"R")
     cheek = (-.51,1.83)
     toward = (.52,.85)
     # The palm faces the cheek: inward, towards the face, and a little back.
@@ -954,14 +988,14 @@ def kitchen_replies(mother, child, brother, father, start):
     left = contact_hold(mother,"R",first,cheek_at,toward,"cheek",palm,wrist_limit)
     contact_hold(mother,"R",second,cheek_at,toward,"cheek",palm,wrist_limit)
     arms(mother,"R",[
-        (start,rest,(0,-1)),(lesson_reaction-27,rest,(0,-1)),
+        (start,rest,down),(lesson_reaction-27,rest,down),
         (first[0],touch(first[0]),toward),
     ],wrist_limit=wrist_limit,palm=palm,keep_last=True)
     arms(mother,"R",[
-        (first[-1],tuple(left),toward),(ask["start"]+34,rest,(0,-1)),
-        (laugh-26,rest,(0,-1)),(second[0],touch(second[0]),toward),
+        (first[-1],tuple(left),toward),(ask["start"]+34,rest,down),
+        (laugh-26,rest,down),(second[0],touch(second[0]),toward),
     ],wrist_limit=wrist_limit,skip_first=True,palm=palm,keep_last=True)
-    for f, pose_ in ((lesson_reaction+5,"cheek"),(ask["start"]+12,"rest"),(laugh+8,"cheek")):
+    for f, pose_ in ((lesson_reaction+5,"cheek"),(ask["start"]+12,"reach"),(laugh+8,"cheek")):
         hand_pose(mother,"R",f,pose_)
     scarf_fold(mother,lesson_reaction+9,ask["start"]+7)
     scarf_fold(mother,laugh+11,prayer_start)

@@ -7,7 +7,8 @@ import { chaptersFrom, episode } from '../studio/episode.mjs';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const episodeDir = 'experiments/cleopa-painea';
 const first = 'experiments/cleopa-blender';
-const mp4 = path.join(ROOT, episodeDir, 'renders', episode.file);
+// MP4-ul de descărcat e randat de motorul Three.js (tools/engine/export-mp4.mjs), ca playerul.
+const mp4 = path.join(ROOT, 'episodes/001-painea-care-poate-sa-astepte/film.mp4');
 const timeline = JSON.parse(fs.readFileSync(path.join(ROOT, episodeDir, 'timeline.json'), 'utf8'));
 if (fs.statSync(mp4).size >= 5_000_000) throw new Error('Copia MP4 trebuie să aibă sub 5 MB.');
 const gitHub = 'https://github.com/ctalau/viata-parintelui-cleopa';
@@ -68,6 +69,15 @@ fs.mkdirSync(episodePage, { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'studio/episoade', episode.id, 'index.html'), path.join(episodePage, 'index.html'));
 fs.cpSync(path.join(ROOT, 'studio/inspectie'), path.join(out, 'inspectie'), { recursive: true });
 fs.cpSync(path.join(ROOT, 'assets'), path.join(out, 'assets'), { recursive: true });
+// Motorul nou: descriptorii episoadelor și pistele lor audio (GLB-urile sunt în assets/).
+for (const id of fs.readdirSync(path.join(ROOT, 'episodes'))) {
+  const source = path.join(ROOT, 'episodes', id);
+  const target = path.join(out, 'episodes', id);
+  fs.mkdirSync(target, { recursive: true });
+  for (const name of ['episode.json', 'timeline.json', 'audio', 'poster.webp', 'film.mp4']) {
+    if (fs.existsSync(path.join(source, name))) fs.cpSync(path.join(source, name), path.join(target, name), { recursive: true });
+  }
+}
 const filmAssets = path.join(out, 'assets/film');
 const textures = new Set();
 for (const { id } of JSON.parse(fs.readFileSync(path.join(filmAssets, 'index.json'))).shots) {
@@ -142,5 +152,8 @@ buildSync({
   outfile: path.join(palms, 'palme.js'),
   bundle: true, minify: true, format: 'esm',
 });
+fs.mkdirSync(path.join(out, 'motor'), { recursive: true });
+fs.copyFileSync(path.join(ROOT, 'studio/motor/index.html'), path.join(out, 'motor/index.html'));
+buildSync({ entryPoints: [path.join(ROOT, 'studio/motor/motor.js')], outfile: path.join(out, 'motor.js'), bundle: true, minify: true, format: 'esm' });
 fs.writeFileSync(path.join(out, 'catalog.json'), JSON.stringify({ episode, chapters: chaptersFrom(timeline), library }));
 console.log('Atelier pregătit în dist/.');

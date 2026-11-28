@@ -252,7 +252,8 @@ def verify_palme25d(beats):
                     expected = P.layered_vertices(built, levels.at(frame, over_tray), B.level_rule(h, over_tray, data))
                     shift = verts[0][2]-expected[0][2]
                     worst_xy = max(abs(a[0]-b[0])+abs(a[1]-b[1]) for a, b in zip(verts, expected))
-                    if worst_xy > 1e-4 or min(abs(shift), abs(shift-B.FACE_LIFT)) > 1e-4:
+                    lifts = (0., B.FACE_LIFT, levels.table_lift)   # la față, pe masă (Mama)
+                    if worst_xy > 1e-4 or min(abs(shift-lift) for lift in lifts) > 1e-4:
                         fail(f"{actor} {side}: palma coaptă nu e desenul proxy-ului ({worst_xy:.2e})", frame)
                     flips = P.flipped_faces(verts)
                     if flips:
@@ -387,7 +388,7 @@ def verify_hands(beats):
     poses = (
         ("Costică · bucătărie","R", beats[9]["start"]+30,"reach"),
         ("Tata · prag","R", beats[8]["cues"][1]["start"]+30,"stop"),
-        ("Mihai · bucătărie","L", beats[8]["start"]+70,"cup"),   # cartea stă pe palma căuș
+        ("Mihai · bucătărie","L", beats[8]["start"]+70,"grip"),  # palma pe copertă, spre carte
     )
     for actor,side,frame,pose in poses:
         coll = bpy.data.collections[actor]

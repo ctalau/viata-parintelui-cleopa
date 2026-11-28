@@ -572,8 +572,10 @@ def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
                 groups.append(cur)
             cur["shapes"].append(shape)
             cur["zs"].append(shape["z"])
-            # Un vârf strâns în pumn nu arată unghia.
-            if details and k == 2 and d["dorsal"][2][2] > .3 and sum(d["bends"]) < 150:
+            # Un vârf strâns în pumn nu arată unghia. Cu palma spre cameră degetul mare se vede
+            # din lateral: unghia lui nu e spre cameră, chiar dacă vârful se întoarce puțin.
+            thumb_side = thumb and facing(h) > .35
+            if details and k == 2 and not thumb_side and d["dorsal"][2][2] > .3 and sum(d["bends"]) < 150:
                 direction = sub2(xy(b), xy(a))
                 along = len2(direction)
                 if along > d["r"][2]*.6:
@@ -583,9 +585,13 @@ def build_volume(h, details=True, memory=None, hand=HAND, lw=None):
                         "ry": d["r"][2]*.5*min(1, d["dorsal"][2][2]+.25), "w": lw*.45})
     for g in groups[1:]:
         g["z"] = sum(g["zs"])/len(g["zs"])
-        # Un deget înrădăcinat stă în fața palmei, dacă nu e clar în spatele ei.
+        # Un deget înrădăcinat stă în fața palmei, dacă nu e clar în spatele ei. Văzut din dos,
+        # degetul înrădăcinat continuă dosul palmei chiar când se îndoaie spre podul palmei:
+        # desenat în spatele ei, conturul palmei tăia baza degetelor ca pliul, care se vede
+        # numai pe partea palmei.
         finger = not g["id"].startswith("mare")
-        if g["rooted"] and finger and g["z"] > h["palmZ"]-1.2*h["k"]:
+        back = facing(h) < 0
+        if g["rooted"] and finger and (back or g["z"] > h["palmZ"]-1.2*h["k"]):
             g["z"] = max(g["z"], h["palmZ"]+.01)
         if g["z"] < h["palmZ"]-.3*h["k"] and not g["rooted"]:
             g["fill"] = SHADE
@@ -1036,7 +1042,9 @@ def solve_arm(profile, side, wrist, hand_angle, depth=None, prefer=None):
 #   rest  – brațul atârnă: degetele în jos, palma spre coapsă (înăuntru);
 #   open  – invitația: palma în sus, puțin spre cameră, ca să se citească deschisă;
 #   cup   – ține ceva de dedesubt (tava): palma în sus și înăuntru;
-#   grip  – ține cartea de dedesubt: degete aproape întinse (`tine`), nu pumn;
+#   grip  – ține cartea lipită de piept: palma pe copertă (spre carte, departe de
+#           cameră), degetele aproape întinse (`tine`) și degetul mare în sus. Cu palma
+#           în sus degetul mare ieșea în jos, iar palma se vedea întoarsă spre cameră;
 #   reach – întinde mâna spre țintă: degetele spre ea, palma în jos și puțin
 #           dinspre cameră, ca degetele întinse să se vadă, nu doar muchia lor;
 #   stop  – semnul de oprire: degetele în sus, palma spre cameră;
@@ -1051,7 +1059,7 @@ def default_palm(pose, side):
         "rest": inward,
         "open": (0, 1, .35),
         "cup": norm(add((0, 1, 0), mul(inward, .5))),
-        "grip": norm(add((0, 1, 0), mul(inward, .5))),
+        "grip": norm((0, .3, -1)),
         "cheek": norm(add((0, 0, -.65), mul(inward, .75))),
         "reach": norm((0, -.75, -.66)),
         "stop": (0, 0, 1),

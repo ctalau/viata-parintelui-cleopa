@@ -1,0 +1,8 @@
+{ "fps": 24, "end": 408,
+  "beats": [
+    { "id": "inainte", "title": "Înainte de masă", "start": 1, "end": 121, "cues": [] },
+    { "id": "costica", "title": "Costică își face cruce", "start": 121, "end": 221, "cues": [] },
+    { "id": "mama", "title": "Și Mama", "start": 221, "end": 311, "cues": [] },
+    { "id": "rugaciunea", "title": "Rugăciunea", "start": 311, "end": 409, "cues": [] }
+  ],
+  "effects": [] }

@@ -1,0 +1,16 @@
+{
+ "id": "dormitor",
+ "anchors": {
+  "pat": {
+   "pos": [
+    1.7,
+    -1.94,
+    0.43
+   ],
+   "size": 1.17
+  }
+ },
+ "parts": {},
+ "width": 12.0,
+ "label": "Dormitorul"
+}

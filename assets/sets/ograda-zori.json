@@ -1,0 +1,31 @@
+{
+ "id": "ograda-zori",
+ "anchors": {
+  "cocos": {
+   "pos": [
+    2.76,
+    0.637,
+    -2.73
+   ],
+   "size": 1.3
+  },
+  "purcel": {
+   "pos": [
+    -1.81,
+    -2.42,
+    -0.05
+   ],
+   "size": 1.17
+  },
+  "troaca": {
+   "pos": [
+    -0.57,
+    -2.05,
+    0
+   ]
+  }
+ },
+ "parts": {},
+ "width": 12.4,
+ "label": "Ograda în zori"
+}

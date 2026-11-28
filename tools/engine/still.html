@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8">
+<script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script>
+<body style="margin:0;background:#000"><canvas id="c"></canvas>
+<script type="module">
+// Cadre fixe din motor: ?ep=<episod>&t=1.5,20.3 (secunde) sau &f=1172,1748 (cadre) [&w=1280]
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Stage } from '/lib/engine/stage.js';
+const q = new URLSearchParams(location.search);
+const width = Number(q.get('w') ?? 1280), height = Math.round(width * 9 / 16);
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(width, height, false);
+renderer.setClearColor(0x000000);
+const stage = new Stage({ loader: new GLTFLoader() });
+await stage.load(`/episodes/${q.get('ep')}/episode.json`);
+window.stage = stage;
+window.renderer = renderer;
+window.frameAt = (t, type = 'image/png') => { stage.setTime(t); renderer.render(stage.scene, stage.camera); return canvas.toDataURL(type, 0.92); };
+window.gata = true;
+</script>

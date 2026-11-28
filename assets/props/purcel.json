@@ -1,0 +1,14 @@
+{
+ "id": "purcel",
+ "parts": {
+  "root": "nod animat",
+  "head": "nod animat",
+  "tail": "nod animat",
+  "open": "nod animat",
+  "shut": "nod animat",
+  "jaw": "nod animat",
+  "chew": "nod animat",
+  "bite": "nod animat"
+ },
+ "label": "Grăsuțu"
+}

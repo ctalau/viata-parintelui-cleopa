@@ -17,7 +17,12 @@
     "sheet": "node tools/sheet.mjs",
     "render:volum": "node tools/render-volum.mjs",
     "build:volum": "blender -b --factory-startup --python-exit-code 1 --python experiments/cleopa-volum/scripts/build_volum.py && python3 experiments/cleopa-volum/scripts/foi.py",
-    "cadru": "node tools/cadru.mjs"
+    "cadru": "node tools/cadru.mjs",
+    "assets": "blender -b --factory-startup --python-exit-code 1 --python blender/characters/build_characters.py && blender -b --factory-startup --python-exit-code 1 --python blender/sets/build_sets.py",
+    "stills": "node tools/engine/stills.mjs",
+    "check:engine": "node tools/engine/check.mjs",
+    "compare": "python3 tools/engine/compare.py",
+    "export:mp4": "node tools/engine/export-mp4.mjs"
   },
   "dependencies": {
     "@vercel/blob": "^2.9.0",
