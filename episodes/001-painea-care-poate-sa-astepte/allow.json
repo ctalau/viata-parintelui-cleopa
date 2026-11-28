@@ -5,12 +5,5 @@
   "from": 1960,
   "to": 2045,
   "reason": "„Întâi ne rugăm”: vocea lui Tata din afara planului strâns pe Costică (regia filmului Blender)"
- },
- {
-  "kind": "hand_over_head",
-  "who": "tata-prag.R × mihai-bucatarie",
-  "from": 2515,
-  "to": 2590,
-  "reason": "„se uită în sus”: în urcare și în coborâre mâna lui Tata atinge 3–6 cadre marginea părului lui Mihai, care stă imediat în stânga lui; poza ținută e liberă (aceeași semnalare în check_overlaps.py, 12–19 %)"
  }
 ]

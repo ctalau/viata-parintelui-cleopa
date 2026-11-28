@@ -16,7 +16,7 @@ audio. Același cod randează playerul web, cadrele de verificare și MP4-ul.
 | `gestures.js` | biblioteca de gesturi reutilizabile (relative la umăr și la lungimea brațului) |
 | `lipsync.js` | gura după anvelopa vocii și textul replicii (ca `voice()` din Blender) |
 | `overlays.js` | titluri, bule, sigla (atașate camerei, deci și în MP4) |
-| `tracks.js` | interpolări pure (cubică monotonă, pas, liniar) |
+| `tracks.js` | interpolări pure (curbă monotonă de gradul cinci, pas, liniar) |
 | `checks.js` | verificările pe scena reală |
 
 ## Determinism
@@ -31,7 +31,9 @@ schimbări de poză). Playerul poate sări oriunde, iar exportul poate randa cad
 Ca în episodul Blender ([specificația palmelor](../experiments/cleopa-palme/SPECIFICATIE.md)): fiecare
 poză-cheie a brațului (încheietura și direcția degetelor, în spațiul rigului) se rezolvă o dată cu IK 3D;
 între poze se interpolează unghiurile umărului, cotului și încheieturii și cât vine fiecare segment spre
-cameră (cubică monotonă), deci mâna merge pe arc și cotul nu sare. Palma C se desenează din proxy-ul
+cameră. Brațele, capul, deplasarea și tranzițiile palmei folosesc curbe cu accelerare la pornire și
+decelerare spre repaus. Curba păstrează viteza prin cheile intermediare când mișcarea continuă în aceeași
+direcție și ajunge la viteză zero în repaus sau la schimbarea sensului. Palma C se desenează din proxy-ul
 mâinii: piesele sub manșetă sau peste ea, degetul mare peste taler, unghiile numai pe dosul degetelor,
 liniile palmei numai pe partea palmei. Mâna la față (semnul crucii, obrazul) și mâinile pe masă trec în
 fața capului, respectiv a mesei, cu antebrațul și manșeta (rampa de adâncime a mânecii).
@@ -44,6 +46,7 @@ Paritatea cu Blender e testată: `tests/engine-fk.test.mjs`, `engine-arm25d.test
 `lib/engine/gestures.js` — un gest e o succesiune de poze relative la umăr (`in` spre mijlocul corpului,
 `up` în sus, ca fracții din lungimea brațului), cu poza mâinii și orientarea palmei. Se potrivește oricărui
 personaj. În descriptor: `"do": [{ "gesture": "stop", "side": "R", "at": 1773, "hold": 40 }]`.
+Gesturile care pornesc din repaus preiau poziția ținută de braț la sfârșitul gestului precedent.
 
 | gest | ce face |
 | --- | --- |
